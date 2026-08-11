@@ -1,0 +1,62 @@
+{
+  "name": "n8n-nodes-2kw",
+  "version": "5.3.0-dev.21",
+  "description": "n8n community node for the 2kw.ai platform (engineering name: Backbone)",
+  "license": "MIT",
+  "author": "Manfred Kunze Development <mk@manfred-kunze.dev>",
+  "homepage": "https://github.com/2kw-ai/n8n-nodes-2kw#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/2kw-ai/n8n-nodes-2kw.git"
+  },
+  "bugs": {
+    "url": "https://github.com/2kw-ai/n8n-nodes-2kw/issues"
+  },
+  "engines": {
+    "node": ">=20.15"
+  },
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run check-types && tsc && gulp build:icons",
+    "dev": "tsc --watch",
+    "lint": "tsc --noEmit",
+    "test": "npm run check-types && vitest run",
+    "test:watch": "vitest",
+    "sync-types": "tsx scripts/sync-openapi-types.ts",
+    "check-types": "tsx scripts/sync-openapi-types.ts --check",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist",
+    "index.js"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/TwoKwApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/TwoKw/TwoKw.node.js"
+    ]
+  },
+  "keywords": [
+    "n8n-community-node-package",
+    "n8n",
+    "2kw",
+    "backbone",
+    "ai",
+    "extraction"
+  ],
+  "dependencies": {},
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.17",
+    "gulp": "^5.0.1",
+    "n8n-workflow": "^1.120.13",
+    "tsx": "^4.21.1",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
+  }
+}

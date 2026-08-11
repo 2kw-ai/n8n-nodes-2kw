@@ -1,0 +1,11 @@
+{
+  "node": "n8n-nodes-base.twoKw",
+  "nodeVersion": "1.0",
+  "codexVersion": "1.0",
+  "categories": ["AI"],
+  "resources": {
+    "primaryDocumentation": [
+      { "url": "https://docs.2kw.ai/integrations/n8n" }
+    ]
+  }
+}

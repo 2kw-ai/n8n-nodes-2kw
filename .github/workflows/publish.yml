@@ -1,0 +1,75 @@
+# Publishes n8n-nodes-2kw to npmjs.org with a provenance statement.
+#
+# This file is NOT run by the backbone monorepo (that is GitLab-hosted). It is
+# mirrored out to github.com/2kw-ai/n8n-nodes-2kw by the `mirror:github` job in
+# .gitlab/n8n-ci.yml and runs there, in the public repo.
+#
+# It exists because n8n's verification guidelines require it, verbatim:
+#   "you must publish ALL community nodes using a GitHub action and include a
+#    provenance statement"
+# with a cut-off of 2026-05-01. A publish from GitLab CI — the obvious choice for
+# this monorepo, and what every sibling package does — cannot produce npm
+# provenance, so it would disqualify the node from the verified programme.
+#
+# The mirror push is the trigger: GitLab stamps package.json with the backbone
+# ${VERSION} and pushes to main, this runs, and the version guard below makes it a
+# no-op when that version is already on npm. That guard is what makes a mirror push
+# that changes only source (docs, tests) safe.
+name: publish
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # Required for npm provenance: the OIDC token is what npm uses to attest that
+  # this workflow, in this repo, at this commit, produced the tarball.
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: npm ci
+
+      # check-types detects that no sibling mcp/ exists here and accepts the
+      # committed generated/openapi.d.ts; the drift guard itself lives in the
+      # monorepo pipeline, which is the only place that can re-derive the file.
+      - run: npm test
+
+      - run: npm run build
+
+      - name: Resolve version and publish target
+        id: v
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if EXISTING=$(npm view "$NAME@$VERSION" version 2>/dev/null) && [ -n "$EXISTING" ]; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "$NAME@$VERSION is already on npm — nothing to do."
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+          # A prerelease version carries its channel in the identifier
+          # (5.3.0-dev.19 -> dev); a release version goes to latest.
+          case "$VERSION" in
+            *-*) echo "tag=$(echo "$VERSION" | sed 's/.*-\([a-zA-Z]*\).*/\1/')" >> "$GITHUB_OUTPUT" ;;
+            *)   echo "tag=latest" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Publish to npmjs.org with provenance
+        if: steps.v.outputs.published == 'false'
+        run: npm publish --provenance --access public --tag "${{ steps.v.outputs.tag }}"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

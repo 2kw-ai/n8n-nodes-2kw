@@ -1,0 +1,8 @@
+.gitignore
+tsconfig.json
+gulpfile.js
+vitest.config.ts
+nodes/**/__tests__/
+scripts/
+generated/
+*.tgz
