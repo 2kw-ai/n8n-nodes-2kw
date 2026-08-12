@@ -76,6 +76,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/agents/{agentId}/tool-catalogs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List tool-catalog history
+         * @description Newest first, optionally narrowed to one installation. The signed bytes and their signature are never returned.
+         */
+        get: operations["history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/agents/{agentId}/versions": {
         parameters: {
             query?: never;
@@ -1435,6 +1455,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/installations/{id}/embed-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read embed configuration
+         * @description Unauthenticated. The surface app calls this to compute the panel document's frame-ancestors policy, which must be set before any assertion exists.
+         */
+        get: operations["embedConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/installations/{id}/keys": {
         parameters: {
             query?: never;
@@ -1470,6 +1510,26 @@ export interface paths {
          * @description Stops the kid from verifying new assertions. The row is kept, not deleted, so assertions signed before the revocation stay explainable after the fact.
          */
         delete: operations["revokeKey"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/installations/{id}/origins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Replace embed origins
+         * @description Replaces the whole list of origins allowed to frame the embeddable panel. Send an empty array to revoke every origin.
+         */
+        put: operations["replaceOrigins"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2324,6 +2384,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/surface/agents/{agentId}/tool-catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the active catalog's identity
+         * @description Returns the active catalog's content hash and timestamps, or nulls when this installation has never synced.
+         */
+        get: operations["drift"];
+        put?: never;
+        /**
+         * Sync the signed tool catalog
+         * @description Verifies the manifest HMAC against the installation's registered secret, then stores the exact signed bytes. Byte-identical replays are idempotent; a manifest older than the active catalog is refused.
+         */
+        post: operations["sync"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/traces": {
         parameters: {
             query?: never;
@@ -2934,6 +3018,11 @@ export interface components {
             /** Format: int32 */
             versionNo?: number;
         };
+        EmbedConfigDTO: {
+            origins?: string[];
+            /** @enum {string} */
+            status?: "ACTIVE" | "DISABLED";
+        };
         EmbeddingModelDTO: {
             /** Format: int32 */
             dimensions?: number;
@@ -3374,6 +3463,9 @@ export interface components {
             /** Format: date */
             date?: string;
         };
+        OriginsDTO: {
+            origins?: string[];
+        };
         OutputTextContent: {
             type: "OutputTextContent";
         } & (Omit<components["schemas"]["ContentPart"], "type"> & {
@@ -3722,6 +3814,24 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
+        PageToolCatalogDTO: {
+            content?: components["schemas"]["ToolCatalogDTO"][];
+            empty?: boolean;
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            number?: number;
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            /** Format: int32 */
+            size?: number;
+            sort?: components["schemas"]["SortObject"];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
         PageTraceListDto: {
             content?: components["schemas"]["TraceListDto"][];
             empty?: boolean;
@@ -3994,6 +4104,9 @@ export interface components {
             regressed?: number;
             /** Format: int32 */
             unchanged?: number;
+        };
+        ReplaceOriginsRequest: {
+            origins: string[];
         };
         ResourceUsageDTO: {
             displayName?: string;
@@ -4422,6 +4535,36 @@ export interface components {
             id?: string;
             type?: string;
         };
+        ToolCatalogDTO: {
+            active?: boolean;
+            agentId?: string;
+            contentHash?: string;
+            /** Format: date-time */
+            generatedAt?: string;
+            id?: string;
+            installationId?: string;
+            /** Format: date-time */
+            syncedAt?: string;
+            syncedBy?: string;
+            /** Format: int32 */
+            toolCount?: number;
+        };
+        ToolCatalogDriftDTO: {
+            content_hash?: string;
+            /** Format: date-time */
+            generated_at?: string;
+            /** Format: date-time */
+            synced_at?: string;
+        };
+        ToolCatalogSyncRequest: {
+            manifest: string;
+            signature: string;
+        };
+        ToolCatalogSyncResponse: {
+            content_hash?: string;
+            /** Format: date-time */
+            synced_at?: string;
+        };
         TraceListDto: {
             /** Format: int64 */
             durationMs?: number;
@@ -4696,6 +4839,31 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    history: {
+        parameters: {
+            query: {
+                installationId?: string;
+                pageable: components["schemas"]["Pageable"];
+            };
+            header?: never;
+            path: {
+                agentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageToolCatalogDTO"];
+                };
             };
         };
     };
@@ -7023,6 +7191,46 @@ export interface operations {
             };
         };
     };
+    embedConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Embed configuration for the installation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EmbedConfigDTO"];
+                };
+            };
+            /** @description No installation with this id, or the installation is disabled */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EmbedConfigDTO"];
+                };
+            };
+            /** @description Rate limit exceeded for this id and caller address */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EmbedConfigDTO"];
+                };
+            };
+        };
+    };
     registerKey: {
         parameters: {
             query?: never;
@@ -7067,6 +7275,32 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    replaceOrigins: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceOriginsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["OriginsDTO"];
+                };
             };
         };
     };
@@ -8461,6 +8695,54 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SchemaVersionDTO"];
+                };
+            };
+        };
+    };
+    drift: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ToolCatalogDriftDTO"];
+                };
+            };
+        };
+    };
+    sync: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ToolCatalogSyncRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ToolCatalogSyncResponse"];
                 };
             };
         };
