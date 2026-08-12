@@ -3287,6 +3287,7 @@ export interface components {
             readonly lastModifiedAt?: string;
             name: string;
             organizationId?: string;
+            readonly origins?: string[];
             secret?: string;
             /** @enum {string} */
             status?: "ACTIVE" | "DISABLED";
@@ -3301,6 +3302,7 @@ export interface components {
             readonly lastModifiedAt?: string;
             name: string;
             organizationId?: string;
+            readonly origins?: string[];
             /** @enum {string} */
             status?: "ACTIVE" | "DISABLED";
             version?: string;
