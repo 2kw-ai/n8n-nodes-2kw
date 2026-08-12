@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { executeTranscription } from '../operations/transcription';
+import { executeTranscription } from '../nodes/TwoKw/operations/transcription';
 
 describe('Transcription resource', () => {
   it('Transcribe: uploads audio with model and optional fields', async () => {

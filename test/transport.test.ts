@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { apiRequest, extractResourceId } from '../transport';
+import { apiRequest, extractResourceId } from '../nodes/TwoKw/transport';
 
 describe('apiRequest', () => {
   it('builds URL with path params and dispatches via httpRequestWithAuthentication', async () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { methods } from '../methods';
+import { methods } from '../nodes/TwoKw/methods';
 
 function makeCtx(opts: {
   listResponse: unknown;

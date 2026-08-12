@@ -1,9 +1,12 @@
 {
   "name": "n8n-nodes-2kw",
-  "version": "5.3.0-dev.23",
+  "version": "5.3.0-dev.24",
   "description": "n8n community node for the 2kw.ai platform (engineering name: Backbone)",
   "license": "MIT",
-  "author": "Manfred Kunze Development <mk@manfred-kunze.dev>",
+  "author": {
+    "name": "Manfred Kunze Development",
+    "email": "mk@manfred-kunze.dev"
+  },
   "homepage": "https://github.com/2kw-ai/n8n-nodes-2kw#readme",
   "repository": {
     "type": "git",
@@ -19,7 +22,8 @@
   "scripts": {
     "build": "npm run check-types && tsc && gulp build:icons",
     "dev": "tsc --watch",
-    "lint": "tsc --noEmit",
+    "lint": "tsc --noEmit && npm run scan",
+    "scan": "node scripts/scan-source.mjs",
     "test": "npm run check-types && vitest run",
     "test:watch": "vitest",
     "sync-types": "tsx scripts/sync-openapi-types.ts",
@@ -52,6 +56,7 @@
     "n8n-workflow": "*"
   },
   "devDependencies": {
+    "@n8n/scan-community-package": "0.32.0",
     "@types/node": "^22.19.17",
     "gulp": "^5.0.1",
     "n8n-workflow": "^1.120.13",

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { splitConvertResponse } from '../splitConvert';
+import { splitConvertResponse } from '../nodes/TwoKw/splitConvert';
 
 describe('splitConvertResponse', () => {
   it('returns one item per document with _response metadata attached', () => {

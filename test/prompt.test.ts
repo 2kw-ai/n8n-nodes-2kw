@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { executePrompt } from '../operations/prompt';
+import { executePrompt } from '../nodes/TwoKw/operations/prompt';
 
 function makeCtx(params: Record<string, unknown>, mockFn = vi.fn().mockResolvedValue({})) {
   return {

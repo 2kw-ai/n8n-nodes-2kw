@@ -119,8 +119,24 @@ npm install
 npm run sync-types       # copy OpenAPI types from mcp/
 npm run dev              # tsc --watch
 npm test                 # vitest
+npm run lint             # tsc --noEmit + n8n community-package scan
+npm run scan             # the scan on its own
 npm run build            # tsc + gulp icons
 ```
+
+`npm run scan` runs n8n's own `@n8n/scan-community-package` rule set against this
+working tree. Passing it is a requirement of n8n's verified-node programme, and
+the published `npx @n8n/scan-community-package n8n-nodes-2kw` form of it only
+accepts an already-published package — so this is the pre-merge equivalent, run
+on the source the scanner would otherwise fetch from the mirror. Two consequences
+worth knowing:
+
+- **Tests live in `test/`, not next to the code.** The scanner lints
+  `{nodes,credentials}/**` with inline configuration disabled, so a fixture like
+  `{ name: 'prod (v9)', value: 'v-9' }` under `nodes/` is read as a node
+  parameter and fails a naming rule that cannot be suppressed.
+- **The timer globals are off limits.** Use `sleep` from `n8n-workflow` rather
+  than `setTimeout`; n8n Cloud restricts them for community nodes.
 
 Type drift check fails the build if `generated/openapi.d.ts` no longer matches `mcp/src/generated/openapi.d.ts`. Run `npm run sync-types` after any MCP regeneration. In a standalone checkout of the mirror there is no `mcp/` to compare against, so the check accepts the committed copy and the drift guard runs in the monorepo pipeline only.
 

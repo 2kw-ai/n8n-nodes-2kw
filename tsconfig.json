@@ -14,5 +14,5 @@
     "sourceMap": true
   },
   "include": ["credentials/**/*", "nodes/**/*", "generated/**/*"],
-  "exclude": ["node_modules", "dist", "**/__tests__/**", "scripts/**"]
+  "exclude": ["node_modules", "dist", "test/**", "scripts/**"]
 }

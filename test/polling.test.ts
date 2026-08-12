@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { pollUntilTerminal } from '../polling';
+import { pollUntilTerminal } from '../nodes/TwoKw/polling';
 
 describe('pollUntilTerminal', () => {
 	it('returns the first response whose status is in terminalStatuses', async () => {
@@ -45,6 +45,38 @@ describe('pollUntilTerminal', () => {
 			}),
 		).rejects.toThrow(/timeout/i);
 		expect(fetch).toHaveBeenCalled();
+	});
+
+	// pollUntilTerminal waits via `sleep` from n8n-workflow rather than a bare
+	// `setTimeout`, which n8n's community-node scan forbids (#363). `sleep` is a
+	// thin promisified setTimeout, so the timing contract has to be asserted
+	// directly — a swap that silently stopped waiting would still pass every
+	// test above.
+	it('waits intervalMs between attempts', async () => {
+		vi.useFakeTimers();
+		try {
+			const statuses = ['PROCESSING', 'PROCESSING', 'COMPLETED'];
+			const calledAt: number[] = [];
+			let i = 0;
+			const fetch = vi.fn(async () => {
+				calledAt.push(Date.now());
+				return { status: statuses[i++] };
+			});
+
+			const pending = pollUntilTerminal(fetch, {
+				intervalMs: 250,
+				timeoutMs: 10_000,
+				terminalStatuses: ['COMPLETED'],
+			});
+			await vi.runAllTimersAsync();
+			await pending;
+
+			expect(fetch).toHaveBeenCalledTimes(3);
+			expect(calledAt[1] - calledAt[0]).toBe(250);
+			expect(calledAt[2] - calledAt[1]).toBe(250);
+		} finally {
+			vi.useRealTimers();
+		}
 	});
 
 	it('propagates fetch errors', async () => {

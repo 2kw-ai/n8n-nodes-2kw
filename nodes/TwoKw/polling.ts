@@ -1,3 +1,5 @@
+import { sleep } from 'n8n-workflow';
+
 export interface PollOptions {
 	intervalMs: number;
 	timeoutMs: number;
@@ -20,6 +22,8 @@ export async function pollUntilTerminal<T extends { status?: string }>(
 				`Polling timeout after ${opts.timeoutMs}ms — last status: ${result.status ?? '<unknown>'}`,
 			);
 		}
-		await new Promise((resolve) => setTimeout(resolve, opts.intervalMs));
+		// `sleep`, not a bare setTimeout: n8n Cloud restricts the timer globals in
+		// community nodes, and its scan rejects the package outright (#363).
+		await sleep(opts.intervalMs);
 	}
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { executeExtraction } from '../operations/extraction';
+import { executeExtraction } from '../nodes/TwoKw/operations/extraction';
 
 function makeCtx(params: Record<string, unknown>, mockFn = vi.fn().mockResolvedValue({})) {
   return {

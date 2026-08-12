@@ -11,11 +11,13 @@ export const resourceField: INodeProperties = {
   type: 'options',
   noDataExpression: true,
   default: 'schema',
+  // Alphabetical, not workflow order: n8n's community-node scan enforces
+  // `node-param-options-type-unsorted-items` (#363).
   options: [
-    { name: 'Schema', value: 'schema' },
-    { name: 'Prompt', value: 'prompt' },
-    { name: 'Extraction', value: 'extraction' },
     { name: 'Document', value: 'document' },
+    { name: 'Extraction', value: 'extraction' },
+    { name: 'Prompt', value: 'prompt' },
+    { name: 'Schema', value: 'schema' },
     { name: 'Transcription', value: 'transcription' },
   ],
 };

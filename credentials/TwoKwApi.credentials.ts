@@ -1,5 +1,6 @@
 import {
   IAuthenticateGeneric,
+  Icon,
   ICredentialTestRequest,
   ICredentialType,
   INodeProperties,
@@ -9,6 +10,11 @@ export class TwoKwApi implements ICredentialType {
   name = '2kwApi';
   displayName = '2kw API';
   documentationUrl = 'https://docs.2kw.ai';
+  // Deliberately a copy of the node's icon rather than a `../nodes/...` path:
+  // n8n resolves `file:` icons relative to the compiled file, and the
+  // credential lands in dist/credentials/ while the node icon lands in
+  // dist/nodes/TwoKw/ (#363).
+  icon: Icon = { light: 'file:icon.light.svg', dark: 'file:icon.dark.svg' };
 
   properties: INodeProperties[] = [
     {

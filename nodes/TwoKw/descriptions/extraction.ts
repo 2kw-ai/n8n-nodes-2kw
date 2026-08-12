@@ -109,7 +109,8 @@ export const extractionFields: INodeProperties[] = [
     name: 'useBinaryImages',
     type: 'boolean',
     default: false,
-    description: 'Read images from binary properties on the input item (vision extraction)',
+    description:
+      'Whether to read images from binary properties on the input item (vision extraction)',
     displayOptions: { show: { resource: ['extraction'], operation: ['run'] } },
   },
   {
@@ -128,7 +129,7 @@ export const extractionFields: INodeProperties[] = [
     type: 'boolean',
     default: true,
     description:
-      'Submit asynchronously and poll until the extraction completes. Recommended for documents that take longer than ~30 seconds.',
+      'Whether to submit asynchronously and poll until the extraction completes. Recommended for documents that take longer than ~30 seconds.',
     displayOptions: { show: { resource: ['extraction'], operation: ['run'] } },
   },
   {

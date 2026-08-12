@@ -105,7 +105,8 @@ export const documentFields: INodeProperties[] = [
       { name: 'OCR', value: 'ocr' },
       { name: 'VLM', value: 'vlm' },
     ],
-    description: 'fast (text-heavy), ocr (scanned), vlm (image-heavy / complex layout)',
+    description:
+      'Fast for text-heavy files, OCR for scans, VLM for image-heavy or complex layouts',
     displayOptions: { show: { resource: ['document'], operation: ['convertSource'] } },
   },
   {

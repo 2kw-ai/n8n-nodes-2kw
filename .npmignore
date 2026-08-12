@@ -2,7 +2,7 @@
 tsconfig.json
 gulpfile.js
 vitest.config.ts
-nodes/**/__tests__/
+test/
 scripts/
 generated/
 *.tgz

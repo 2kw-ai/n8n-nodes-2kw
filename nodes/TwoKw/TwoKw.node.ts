@@ -7,6 +7,7 @@ import {
   NodeOperationError,
 } from 'n8n-workflow';
 import { resourceField, resourceProperties } from './descriptions';
+import { toNodeError } from './errors';
 import { methods } from './methods';
 import { executeSchema } from './operations/schema';
 import { executePrompt } from './operations/prompt';
@@ -30,9 +31,13 @@ export class TwoKw implements INodeType {
   description: INodeTypeDescription = {
     displayName: '2kw',
     name: 'twoKw',
-    icon: 'file:icon.svg',
+    icon: { light: 'file:icon.light.svg', dark: 'file:icon.dark.svg' },
     group: ['transform'],
     version: 1,
+    // Every operation here is a request the model can usefully make on its own
+    // behalf (extract, convert, transcribe, read a schema), so the node is
+    // offered in the AI Agent tool picker.
+    usableAsTool: true,
     subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
     description: 'Use 2kw.ai (Backbone) for AI extraction, prompts, and more',
     defaults: { name: '2kw' },
@@ -67,7 +72,7 @@ export class TwoKw implements INodeType {
           returnData.push({ json: { error: (error as Error).message }, pairedItem: i });
           continue;
         }
-        throw error;
+        throw toNodeError(this.getNode(), error, i);
       }
     }
 

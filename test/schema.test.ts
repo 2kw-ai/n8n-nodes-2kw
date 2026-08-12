@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { executeSchema } from '../operations/schema';
+import { executeSchema } from '../nodes/TwoKw/operations/schema';
 
 describe('Schema resource', () => {
   it('Get: accepts plain string schema id (back-compat)', async () => {

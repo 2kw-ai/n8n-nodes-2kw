@@ -57,8 +57,8 @@ export const transcriptionFields: INodeProperties[] = [
     default: 'json',
     options: [
       { name: 'JSON', value: 'json' },
-      { name: 'Text', value: 'text' },
       { name: 'SRT', value: 'srt' },
+      { name: 'Text', value: 'text' },
       { name: 'Verbose JSON', value: 'verbose_json' },
       { name: 'VTT', value: 'vtt' },
     ],

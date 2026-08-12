@@ -73,3 +73,33 @@ jobs:
         run: npm publish --provenance --access public --tag "${{ steps.v.outputs.tag }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # The gate for n8n's verified programme, run end to end on what was just
+      # published: provenance, the attested source checkout, and the tarball.
+      # The monorepo pipeline already ran the source leg pre-merge (`npm run
+      # scan`), so this should only ever fail on something that leg cannot see —
+      # a build output that diverges from its source, or a broken attestation.
+      #
+      # It runs after the publish because it cannot run before one: the scanner
+      # starts from the npm attestation. A red here therefore means a released
+      # version is not submittable, not that a release was stopped — which is
+      # exactly the signal that was missing when 5.3.0-dev.22 shipped and only
+      # failed the scan later, by hand (#363).
+      #
+      # Pinned to the same version as the devDependency the pre-merge leg uses.
+      # Floating would let an upstream rule addition turn an unrelated release
+      # red; bumping both together is a deliberate act with a diff to read.
+      - name: Verify against n8n's community-package scan
+        if: steps.v.outputs.published == 'false'
+        run: |
+          # npm's attestation endpoint lags the publish by a few seconds.
+          for attempt in 1 2 3 4 5; do
+            if npx -y @n8n/scan-community-package@0.32.0 \
+                 "${{ steps.v.outputs.name }}@${{ steps.v.outputs.version }}"; then
+              exit 0
+            fi
+            echo "Scan attempt $attempt failed; retrying in 20s."
+            sleep 20
+          done
+          echo "::error::n8n community-package scan failed for ${{ steps.v.outputs.name }}@${{ steps.v.outputs.version }} — this version cannot be submitted to the verified-node programme."
+          exit 1

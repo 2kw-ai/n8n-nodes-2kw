@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { executeDocument } from '../operations/document';
+import { executeDocument } from '../nodes/TwoKw/operations/document';
 
 describe('Document resource', () => {
   it('Convert: uploads binary file as multipart and splits response into per-document items', async () => {
