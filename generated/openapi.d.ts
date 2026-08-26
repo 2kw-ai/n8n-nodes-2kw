@@ -1464,7 +1464,7 @@ export interface paths {
         };
         /**
          * Read embed configuration
-         * @description Unauthenticated. The surface app calls this to compute the panel document's frame-ancestors policy, which must be set before any assertion exists.
+         * @description Unauthenticated. The surface app calls this to compute the panel document's frame-ancestors policy, which must be set before any assertion exists. With ?agent= it also answers that agent's display name when the agent belongs to the installation's organisation; otherwise agentName is null and the document is served all the same.
          */
         get: operations["embedConfig"];
         put?: never;
@@ -3019,6 +3019,11 @@ export interface components {
             versionNo?: number;
         };
         EmbedConfigDTO: {
+            /**
+             * @description Display name of the agent named by ?agent=, when it belongs to this installation's organisation
+             * @default
+             */
+            agentName: string | null;
             origins?: string[];
             /** @enum {string} */
             status?: "ACTIVE" | "DISABLED";
@@ -7195,7 +7200,9 @@ export interface operations {
     };
     embedConfig: {
         parameters: {
-            query?: never;
+            query?: {
+                agent?: string;
+            };
             header?: never;
             path: {
                 id: string;
