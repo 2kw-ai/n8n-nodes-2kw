@@ -650,6 +650,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/conversations/{conversationId}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List conversation items
+         * @description Fetch a conversation's items in replay order, oldest first.
+         */
+        get: operations["listConversationItems"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/convert/file": {
         parameters: {
             query?: never;
@@ -2812,6 +2832,13 @@ export interface components {
         ConversationDeletedResource: {
             deleted?: boolean;
             id?: string;
+            object?: string;
+        };
+        ConversationItemListResource: {
+            data?: components["schemas"]["JsonNode"][];
+            first_id?: string;
+            has_more?: boolean;
+            last_id?: string;
             object?: string;
         };
         ConversationResource: {
@@ -5884,6 +5911,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ConversationDeletedResource"];
+                };
+            };
+        };
+    };
+    listConversationItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConversationItemListResource"];
                 };
             };
         };
