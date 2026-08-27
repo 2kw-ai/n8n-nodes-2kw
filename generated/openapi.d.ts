@@ -1502,7 +1502,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List verification keys
+         * @description Every Ed25519 verification key registered for this installation, oldest first. Revoked keys are included with their revokedAt set — the row is kept so an assertion signed before the rotation stays explainable. publicKeyBase64 is the public half and is returned: it is what the fingerprint an operator compares against the host's Enrolment tab is derived from.
+         */
+        get: operations["listInstallationKeys"];
         put?: never;
         /**
          * Register verification key
@@ -2439,7 +2443,7 @@ export interface paths {
         put?: never;
         /**
          * Sync the signed tool catalog
-         * @description Verifies the manifest HMAC against the installation's registered secret, then stores the exact signed bytes. Byte-identical replays are idempotent; a manifest older than the active catalog is refused.
+         * @description Verifies the manifest signature — Ed25519 against the installation key named by `kid`, or, when `kid` is absent, HMAC-SHA256 against the installation's registered secret — then stores the exact signed bytes. Byte-identical replays are idempotent; a manifest older than the active catalog is refused.
          */
         post: operations["sync"];
         delete?: never;
@@ -3389,7 +3393,7 @@ export interface components {
             readonly origins?: string[];
             pairingCode?: string;
             /** Format: date-time */
-            pairingExpiresAt?: string;
+            readonly pairingExpiresAt?: string;
             pairingString?: string;
             /** @enum {string} */
             status?: "PENDING" | "ACTIVE" | "DISABLED";
@@ -3407,6 +3411,8 @@ export interface components {
             name: string;
             organizationId?: string;
             readonly origins?: string[];
+            /** Format: date-time */
+            readonly pairingExpiresAt?: string;
             /** @enum {string} */
             status?: "PENDING" | "ACTIVE" | "DISABLED";
             version?: string;
@@ -4670,6 +4676,11 @@ export interface components {
             synced_at?: string;
         };
         ToolCatalogSyncRequest: {
+            /**
+             * @description Installation key id that Ed25519-signed the manifest. Absent: the signature is the legacy hex HMAC-SHA256 keyed with the installation secret.
+             * @default
+             */
+            kid: string | null;
             manifest: string;
             signature: string;
         };
@@ -7370,6 +7381,37 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["EmbedConfigDTO"];
+                };
+            };
+        };
+    };
+    listInstallationKeys: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The installation's keys, active and revoked */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["InstallationKeyDTO"][];
+                };
+            };
+            /** @description Not an installation of this organisation */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["InstallationKeyDTO"][];
                 };
             };
         };
