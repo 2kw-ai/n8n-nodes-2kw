@@ -2932,7 +2932,7 @@ export interface components {
         };
         CreateResponseBody: {
             conversation?: string;
-            input?: (components["schemas"]["CitationItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ReasoningItem"])[];
+            input?: (components["schemas"]["CitationItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ReasoningItem"])[];
             instructions?: string;
             /** Format: int32 */
             max_output_tokens?: number;
@@ -2958,6 +2958,13 @@ export interface components {
             changeDescription?: string;
             jsonSchema: components["schemas"]["JsonNode"];
         };
+        CtxItem: {
+            type: "CtxItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            ctx_id?: string;
+            ctx_type?: string;
+            id?: string;
+        });
         DatasetDTO: {
             /** Format: date-time */
             readonly createdAt?: string;
@@ -4641,8 +4648,13 @@ export interface components {
         };
         ToolCatalogSyncResponse: {
             content_hash?: string;
+            /** Format: int32 */
+            core_count?: number;
+            discovery?: string;
             /** Format: date-time */
             synced_at?: string;
+            /** Format: int32 */
+            tool_count?: number;
         };
         TraceListDto: {
             /** Format: int64 */
