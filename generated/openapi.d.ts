@@ -1416,13 +1416,13 @@ export interface paths {
         };
         /**
          * List installations
-         * @description Paginated list; the signing secret is never included.
+         * @description Paginated list; the signing secret is never included. With ?agentId= only the installations of that agent.
          */
         get: operations["find_3"];
         put?: never;
         /**
          * Register installation
-         * @description Creates an installation and returns the generated signing secret — the only time it is ever readable. Copy it into the connector module now.
+         * @description Creates an installation bound to the agentId in the body — required, and the one agent this installation may embed. It starts PENDING and holds no host credential yet. The response carries the first pairing string (pairingString, valid ten minutes, single-use) together with pairingCode, pairingExpiresAt and surfaceOrigin; the host redeems the string on POST /v1/surface/enrol, which is what activates the installation. The signing secret is never returned here.
          */
         post: operations["register"];
         delete?: never;
@@ -1529,6 +1529,26 @@ export interface paths {
          */
         put: operations["replaceOrigins"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/installations/{id}/pairing-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Issue a pairing code
+         * @description Replaces any outstanding code. Allowed on PENDING and ACTIVE installations; an ACTIVE host re-pairs to add a key without losing the ones it has.
+         */
+        post: operations["issuePairingCode"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2408,6 +2428,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/surface/enrol": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Redeem a pairing code
+         * @description Unauthenticated. Registers the host's Ed25519 key and origin, activates the installation, and returns what the host must store. The code is single-use and valid ten minutes; the proof is the host's signature over code\nkid\npublicKey\norigin.
+         */
+        post: operations["enrol"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/traces": {
         parameters: {
             query?: never;
@@ -3026,7 +3066,7 @@ export interface components {
             agentName: string | null;
             origins?: string[];
             /** @enum {string} */
-            status?: "ACTIVE" | "DISABLED";
+            status?: "PENDING" | "ACTIVE" | "DISABLED";
         };
         EmbeddingModelDTO: {
             /** Format: int32 */
@@ -3036,6 +3076,25 @@ export interface components {
         EmbeddingModelsResponse: {
             models?: components["schemas"]["EmbeddingModelDTO"][];
             supportedDimensions?: number[];
+        };
+        EnrolRequest: {
+            code: string;
+            kid: string;
+            origin: string;
+            proof: string;
+            publicKey: string;
+        };
+        EnrolResponse: {
+            activeKids?: string[];
+            agentId?: string;
+            backboneOrigin?: string;
+            installationId?: string;
+            /**
+             * @description Present only while the HMAC secret exists (spec D7); absent once review cut B-1 lands
+             * @default
+             */
+            secret: string | null;
+            surfaceOrigin?: string;
         };
         ErrorItem: {
             componentType?: string;
@@ -3284,6 +3343,7 @@ export interface components {
             text?: string;
         });
         InstallationCreatedDTO: {
+            agentId?: string;
             /** Format: date-time */
             readonly createdAt?: string;
             description?: string;
@@ -3293,12 +3353,17 @@ export interface components {
             name: string;
             organizationId?: string;
             readonly origins?: string[];
-            secret?: string;
+            pairingCode?: string;
+            /** Format: date-time */
+            pairingExpiresAt?: string;
+            pairingString?: string;
             /** @enum {string} */
-            status?: "ACTIVE" | "DISABLED";
+            status?: "PENDING" | "ACTIVE" | "DISABLED";
+            surfaceOrigin?: string;
             version?: string;
         };
         InstallationDTO: {
+            agentId?: string;
             /** Format: date-time */
             readonly createdAt?: string;
             description?: string;
@@ -3309,7 +3374,7 @@ export interface components {
             organizationId?: string;
             readonly origins?: string[];
             /** @enum {string} */
-            status?: "ACTIVE" | "DISABLED";
+            status?: "PENDING" | "ACTIVE" | "DISABLED";
             version?: string;
         };
         InstallationKeyDTO: {
@@ -3874,6 +3939,13 @@ export interface components {
             paged?: boolean;
             sort?: components["schemas"]["SortObject"];
             unpaged?: boolean;
+        };
+        PairingCodeDTO: {
+            pairingCode?: string;
+            /** Format: date-time */
+            pairingExpiresAt?: string;
+            pairingString?: string;
+            surfaceOrigin?: string;
         };
         /**
          * @description Pipeline options. Most apply to ocr/vlm pipelines. imageExportMode also applies on 'fast' when compound file attachments require advanced processing.
@@ -7106,7 +7178,8 @@ export interface operations {
         parameters: {
             query: {
                 search?: string;
-                status?: "ACTIVE" | "DISABLED";
+                status?: "PENDING" | "ACTIVE" | "DISABLED";
+                agentId?: string;
                 pageable: components["schemas"]["Pageable"];
             };
             header?: never;
@@ -7309,6 +7382,55 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["OriginsDTO"];
+                };
+            };
+        };
+    };
+    issuePairingCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Fresh code, valid ten minutes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PairingCodeDTO"];
+                };
+            };
+            /** @description Installation has no agent bound */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PairingCodeDTO"];
+                };
+            };
+            /** @description Not an installation of this organisation */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PairingCodeDTO"];
+                };
+            };
+            /** @description Installation is disabled */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PairingCodeDTO"];
                 };
             };
         };
@@ -8752,6 +8874,66 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ToolCatalogSyncResponse"];
+                };
+            };
+        };
+    };
+    enrol: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnrolRequest"];
+            };
+        };
+        responses: {
+            /** @description Enrolled */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EnrolResponse"];
+                };
+            };
+            /** @description Proof does not verify, or the origin or key is malformed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EnrolResponse"];
+                };
+            };
+            /** @description Pairing code invalid, expired or already used */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EnrolResponse"];
+                };
+            };
+            /** @description Kid already registered, or two keys already active */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EnrolResponse"];
+                };
+            };
+            /** @description Too many attempts from this address */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EnrolResponse"];
                 };
             };
         };
