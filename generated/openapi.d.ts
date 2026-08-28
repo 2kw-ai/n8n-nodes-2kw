@@ -4676,11 +4676,7 @@ export interface components {
             synced_at?: string;
         };
         ToolCatalogSyncRequest: {
-            /**
-             * @description Installation key id that Ed25519-signed the manifest. Absent: the signature is the legacy hex HMAC-SHA256 keyed with the installation secret.
-             * @default
-             */
-            kid: string | null;
+            kid?: string;
             manifest: string;
             signature: string;
         };
