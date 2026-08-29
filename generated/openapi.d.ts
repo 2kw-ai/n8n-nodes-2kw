@@ -1436,13 +1436,13 @@ export interface paths {
         };
         /**
          * List installations
-         * @description Paginated list; the signing secret is never included. With ?agentId= only the installations of that agent.
+         * @description Paginated list. With ?agentId= only the installations of that agent.
          */
         get: operations["find_3"];
         put?: never;
         /**
          * Register installation
-         * @description Creates an installation bound to the agentId in the body — required, and the one agent this installation may embed. It starts PENDING and holds no host credential yet. The response carries the first pairing string (pairingString, valid ten minutes, single-use) together with pairingCode, pairingExpiresAt and surfaceOrigin; the host redeems the string on POST /v1/surface/enrol, which is what activates the installation. The signing secret is never returned here.
+         * @description Creates an installation bound to the agentId in the body — required, and the one agent this installation may embed. It starts PENDING and holds no host credential yet. The response carries the first pairing string (pairingString, valid ten minutes, single-use) together with pairingCode, pairingExpiresAt and surfaceOrigin; the host redeems the string on POST /v1/surface/enrol, which is what activates the installation. Backbone holds no credential for the installation — the host registers its own Ed25519 key at enrol.
          */
         post: operations["register"];
         delete?: never;
@@ -1460,12 +1460,12 @@ export interface paths {
         };
         /**
          * Get installation
-         * @description Single installation by id; the signing secret is never included.
+         * @description Single installation by id.
          */
         get: operations["get_2"];
         /**
          * Update installation
-         * @description Updates name, description, or status. DISABLED refuses catalog sync and skips catalog resolution. The secret cannot be changed here.
+         * @description Updates name, description, or status. DISABLED refuses catalog sync and skips catalog resolution.
          */
         put: operations["update_2"];
         post?: never;
@@ -1573,26 +1573,6 @@ export interface paths {
          * @description Replaces any outstanding code. Allowed on PENDING and ACTIVE installations; an ACTIVE host re-pairs to add a key without losing the ones it has.
          */
         post: operations["issuePairingCode"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/installations/{id}/secret": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Regenerate signing secret
-         * @description Replaces the signing secret and returns the new value once. Future manifest syncs must use it; previously accepted catalogs stay valid.
-         */
-        post: operations["regenerateSecret"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2443,7 +2423,7 @@ export interface paths {
         put?: never;
         /**
          * Sync the signed tool catalog
-         * @description Verifies the manifest signature — Ed25519 against the installation key named by `kid`, or, when `kid` is absent, HMAC-SHA256 against the installation's registered secret — then stores the exact signed bytes. Byte-identical replays are idempotent; a manifest older than the active catalog is refused.
+         * @description Verifies the manifest signature — Ed25519 against the installation key named by `kid`, which is required — then stores the exact signed bytes. Byte-identical replays are idempotent; a manifest older than the active catalog is refused.
          */
         post: operations["sync"];
         delete?: never;
@@ -3127,11 +3107,6 @@ export interface components {
             agentId?: string;
             backboneOrigin?: string;
             installationId?: string;
-            /**
-             * @description Present only while the HMAC secret exists (spec D7); absent once review cut B-1 lands
-             * @default
-             */
-            secret: string | null;
             surfaceOrigin?: string;
         };
         ErrorItem: {
@@ -3428,9 +3403,6 @@ export interface components {
             publicKeyBase64?: string;
             /** Format: date-time */
             revokedAt?: string;
-        };
-        InstallationSecretDTO: {
-            secret?: string;
         };
         Item: {
             subjectId: string;
@@ -4677,7 +4649,7 @@ export interface components {
             synced_at?: string;
         };
         ToolCatalogSyncRequest: {
-            kid?: string;
+            kid: string;
             manifest: string;
             signature: string;
         };
@@ -5842,8 +5814,17 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description The created conversation */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConversationResource"];
+                };
+            };
+            /** @description Surface creation rate exceeded for this installation and end-user */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7535,28 +7516,6 @@ export interface operations {
             };
         };
     };
-    regenerateSecret: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["InstallationSecretDTO"];
-                };
-            };
-        };
-    };
     list: {
         parameters: {
             query: {
@@ -8495,8 +8454,18 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description The completed response */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                    "text/event-stream": Record<string, never>;
+                };
+            };
+            /** @description Surface turn rate exceeded for this installation and end-user */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
