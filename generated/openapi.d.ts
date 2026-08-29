@@ -3326,6 +3326,7 @@ export interface components {
             type: "FunctionCallOutputItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
             call_id?: string;
+            failed?: boolean;
             id?: string;
             output?: string;
             status?: string;
