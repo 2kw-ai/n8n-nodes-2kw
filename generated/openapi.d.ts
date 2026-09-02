@@ -21,7 +21,7 @@ export interface paths {
          * Create agent
          * @description Create a new agent for the current organization.
          */
-        post: operations["create_9"];
+        post: operations["create_10"];
         delete?: never;
         options?: never;
         head?: never;
@@ -332,10 +332,10 @@ export interface paths {
             cookie?: never;
         };
         /** List annotation queues */
-        get: operations["list_3"];
+        get: operations["list_4"];
         put?: never;
         /** Create an annotation queue */
-        post: operations["create_8"];
+        post: operations["create_9"];
         delete?: never;
         options?: never;
         head?: never;
@@ -615,7 +615,7 @@ export interface paths {
          * Create conversation
          * @description Create a conversation whose id can be passed as the 'conversation' parameter on POST /v1/responses.
          */
-        post: operations["create_7"];
+        post: operations["create_8"];
         delete?: never;
         options?: never;
         head?: never;
@@ -807,7 +807,7 @@ export interface paths {
          * Create dataset
          * @description Create a new dataset.
          */
-        post: operations["create_6"];
+        post: operations["create_7"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1042,10 +1042,10 @@ export interface paths {
             cookie?: never;
         };
         /** List evaluator templates */
-        get: operations["list_2"];
+        get: operations["list_3"];
         put?: never;
         /** Create an evaluator template */
-        post: operations["create_5"];
+        post: operations["create_6"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1082,7 +1082,7 @@ export interface paths {
          * List evaluators
          * @description Retrieve all available evaluator types.
          */
-        get: operations["list_4"];
+        get: operations["list_5"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1108,7 +1108,7 @@ export interface paths {
          * Create experiment
          * @description Create a new experiment.
          */
-        post: operations["create_4"];
+        post: operations["create_5"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1421,6 +1421,74 @@ export interface paths {
          * @description Re-run an existing extraction with the same configuration. Creates a new extraction result.
          */
         post: operations["rerunExtraction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List files
+         * @description List the organization's files as a page, newest first by default, optionally narrowed by purpose.
+         */
+        get: operations["list_2"];
+        put?: never;
+        /**
+         * Upload file
+         * @description Store one file and return its id. purpose=agent_input files expire after the configured TTL unless referenced by a turn; purpose=knowledge is for organization members only. Size and per-end-user quotas apply.
+         */
+        post: operations["create_4"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/files/{fileId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve file
+         * @description Fetch a file's metadata by id.
+         */
+        get: operations["retrieve_1"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete file
+         * @description Soft-delete an agent_input file. Knowledge files are deleted with their document.
+         */
+        delete: operations["delete_10"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/files/{fileId}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download file content
+         * @description Stream the file's bytes as an attachment.
+         */
+        get: operations["content"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3268,6 +3336,23 @@ export interface components {
             grounding?: components["schemas"]["FieldScore"];
             provenance?: string[];
         };
+        FileDeletedResource: {
+            deleted?: boolean;
+            id?: string;
+            object?: string;
+        };
+        FileResource: {
+            /** Format: int64 */
+            bytes?: number;
+            /** Format: int64 */
+            created_at?: number;
+            /** Format: int64 */
+            expires_at?: number;
+            filename?: string;
+            id?: string;
+            object?: string;
+            purpose?: string;
+        };
         FlagOutcome: {
             /** Format: double */
             confidence?: number;
@@ -3721,6 +3806,24 @@ export interface components {
         };
         PageExtractionDTO: {
             content?: components["schemas"]["ExtractionDTO"][];
+            empty?: boolean;
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            number?: number;
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            /** Format: int32 */
+            size?: number;
+            sort?: components["schemas"]["SortObject"];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
+        PageFileResource: {
+            content?: components["schemas"]["FileResource"][];
             empty?: boolean;
             first?: boolean;
             last?: boolean;
@@ -4820,7 +4923,7 @@ export interface operations {
             };
         };
     };
-    create_9: {
+    create_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -5337,7 +5440,7 @@ export interface operations {
             };
         };
     };
-    list_3: {
+    list_4: {
         parameters: {
             query?: {
                 archived?: boolean;
@@ -5359,7 +5462,7 @@ export interface operations {
             };
         };
     };
-    create_8: {
+    create_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -5801,7 +5904,7 @@ export interface operations {
             };
         };
     };
-    create_7: {
+    create_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -6149,7 +6252,7 @@ export interface operations {
             };
         };
     };
-    create_6: {
+    create_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -6525,7 +6628,7 @@ export interface operations {
             };
         };
     };
-    list_2: {
+    list_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -6545,7 +6648,7 @@ export interface operations {
             };
         };
     };
-    create_5: {
+    create_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -6637,7 +6740,7 @@ export interface operations {
             };
         };
     };
-    list_4: {
+    list_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -6681,7 +6784,7 @@ export interface operations {
             };
         };
     };
-    create_4: {
+    create_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -7220,6 +7323,214 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ExtractionDTO"];
+                };
+            };
+        };
+    };
+    list_2: {
+        parameters: {
+            query: {
+                purpose?: string;
+                pageable: components["schemas"]["Pageable"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of file objects */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageFileResource"];
+                };
+            };
+            /** @description Unknown purpose */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageFileResource"];
+                };
+            };
+        };
+    };
+    create_4: {
+        parameters: {
+            query: {
+                purpose: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The file object */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FileResource"];
+                };
+            };
+            /** @description Unknown or not permitted purpose */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FileResource"];
+                };
+            };
+            /** @description File over the per-file limit */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FileResource"];
+                };
+            };
+            /** @description End-user file quota exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FileResource"];
+                };
+            };
+        };
+    };
+    retrieve_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The file object */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FileResource"];
+                };
+            };
+            /** @description Unknown id, foreign organization or foreign scope */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FileResource"];
+                };
+            };
+            /** @description The file was deleted or its TTL passed */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FileResource"];
+                };
+            };
+        };
+    };
+    delete_10: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FileDeletedResource"];
+                };
+            };
+            /** @description Unknown id, foreign organization or foreign scope */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FileDeletedResource"];
+                };
+            };
+            /** @description The file belongs to a knowledge base */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FileDeletedResource"];
+                };
+            };
+        };
+    };
+    content: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The file's bytes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+            /** @description Unknown id, foreign organization or foreign scope */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+            /** @description The file was deleted or its TTL passed */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
                 };
             };
         };
