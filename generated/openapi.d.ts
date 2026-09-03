@@ -28,6 +28,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/agents/{agentId}/approvals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List approvals
+         * @description Approvals raised by this agent, newest first. Filter with status=pending|approved|rejected|cancelled. A surface principal sees only their own.
+         */
+        get: operations["listAgentApprovals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/agents/{agentId}/labels": {
         parameters: {
             query?: never;
@@ -2732,6 +2752,25 @@ export interface components {
             /** @enum {string} */
             subjectType?: "RUN_RESULT" | "TRACE" | "SPAN" | "DATASET_ITEM";
         };
+        ApprovalRequestItem: {
+            type: "ApprovalRequestItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            arguments?: string;
+            call_id?: string;
+            hmac?: string;
+            id?: string;
+            policy_class?: string;
+            status?: string;
+            tool?: string;
+        });
+        ApprovalResponseItem: {
+            type: "ApprovalResponseItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            approval_id?: string;
+            decision?: string;
+            hmac?: string;
+            reason?: string;
+        });
         AvailableModelsResponse: {
             data?: components["schemas"]["ModelObject"][];
             object?: string;
@@ -3011,7 +3050,7 @@ export interface components {
         };
         CreateResponseBody: {
             conversation?: string;
-            input?: (components["schemas"]["CitationItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ReasoningItem"])[];
+            input?: (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ReasoningItem"])[];
             instructions?: string;
             /** Format: int32 */
             max_output_tokens?: number;
@@ -4002,6 +4041,24 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
+        PageToolApprovalDTO: {
+            content?: components["schemas"]["ToolApprovalDTO"][];
+            empty?: boolean;
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            number?: number;
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            /** Format: int32 */
+            size?: number;
+            sort?: components["schemas"]["SortObject"];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
         PageToolCatalogDTO: {
             content?: components["schemas"]["ToolCatalogDTO"][];
             empty?: boolean;
@@ -4725,6 +4782,34 @@ export interface components {
             function?: components["schemas"]["Function"];
             type?: string;
         };
+        ToolApprovalDTO: {
+            agentId?: string;
+            arguments?: string;
+            callId?: string;
+            conversationId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            decidedAt?: string;
+            decidedByPrincipal?: string;
+            decidedByScopeKey?: string;
+            /** Format: date-time */
+            executedAt?: string;
+            executionOutput?: string;
+            /** @enum {string} */
+            executionStatus?: "OK" | "FAILED" | "TIMEOUT";
+            hmac?: string;
+            id?: string;
+            organizationId?: string;
+            /** @enum {string} */
+            policyClass?: "READ" | "WRITE" | "DESTRUCTIVE";
+            reason?: string;
+            responseId?: string;
+            scopeKey?: string;
+            /** @enum {string} */
+            status?: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | "EXPIRED";
+            tool?: string;
+        };
         ToolCall: {
             function?: components["schemas"]["Function"];
             id?: string;
@@ -4943,6 +5028,31 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AgentDTO"];
+                };
+            };
+        };
+    };
+    listAgentApprovals: {
+        parameters: {
+            query: {
+                status?: string;
+                pageable: components["schemas"]["Pageable"];
+            };
+            header?: never;
+            path: {
+                agentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageToolApprovalDTO"];
                 };
             };
         };
