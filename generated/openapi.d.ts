@@ -1487,7 +1487,7 @@ export interface paths {
         post?: never;
         /**
          * Delete file
-         * @description Soft-delete an agent_input file. Knowledge files are deleted with their document.
+         * @description Soft-delete an agent_input file. Knowledge files are not deletable through this API; their lifecycle belongs to the knowledge module (a file that backs no document version is not reclaimed yet — follow-up on epic &49).
          */
         delete: operations["delete_10"];
         options?: never;
@@ -1757,6 +1757,26 @@ export interface paths {
          * @description Accept one or more files for asynchronous ingestion. Always returns 202; poll each entry's acceptedVersion for completion. Files are accepted independently, so one rejected file does not discard the others.
          */
         post: operations["upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/knowledge-bases/{knowledgeBaseId}/documents/attach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Attach an uploaded file
+         * @description Ingest a file uploaded earlier with purpose=knowledge through POST /v1/files. Always returns 202; poll acceptedVersion for completion. 400 for a file whose purpose is not knowledge, 404 for an unknown file, 410 for a deleted one.
+         */
+        post: operations["attachKnowledgeDocumentFile"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3129,6 +3149,14 @@ export interface components {
             /** Format: int32 */
             versionNumber?: number;
         };
+        DocumentAttachRequest: {
+            /**
+             * @description Id of a file uploaded with purpose=knowledge
+             * @default
+             * @example file_0123456789abcdef0123456789abcdef
+             */
+            fileId: string;
+        };
         DocumentDTO: {
             currentVersion?: components["schemas"]["DocumentVersionDTO"];
             currentVersionId?: string;
@@ -3172,6 +3200,7 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
             error?: string;
+            fileId?: string;
             id?: string;
             mime?: string;
             /** Format: int32 */
@@ -8120,6 +8149,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["DocumentUploadResult"][];
+                };
+            };
+        };
+    };
+    attachKnowledgeDocumentFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                knowledgeBaseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentAttachRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DocumentUploadDTO"];
                 };
             };
         };
