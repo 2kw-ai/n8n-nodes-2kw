@@ -3462,6 +3462,7 @@ export interface components {
             type: "InputFileContent";
         } & (Omit<components["schemas"]["ContentPart"], "type"> & {
             file_data?: string;
+            file_id?: string;
             file_url?: string;
             filename?: string;
         });
