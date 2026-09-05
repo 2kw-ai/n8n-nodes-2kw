@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-2kw",
-  "version": "6.0.0-dev.23",
+  "version": "6.0.0-dev.24",
   "description": "n8n community node for the 2kw.ai platform (engineering name: Backbone)",
   "license": "MIT",
   "author": {
