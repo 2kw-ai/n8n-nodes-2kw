@@ -1010,26 +1010,6 @@ export interface paths {
         patch: operations["updateItemExpectedOutput"];
         trace?: never;
     };
-    "/v1/embeddings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Embeddings
-         * @description OpenAI-compatible embeddings endpoint. Not yet implemented.
-         */
-        post: operations["embeddings"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/evaluation-scores/human": {
         parameters: {
             query?: never;
@@ -6696,26 +6676,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["DatasetItemDTO"];
-                };
-            };
-        };
-    };
-    embeddings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": Record<string, never>;
                 };
             };
         };
