@@ -629,7 +629,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List conversations
+         * @description Backbone extension (OpenAI has no conversation list): conversations bound to an agent, newest activity first. scope=mine (default) lists the caller's own; scope=org lists the organisation's and needs the MEMBER role or above. A surface principal always lists its own scope.
+         */
+        get: operations["listConversations"];
         put?: never;
         /**
          * Create conversation
@@ -2496,6 +2500,165 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/skills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List skills */
+        get: operations["listSkills"];
+        put?: never;
+        /** Create a skill */
+        post: operations["createSkill"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/skills/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import a SKILL.md file or zip bundle */
+        post: operations["importSkill"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/skills/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resolve a skill name and optional label or version */
+        get: operations["resolveSkill"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/skills/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a skill */
+        get: operations["getSkill"];
+        /** Update skill status */
+        put: operations["updateSkill"];
+        post?: never;
+        /** Delete a skill and its resources */
+        delete: operations["deleteSkill"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/skills/{id}/labels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List skill labels */
+        get: operations["listSkillLabels"];
+        put?: never;
+        /** Create a skill label */
+        post: operations["createSkillLabel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/skills/{id}/labels/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Move a skill label */
+        put: operations["updateSkillLabel"];
+        post?: never;
+        /** Delete a skill label */
+        delete: operations["deleteSkillLabel"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/skills/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List skill versions */
+        get: operations["listSkillVersions"];
+        put?: never;
+        /** Create an immutable skill version */
+        post: operations["createSkillVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/skills/{id}/versions/{versionNumber}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a skill version */
+        get: operations["getSkillVersion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/skills/{id}/versions/{versionNumber}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export a skill bundle */
+        get: operations["exportSkillVersion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/surface/agents/{agentId}/tool-catalog": {
         parameters: {
             query?: never;
@@ -2920,6 +3083,11 @@ export interface components {
         ContentPart: {
             type: string;
         };
+        ConversationBackbone: {
+            agent_id?: string;
+            head_response_id?: string;
+            status?: string;
+        };
         ConversationDeletedResource: {
             deleted?: boolean;
             id?: string;
@@ -2932,7 +3100,15 @@ export interface components {
             last_id?: string;
             object?: string;
         };
+        ConversationListResource: {
+            data?: components["schemas"]["ConversationResource"][];
+            first_id?: string;
+            has_more?: boolean;
+            last_id?: string;
+            object?: string;
+        };
         ConversationResource: {
+            backbone?: components["schemas"]["ConversationBackbone"];
             /** Format: int64 */
             created_at?: number;
             id?: string;
@@ -3075,6 +3251,23 @@ export interface components {
         CreateSchemaVersionRequest: {
             changeDescription?: string;
             jsonSchema: components["schemas"]["JsonNode"];
+        };
+        CreateSkillLabelRequest: {
+            name: string;
+            skillVersionId: string;
+        };
+        CreateSkillRequest: {
+            name: string;
+            /** @enum {string} */
+            status?: "ACTIVE" | "ARCHIVED";
+        };
+        CreateSkillVersionRequest: {
+            body: string;
+            description: string;
+            frontmatter?: {
+                [key: string]: unknown;
+            };
+            resources?: components["schemas"]["SkillResource"][];
         };
         CtxItem: {
             type: "CtxItem";
@@ -4051,6 +4244,42 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
+        PageSkillDTO: {
+            content?: components["schemas"]["SkillDTO"][];
+            empty?: boolean;
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            number?: number;
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            /** Format: int32 */
+            size?: number;
+            sort?: components["schemas"]["SortObject"];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
+        PageSkillVersionDTO: {
+            content?: components["schemas"]["SkillVersionDTO"][];
+            empty?: boolean;
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            number?: number;
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            /** Format: int32 */
+            size?: number;
+            sort?: components["schemas"]["SortObject"];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
         PageToolApprovalDTO: {
             content?: components["schemas"]["ToolApprovalDTO"][];
             empty?: boolean;
@@ -4610,6 +4839,60 @@ export interface components {
             startTime?: string;
             traceIds?: string[];
         };
+        SkillDTO: {
+            id?: string;
+            /** Format: int32 */
+            latestVersionNumber?: number;
+            name?: string;
+            /** @enum {string} */
+            status?: "ACTIVE" | "ARCHIVED";
+        };
+        SkillImportReport: {
+            name?: string;
+            /** @enum {string} */
+            outcome?: "CREATED" | "UNCHANGED";
+            renamedFrom?: string;
+            skillId?: string;
+            skipped?: components["schemas"]["SkippedSkillFile"][];
+            /** Format: int32 */
+            versionNumber?: number;
+        };
+        SkillLabelDTO: {
+            id?: string;
+            name?: string;
+            skillId?: string;
+            skillVersionId?: string;
+            /** Format: int32 */
+            versionNumber?: number;
+        };
+        SkillResource: {
+            mediaType?: string;
+            path?: string;
+            sha256?: string;
+            /** Format: int64 */
+            sizeBytes?: number;
+            storageRef?: string;
+        };
+        SkillVersionDTO: {
+            body?: string;
+            contentHash?: string;
+            description?: string;
+            frontmatter?: {
+                [key: string]: unknown;
+            };
+            id?: string;
+            resources?: components["schemas"]["SkillResource"][];
+            skillId?: string;
+            sourcePath?: string;
+            sourcePluginId?: string;
+            sourceSha?: string;
+            /** Format: int32 */
+            versionNumber?: number;
+        };
+        SkippedSkillFile: {
+            path?: string;
+            reason?: string;
+        };
         SortObject: {
             empty?: boolean;
             sorted?: boolean;
@@ -4917,6 +5200,14 @@ export interface components {
         };
         UpdateSchemaLabelRequest: {
             schemaVersionId: string;
+        };
+        UpdateSkillLabelRequest: {
+            skillVersionId: string;
+        };
+        UpdateSkillRequest: {
+            name?: string;
+            /** @enum {string} */
+            status?: "ACTIVE" | "ARCHIVED";
         };
         UsageLimitsDTO: {
             byokEnabled?: boolean;
@@ -6020,6 +6311,49 @@ export interface operations {
                 content: {
                     "application/json": Record<string, never>;
                     "text/event-stream": Record<string, never>;
+                };
+            };
+        };
+    };
+    listConversations: {
+        parameters: {
+            query?: {
+                agent_id?: string;
+                scope?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of conversations */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConversationListResource"];
+                };
+            };
+            /** @description Unknown scope */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConversationListResource"];
+                };
+            };
+            /** @description scope=org without the MEMBER role */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConversationListResource"];
                 };
             };
         };
@@ -9333,6 +9667,361 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["SchemaVersionDTO"];
                 };
+            };
+        };
+    };
+    listSkills: {
+        parameters: {
+            query: {
+                search?: string;
+                status?: "ACTIVE" | "ARCHIVED";
+                pageable: components["schemas"]["Pageable"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageSkillDTO"];
+                };
+            };
+        };
+    };
+    createSkill: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSkillRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SkillDTO"];
+                };
+            };
+        };
+    };
+    importSkill: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SkillImportReport"];
+                };
+            };
+        };
+    };
+    resolveSkill: {
+        parameters: {
+            query: {
+                ref: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SkillVersionDTO"];
+                };
+            };
+        };
+    };
+    getSkill: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SkillDTO"];
+                };
+            };
+        };
+    };
+    updateSkill: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSkillRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SkillDTO"];
+                };
+            };
+        };
+    };
+    deleteSkill: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listSkillLabels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SkillLabelDTO"][];
+                };
+            };
+        };
+    };
+    createSkillLabel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSkillLabelRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SkillLabelDTO"];
+                };
+            };
+        };
+    };
+    updateSkillLabel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSkillLabelRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SkillLabelDTO"];
+                };
+            };
+        };
+    };
+    deleteSkillLabel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listSkillVersions: {
+        parameters: {
+            query: {
+                pageable: components["schemas"]["Pageable"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageSkillVersionDTO"];
+                };
+            };
+        };
+    };
+    createSkillVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSkillVersionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SkillVersionDTO"];
+                };
+            };
+        };
+    };
+    getSkillVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                versionNumber: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SkillVersionDTO"];
+                };
+            };
+        };
+    };
+    exportSkillVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                versionNumber: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
