@@ -1,4 +1,5 @@
 import { INodeProperties } from 'n8n-workflow';
+import { agentOperations, agentFields } from './agent';
 import { schemaOperations, schemaFields } from './schema';
 import { promptOperations, promptFields } from './prompt';
 import { extractionOperations, extractionFields } from './extraction';
@@ -14,6 +15,7 @@ export const resourceField: INodeProperties = {
   // Alphabetical, not workflow order: n8n's community-node scan enforces
   // `node-param-options-type-unsorted-items` (#363).
   options: [
+    { name: 'Agent', value: 'agent' },
     { name: 'Document', value: 'document' },
     { name: 'Extraction', value: 'extraction' },
     { name: 'Prompt', value: 'prompt' },
@@ -33,4 +35,6 @@ export const resourceProperties: INodeProperties[] = [
   ...documentFields,
   transcriptionOperations,
   ...transcriptionFields,
+  agentOperations,
+  ...agentFields,
 ];

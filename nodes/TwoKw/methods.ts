@@ -44,6 +44,30 @@ function formatVersion(v: {
 
 export const methods = {
   listSearch: {
+    async searchAgents(
+      this: ILoadOptionsFunctions,
+      filter?: string,
+    ): Promise<INodeListSearchResult> {
+      const data = (await backboneGet(this, '/v1/agents', pageQuery(filter))) as {
+        content?: { id: string; name: string }[];
+      };
+      return {
+        results: (data.content ?? []).map((a) => ({ name: a.name, value: a.id })),
+      };
+    },
+
+    async searchAgentLabels(this: ILoadOptionsFunctions): Promise<INodeListSearchResult> {
+      const agentId = readParentId(this, 'agent');
+      if (!agentId) return { results: [] };
+      const data = (await backboneGet(
+        this,
+        `/v1/agents/${encodeURIComponent(agentId)}/labels`,
+      )) as { name: string }[];
+      return {
+        results: (data ?? []).map((l) => ({ name: l.name, value: l.name })),
+      };
+    },
+
     async searchSchemas(
       this: ILoadOptionsFunctions,
       filter?: string,
