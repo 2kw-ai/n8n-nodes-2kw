@@ -2242,7 +2242,7 @@ export interface paths {
         put?: never;
         /**
          * Responses
-         * @description OpenAI-compatible OpenResponses endpoint. Model format: provider/model (e.g., openai/gpt-4o) or agent/{ref}@{label} to invoke a stored agent.
+         * @description OpenAI-compatible OpenResponses endpoint. Model format: provider/model (e.g., openai/gpt-4o) or agent/{ref}@{label} to invoke a stored agent. agent/{ref}@{label}#{model} runs the agent on one of the models configured on that version for this request only; an unconfigured model is a 400.
          */
         post: operations["responses"];
         delete?: never;
@@ -2828,7 +2828,8 @@ export interface components {
             /** Format: date-time */
             readonly lastModifiedAt?: string;
             latestVersionId?: string;
-            model: string;
+            model?: string;
+            models?: string[];
             name: string;
             options?: components["schemas"]["JsonNode"];
             organizationId?: string;
@@ -2861,6 +2862,7 @@ export interface components {
             /** Format: date-time */
             readonly lastModifiedAt?: string;
             model?: string;
+            models?: string[];
             options?: components["schemas"]["JsonNode"];
             /** @description Skills bound to this version (#639); ref is materialised on write. */
             skills?: components["schemas"]["SkillBinding"][];
@@ -3195,7 +3197,8 @@ export interface components {
             changeDescription?: string;
             hitlPolicy?: components["schemas"]["JsonNode"];
             instructions?: string;
-            model: string;
+            model?: string;
+            models?: string[];
             options?: components["schemas"]["JsonNode"];
             /** @description Skills to bind (#639): [{ name, ref? }], at most 20, names unique, ref defaults to latest. */
             skills?: components["schemas"]["SkillBinding"][];
