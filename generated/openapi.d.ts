@@ -2832,7 +2832,8 @@ export interface components {
             name: string;
             options?: components["schemas"]["JsonNode"];
             organizationId?: string;
-            skills?: components["schemas"]["JsonNode"];
+            /** @description Skills bound to the agent (#639): at most 20 entries, names unique, ref defaults to latest. */
+            skills?: components["schemas"]["SkillBinding"][];
             tools?: components["schemas"]["JsonNode"];
             version?: string;
         };
@@ -2861,7 +2862,8 @@ export interface components {
             readonly lastModifiedAt?: string;
             model?: string;
             options?: components["schemas"]["JsonNode"];
-            skills?: components["schemas"]["JsonNode"];
+            /** @description Skills bound to this version (#639); ref is materialised on write. */
+            skills?: components["schemas"]["SkillBinding"][];
             tools?: components["schemas"]["JsonNode"];
             version?: string;
             /** Format: int32 */
@@ -2933,6 +2935,7 @@ export interface components {
             decision?: string;
             hmac?: string;
             reason?: string;
+            remember?: string;
         });
         AvailableModelsResponse: {
             data?: components["schemas"]["ModelObject"][];
@@ -3194,7 +3197,8 @@ export interface components {
             instructions?: string;
             model: string;
             options?: components["schemas"]["JsonNode"];
-            skills?: components["schemas"]["JsonNode"];
+            /** @description Skills to bind (#639): [{ name, ref? }], at most 20, names unique, ref defaults to latest. */
+            skills?: components["schemas"]["SkillBinding"][];
             tools?: components["schemas"]["JsonNode"];
         };
         CreateAnnotationQueueRequest: {
@@ -4839,6 +4843,18 @@ export interface components {
             startTime?: string;
             traceIds?: string[];
         };
+        SkillBinding: {
+            /**
+             * @description The org skill name.
+             * @example invoice-workflow
+             */
+            name?: string;
+            /**
+             * @description Label name or integer version number as string. Defaults to latest.
+             * @example production
+             */
+            ref?: string;
+        };
         SkillDTO: {
             id?: string;
             /** Format: int32 */
@@ -5097,6 +5113,9 @@ export interface components {
             /** @enum {string} */
             policyClass?: "READ" | "WRITE" | "DESTRUCTIVE";
             reason?: string;
+            /** Format: date-time */
+            releasedAt?: string;
+            rememberScope?: string;
             responseId?: string;
             scopeKey?: string;
             /** @enum {string} */
@@ -9826,8 +9845,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
-            200: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description An agent version binds this skill; archive it instead (the message names the agents) */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
