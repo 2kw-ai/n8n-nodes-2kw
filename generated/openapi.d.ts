@@ -5412,6 +5412,9 @@ export interface components {
             avgTokens?: number;
             /** Format: int32 */
             itemCount?: number;
+            skippedEvaluatorCounts?: {
+                [key: string]: number;
+            };
             totalCost?: number;
             variantId?: string;
             variantName?: string;
