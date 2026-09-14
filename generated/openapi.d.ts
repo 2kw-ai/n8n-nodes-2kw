@@ -1851,6 +1851,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/plugins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List installed plugins */
+        get: operations["listPlugins"];
+        put?: never;
+        /**
+         * Install a plugin from a git repository
+         * @description Fetches the repository, imports its skills with provenance and stores the first sync report.
+         */
+        post: operations["installPlugin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/plugins/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an installed plugin */
+        get: operations["getPlugin"];
+        put?: never;
+        post?: never;
+        /**
+         * Detach a plugin
+         * @description Imported skills remain as ordinary skills with provenance and stop receiving updates.
+         */
+        delete: operations["deletePlugin"];
+        options?: never;
+        head?: never;
+        /** Change a plugin's ref policy or status */
+        patch: operations["updatePlugin"];
+        trace?: never;
+    };
+    "/v1/plugins/{id}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync a plugin now
+         * @description Resolves the ref, imports changed skills and moves the plugin label; unchanged is a no-op.
+         */
+        post: operations["syncPlugin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/prompts": {
         parameters: {
             query?: never;
@@ -3222,6 +3285,11 @@ export interface components {
             schemaId: string;
             schemaVersionId?: string;
         };
+        CreatePluginRequest: {
+            gitUrl: string;
+            name?: string;
+            refPolicy?: string;
+        };
         CreatePromptLabelRequest: {
             name: string;
             promptVersionId: string;
@@ -4125,6 +4193,24 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
+        PagePluginDTO: {
+            content?: components["schemas"]["PluginDTO"][];
+            empty?: boolean;
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            number?: number;
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            /** Format: int32 */
+            size?: number;
+            sort?: components["schemas"]["SortObject"];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
         PagePromptDTO: {
             content?: components["schemas"]["PromptDTO"][];
             empty?: boolean;
@@ -4418,6 +4504,30 @@ export interface components {
              * @default false
              */
             tableStructure: boolean;
+        };
+        PluginDTO: {
+            /** Format: date-time */
+            createdAt?: string;
+            gitUrl?: string;
+            id?: string;
+            lastSyncReport?: components["schemas"]["PluginSyncReport"];
+            /** Format: date-time */
+            lastSyncedAt?: string;
+            lastSyncedSha?: string;
+            mcpServers?: components["schemas"]["JsonNode"];
+            name?: string;
+            refPolicy?: string;
+            /** @enum {string} */
+            status?: "ACTIVE" | "DISABLED";
+        };
+        PluginSyncReport: {
+            /** @enum {string} */
+            outcome?: "SYNCED" | "UNCHANGED";
+            sha?: string;
+            skills?: components["schemas"]["SkillOutcome"][];
+            /** Format: date-time */
+            syncedAt?: string;
+            unsupported?: components["schemas"]["UnsupportedComponent"][];
         };
         PostValidationMetadata: {
             applied?: boolean;
@@ -4884,6 +4994,15 @@ export interface components {
             /** Format: int32 */
             versionNumber?: number;
         };
+        SkillOutcome: {
+            directory?: string;
+            name?: string;
+            /** @enum {string} */
+            outcome?: "IMPORTED" | "UNCHANGED" | "FORKED";
+            skipped?: components["schemas"]["SkippedFile"][];
+            /** Format: int32 */
+            versionNumber?: number;
+        };
         SkillResource: {
             mediaType?: string;
             path?: string;
@@ -4907,6 +5026,10 @@ export interface components {
             sourceSha?: string;
             /** Format: int32 */
             versionNumber?: number;
+        };
+        SkippedFile: {
+            path?: string;
+            reason?: string;
         };
         SkippedSkillFile: {
             path?: string;
@@ -5199,6 +5322,10 @@ export interface components {
             includeCompletions?: boolean;
             includePrompts?: boolean;
         };
+        UnsupportedComponent: {
+            path?: string;
+            reason?: string;
+        };
         UpdateAgentLabelRequest: {
             agentVersionId: string;
         };
@@ -5211,6 +5338,11 @@ export interface components {
         };
         UpdateItemExpectedOutputRequest: {
             expectedOutput?: components["schemas"]["JsonNode"];
+        };
+        UpdatePluginRequest: {
+            refPolicy?: string;
+            /** @enum {string} */
+            status?: "ACTIVE" | "DISABLED";
         };
         UpdatePromptLabelRequest: {
             promptVersionId: string;
@@ -8605,6 +8737,152 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ModelListResponse"];
+                };
+            };
+        };
+    };
+    listPlugins: {
+        parameters: {
+            query: {
+                status?: "ACTIVE" | "DISABLED";
+                pageable: components["schemas"]["Pageable"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PagePluginDTO"];
+                };
+            };
+        };
+    };
+    installPlugin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePluginRequest"];
+            };
+        };
+        responses: {
+            /** @description Installed and synced */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PluginDTO"];
+                };
+            };
+            /** @description Refused remote, unknown ref, or not a plugin repository */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PluginDTO"];
+                };
+            };
+        };
+    };
+    getPlugin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PluginDTO"];
+                };
+            };
+        };
+    };
+    deletePlugin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Detached */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updatePlugin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePluginRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PluginDTO"];
+                };
+            };
+        };
+    };
+    syncPlugin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Plugin disabled, ref gone, or repository no longer a plugin */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PluginSyncReport"];
                 };
             };
         };
