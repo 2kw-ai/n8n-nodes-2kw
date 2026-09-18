@@ -131,46 +131,4 @@ describe('methods.listSearch', () => {
     expect(fn.mock.calls[0][1].url).toBe('https://api.2kw.ai/v1/prompts/p-7/labels');
     expect(result.results).toEqual([{ name: 'prod', value: 'prod' }]);
   });
-
-  it('searchAgents: GETs /v1/agents with search and maps results', async () => {
-    const { ctx, fn } = makeCtx({
-      listResponse: {
-        content: [
-          { id: 'ag-1', name: 'support' },
-          { id: 'ag-2', name: 'billing' },
-        ],
-      },
-    });
-    const result = await methods.listSearch.searchAgents.call(ctx, 'sup');
-    expect(fn.mock.calls[0][1].url).toBe('https://api.2kw.ai/v1/agents');
-    expect(fn.mock.calls[0][1].qs).toEqual({ search: 'sup', page: 0, size: 100 });
-    expect(result).toEqual({
-      results: [
-        { name: 'support', value: 'ag-1' },
-        { name: 'billing', value: 'ag-2' },
-      ],
-    });
-  });
-
-  it('searchAgentLabels: returns no results when no agent is chosen', async () => {
-    const { ctx, fn } = makeCtx({ listResponse: [] });
-    const result = await methods.listSearch.searchAgentLabels.call(ctx);
-    expect(result).toEqual({ results: [] });
-    expect(fn).not.toHaveBeenCalled();
-  });
-
-  it('searchAgentLabels: GETs the chosen agent labels and maps names', async () => {
-    const { ctx, fn } = makeCtx({
-      listResponse: [{ name: 'latest' }, { name: 'prod' }],
-      parentParam: { name: 'agent', value: { mode: 'list', value: 'ag-1' } },
-    });
-    const result = await methods.listSearch.searchAgentLabels.call(ctx);
-    expect(fn.mock.calls[0][1].url).toBe('https://api.2kw.ai/v1/agents/ag-1/labels');
-    expect(result).toEqual({
-      results: [
-        { name: 'latest', value: 'latest' },
-        { name: 'prod', value: 'prod' },
-      ],
-    });
-  });
 });

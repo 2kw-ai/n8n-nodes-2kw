@@ -26,43 +26,6 @@ describe('TwoKw node', () => {
     expect(resourceField?.type).toBe('options');
   });
 
-  it('lists resources alphabetically with Agent first', () => {
-    const instance = new TwoKw();
-    const resourceField = instance.description.properties.find((p) => p.name === 'resource');
-    const names = (resourceField?.options as { name: string }[]).map((o) => o.name);
-    expect(names[0]).toBe('Agent');
-    expect(names).toEqual([...names].sort());
-    expect(resourceField?.default).toBe('schema');
-  });
-
-  it('declares the Send Message fields the agent operation reads', () => {
-    const props = new TwoKw().description.properties.filter(
-      (p) => p.displayOptions?.show?.resource?.includes('agent'),
-    );
-    const byName = Object.fromEntries(props.map((p) => [p.name, p]));
-    expect(Object.keys(byName).sort()).toEqual(['agent', 'label', 'message', 'operation', 'options']);
-    const optionNames = (byName.options.options as { name: string; displayName: string }[]).map(
-      (o) => o.displayName,
-    );
-    expect(optionNames).toEqual([...optionNames].sort());
-    expect((byName.options.options as { name: string }[]).map((o) => o.name)).toEqual([
-      'binaryProperties',
-      'conversationId',
-      'previousResponseId',
-      'simplify',
-    ]);
-  });
-
-  it('routes the agent resource to its handler', async () => {
-    const ctx = {
-      getInputData: () => [{ json: {} }],
-      getNodeParameter: vi.fn((name: string) => (name === 'resource' ? 'agent' : 'nope')),
-      getNode: vi.fn().mockReturnValue({ name: '2kw', type: 'twoKw', typeVersion: 1 }),
-      continueOnFail: () => false,
-    } as any;
-    await expect(new TwoKw().execute.call(ctx)).rejects.toThrow('Unknown agent operation: nope');
-  });
-
   it('is offered as an AI Agent tool', () => {
     expect(new TwoKw().description.usableAsTool).toBe(true);
   });

@@ -29,11 +29,10 @@ n8n's credential test calls `GET /v1/models` against your base URL — if it suc
 
 Drop the **2kw** node into a workflow. Pick a Resource and Operation.
 
-Agent, Label, Schema, Prompt, Schema Version, and Prompt Label fields are **searchable dropdowns** populated from the 2kw API on demand. Switch a field to its manual mode (**By ID**, **By ID or Name**, or **By Name**) to paste a value or use an n8n expression instead.
+Schema, Prompt, Schema Version, and Prompt Label fields are **searchable dropdowns** populated from the 2kw API on demand. Switch the field to **By ID** if you want to paste a UUID or use an n8n expression instead.
 
 | Resource | Operation | Notes |
 | --- | --- | --- |
-| Agent | Send Message | Runs one turn of a stored agent. `Agent` and `Label` are pickers (empty label = latest). Options: `Binary Properties` (comma-separated, uploaded as attachments), `Conversation ID`, `Previous Response ID`, `Simplify Output`. Fails if the agent pauses — see [Agents in n8n](#agents-in-n8n). |
 | Schema | Get | Searchable picker. Returns schema metadata + active version. |
 | Prompt | Get | Searchable picker. Returns prompt metadata. |
 | Prompt | Compile | Compiles a prompt with a `Variables` JSON map. Optional `Version ID` (string) or `Label` (picker, depends on prompt). |
@@ -44,14 +43,6 @@ Agent, Label, Schema, Prompt, Schema Version, and Prompt Label fields are **sear
 | Document | Convert | Multipart upload from a binary property. `Output Formats` selects which representations to include. Returns one item per converted document. |
 | Document | Convert From Source | URL or base64 (no binary upload). Same `Output Formats` + per-document item split as Convert. Pipeline option: fast / ocr / vlm. |
 | Transcription | Transcribe | Multipart audio upload. Required: `Model`. Optional: `Language`, `Prompt`, `Response Format`, `Temperature`. |
-
-## Agents in n8n
-
-**Agent › Send Message** runs one turn of an agent you built in 2kw and returns its answer as `text`, together with `status`, `responseId`, `conversationId`, `model` and `usage`. Pass `conversationId` (or `responseId` as *Previous Response ID*) to a later Send Message to continue the thread. Files from binary properties are uploaded and attached to the message; images reach the model as pixels.
-
-**n8n runs agents unattended.** When an agent's policy wants a human to approve a tool call, the run pauses and this operation fails with the tools that are waiting, for example `Agent paused for approval: create_invoice (apreq_…)`. For agents you call from n8n, use tools their policy lets run without a human decision — once auto-approval is available, set `classes.write` to `auto` in the agent's policy. A run that asks for a client-side tool fails the same way (`Agent requested client-side tool …`), because n8n cannot execute it. A run that stops early (`status: incomplete`, e.g. too many tool iterations) is returned, not failed; check `incompleteReason`. Leave *Retry On Fail* off for agents with write tools: a timed-out turn may still be running, and a retry repeats its tool calls.
-
-**Using n8n's OpenAI node instead.** With the OpenAI credential set up as below, *OpenAI › Message a Model* (n8n 1.117 or later) can call an agent too: pick the model **By ID** and enter `agent/<name>` or `agent/<name>@<label>`. That is fine for text-only turns with agents that never pause. It cannot attach files, and its default *Simplify* setting hides a paused run — the workflow receives empty output and carries on. The OpenAI *Chat Model* inside n8n's AI Agent is not supported for agents: with a streaming trigger it requests streaming, which the 2kw Responses API does not offer yet.
 
 ## Chat completions (via n8n's OpenAI node)
 
@@ -97,9 +88,6 @@ The first npm release therefore jumps from the internal `0.3.0` to the platform'
 Prereleases publish under the `dev` dist-tag (`npm install n8n-nodes-2kw@dev`), stable releases under `latest`.
 
 ## Changelog
-
-### Unreleased
-- Added Agent › Send Message: agent and label pickers, file attachments, loud failure when the agent pauses for approval.
 
 Entries below `1.0.0` predate npm publication and use the node's own numbering.
 
