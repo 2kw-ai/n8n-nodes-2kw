@@ -29,10 +29,12 @@ n8n's credential test calls `GET /v1/models` against your base URL — if it suc
 
 Drop the **2kw** node into a workflow. Pick a Resource and Operation.
 
-Schema, Prompt, Schema Version, and Prompt Label fields are **searchable dropdowns** populated from the 2kw API on demand. Switch the field to **By ID** if you want to paste a UUID or use an n8n expression instead.
+Agent, Label, Schema, Prompt, Schema Version, and Prompt Label fields are **searchable dropdowns** populated from the 2kw API on demand. Switch a field to its manual mode (**By ID**, **By ID or Name**, or **By Name**) to paste a value or use an n8n expression instead.
 
 | Resource | Operation | Notes |
 | --- | --- | --- |
+| Agent | Decide Approval | Approves or rejects every pending approval of a paused run and continues it. Required: `Agent`, `Response ID`, `Decision` (`Approve All` / `Reject All`, default reject). Optional: `Label` (the one the run used), `Reason`, `Remember for Conversation` (approvals only). Options: `Return Paused Runs`, `Simplify Output`. See [Human approval from a workflow](#human-approval-from-a-workflow). |
+| Agent | Send Message | Runs one turn of a stored agent. `Agent` and `Label` are pickers (empty label = latest). Options: `Binary Properties` (comma-separated, uploaded as attachments), `Conversation ID`, `Previous Response ID`, `Return Paused Runs`, `Simplify Output`. Fails if the agent pauses unless `Return Paused Runs` is on — see [Agents in n8n](#agents-in-n8n). |
 | Schema | Get | Searchable picker. Returns schema metadata + active version. |
 | Prompt | Get | Searchable picker. Returns prompt metadata. |
 | Prompt | Compile | Compiles a prompt with a `Variables` JSON map. Optional `Version ID` (string) or `Label` (picker, depends on prompt). |
@@ -43,6 +45,34 @@ Schema, Prompt, Schema Version, and Prompt Label fields are **searchable dropdow
 | Document | Convert | Multipart upload from a binary property. `Output Formats` selects which representations to include. Returns one item per converted document. |
 | Document | Convert From Source | URL or base64 (no binary upload). Same `Output Formats` + per-document item split as Convert. Pipeline option: fast / ocr / vlm. |
 | Transcription | Transcribe | Multipart audio upload. Required: `Model`. Optional: `Language`, `Prompt`, `Response Format`, `Temperature`. |
+
+## Agents in n8n
+
+**Agent › Send Message** runs one turn of an agent you built in 2kw and returns its answer as `text`, together with `status`, `responseId`, `conversationId`, `model` and `usage`. Pass `conversationId` (or `responseId` as *Previous Response ID*) to a later Send Message to continue the thread. Files from binary properties are uploaded and attached to the message; images reach the model as pixels.
+
+**n8n runs agents unattended by default.** When an agent's policy wants a human to approve a tool call, the run pauses and this operation fails with the tools that are waiting, for example `Agent paused for approval: create_invoice (apreq_…)`. To ask a person instead, see [Human approval from a workflow](#human-approval-from-a-workflow). For agents you call from n8n, use tools their policy lets run without a human decision — once auto-approval is available, set `classes.write` to `auto` in the agent's policy. A run that asks for a client-side tool fails the same way (`Agent requested client-side tool …`), because n8n cannot execute it. A run that stops early (`status: incomplete`, e.g. too many tool iterations) is returned, not failed; check `incompleteReason`. Leave *Retry On Fail* off for agents with write tools: a timed-out turn may still be running, and a retry repeats its tool calls.
+
+### Human approval from a workflow
+
+To put a person in the loop instead of failing, turn on **Return Paused Runs** in Send Message. A run that pauses for approval then comes out as an item with `status: requires_action`, its `responseId`, and `pendingApprovals` — one entry per waiting call, with `approvalId`, `tool`, `arguments`, `policyClass` and `reason` (why the auto-approver escalated it, or `null`). Route on `status` with an IF node, ask a person with any Send-and-Wait node (Slack, email, Telegram), and pass the answer to **Agent › Decide Approval**:
+
+- **Agent** and **Label**: the same agent and label the run used. The platform resolves the approved calls' tools from the continued version.
+- **Response ID**: `{{ $json.responseId }}` from the paused item.
+- **Decision**: `Approve All` or `Reject All`, or an expression returning `approve` or `reject`. It applies to every pending approval of the response; the platform accepts a continuation only when all of them are decided.
+- **Reason**: optional. It is recorded on each decision, and on a rejection the agent reads it.
+- **Remember for Conversation**: approvals only. Later calls of the same tools in this conversation run without asking. Destructive tools are approved once and never remembered.
+
+Decide Approval reads the pending approvals from `GET /v1/agents/{agentId}/approvals?status=pending`, sends one `backbone:approval_response` per approval on `POST /v1/responses` with `previous_response_id`, and returns the continued run in Send Message's output shape. A continued run can pause again; with Return Paused Runs on it comes out the same way, so a loop back to the person works.
+
+It fails the item when:
+
+- nothing is pending on the response: already decided by a person, a conversation grant or the auto-approver, or the ID is not a paused run of this agent;
+- the platform refuses the decision, for example because an approval was decided automatically (`2kw refused the decision on response …`) or is no longer pending;
+- the continued run asks for a client-side tool, which n8n still cannot execute. A turn can wait for approvals and a client-side tool at once; deciding the approvals does not run the client-side tool.
+
+Approvals remain a human decision. Do not give Decide Approval to an AI Agent as a tool, and do not wire it to approve without asking someone. For tools that should run without a person, set `classes.write` to `auto` in the agent's policy once auto-approval is available.
+
+**Using n8n's OpenAI node instead.** With the OpenAI credential set up as below, *OpenAI › Message a Model* (n8n 1.117 or later) can call an agent too: pick the model **By ID** and enter `agent/<name>` or `agent/<name>@<label>`. That is fine for text-only turns with agents that never pause. It cannot attach files, and its default *Simplify* setting hides a paused run — the workflow receives empty output and carries on. The OpenAI *Chat Model* inside n8n's AI Agent is not supported for agents: with a streaming trigger it requests streaming, which the 2kw Responses API does not offer yet.
 
 ## Chat completions (via n8n's OpenAI node)
 
@@ -88,6 +118,10 @@ The first npm release therefore jumps from the internal `0.3.0` to the platform'
 Prereleases publish under the `dev` dist-tag (`npm install n8n-nodes-2kw@dev`), stable releases under `latest`.
 
 ## Changelog
+
+### Unreleased
+- Added Agent › Send Message: agent and label pickers, file attachments, loud failure when the agent pauses for approval.
+- Added Agent › Decide Approval: approve or reject every pending approval of a paused run and continue it. Send Message and Decide Approval gained `Return Paused Runs`, which returns an approval pause as an item with `pendingApprovals` instead of failing.
 
 Entries below `1.0.0` predate npm publication and use the node's own numbering.
 

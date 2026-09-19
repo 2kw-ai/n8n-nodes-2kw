@@ -26,6 +26,87 @@ describe('TwoKw node', () => {
     expect(resourceField?.type).toBe('options');
   });
 
+  it('lists resources alphabetically with Agent first', () => {
+    const instance = new TwoKw();
+    const resourceField = instance.description.properties.find((p) => p.name === 'resource');
+    const names = (resourceField?.options as { name: string }[]).map((o) => o.name);
+    expect(names[0]).toBe('Agent');
+    expect(names).toEqual([...names].sort());
+    expect(resourceField?.default).toBe('schema');
+  });
+
+  it('declares the Send Message fields the agent operation reads', () => {
+    const props = new TwoKw().description.properties.filter(
+      (p) => p.displayOptions?.show?.resource?.includes('agent'),
+    );
+    const byName = Object.fromEntries(props.map((p) => [p.name, p]));
+    expect(Object.keys(byName).sort()).toEqual([
+      'agent',
+      'decideOptions',
+      'decision',
+      'label',
+      'message',
+      'operation',
+      'options',
+      'reason',
+      'rememberForConversation',
+      'responseId',
+    ]);
+    const optionNames = (byName.options.options as { name: string; displayName: string }[]).map(
+      (o) => o.displayName,
+    );
+    expect(optionNames).toEqual([...optionNames].sort());
+    expect((byName.options.options as { name: string }[]).map((o) => o.name)).toEqual([
+      'binaryProperties',
+      'conversationId',
+      'previousResponseId',
+      'returnPausedRuns',
+      'simplify',
+    ]);
+  });
+
+  it('declares Decide Approval next to Send Message, operations sorted (#660)', () => {
+    const props = new TwoKw().description.properties;
+    const operation = props.find(
+      (p) => p.name === 'operation' && p.displayOptions?.show?.resource?.includes('agent'),
+    );
+    const names = (operation?.options as { name: string; value: string }[]).map((o) => o.name);
+    expect(names).toEqual(['Decide Approval', 'Send Message']);
+    expect(operation?.default).toBe('sendMessage');
+
+    const shownFor = (name: string) =>
+      props.find((p) => p.name === name && p.displayOptions?.show?.resource?.includes('agent'))
+        ?.displayOptions?.show?.operation;
+    expect(shownFor('agent')).toEqual(['sendMessage', 'decideApproval']);
+    expect(shownFor('label')).toEqual(['sendMessage', 'decideApproval']);
+    expect(shownFor('message')).toEqual(['sendMessage']);
+    for (const name of ['responseId', 'decision', 'reason', 'rememberForConversation', 'decideOptions']) {
+      expect(shownFor(name)).toEqual(['decideApproval']);
+    }
+
+    const decision = props.find((p) => p.name === 'decision');
+    expect((decision?.options as { value: string }[]).map((o) => o.value)).toEqual(['approve', 'reject']);
+    expect(decision?.default).toBe('reject');
+    // Remembering is an approval-only choice; the backend refuses it on a rejection.
+    const remember = props.find((p) => p.name === 'rememberForConversation');
+    expect(remember?.displayOptions?.show?.decision).toEqual(['approve']);
+    const decideOptions = props.find((p) => p.name === 'decideOptions');
+    expect((decideOptions?.options as { name: string }[]).map((o) => o.name)).toEqual([
+      'returnPausedRuns',
+      'simplify',
+    ]);
+  });
+
+  it('routes the agent resource to its handler', async () => {
+    const ctx = {
+      getInputData: () => [{ json: {} }],
+      getNodeParameter: vi.fn((name: string) => (name === 'resource' ? 'agent' : 'nope')),
+      getNode: vi.fn().mockReturnValue({ name: '2kw', type: 'twoKw', typeVersion: 1 }),
+      continueOnFail: () => false,
+    } as any;
+    await expect(new TwoKw().execute.call(ctx)).rejects.toThrow('Unknown agent operation: nope');
+  });
+
   it('is offered as an AI Agent tool', () => {
     expect(new TwoKw().description.usableAsTool).toBe(true);
   });

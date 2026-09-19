@@ -14,6 +14,7 @@ import { executePrompt } from './operations/prompt';
 import { executeExtraction } from './operations/extraction';
 import { executeDocument } from './operations/document';
 import { executeTranscription } from './operations/transcription';
+import { executeAgent } from './operations/agent';
 
 type ResourceHandler = (
   this: IExecuteFunctions,
@@ -98,4 +99,8 @@ registerResource('document', async function (itemIndex, operation) {
 
 registerResource('transcription', async function (itemIndex, operation) {
   return executeTranscription.call(this, itemIndex, operation);
+});
+
+registerResource('agent', async function (itemIndex, operation) {
+  return executeAgent.call(this, itemIndex, operation);
 });
