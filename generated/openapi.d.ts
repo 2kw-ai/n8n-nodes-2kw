@@ -204,6 +204,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/agents/{agentId}/versions/{versionId}/policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get effective policy
+         * @description What the policy gate would do to a call of each tool this version configures: the verdict, the composed action, the class and its source, and every policy statement that contributed. Read-only — no run, no approval row, no judge call.
+         */
+        get: operations["getAgentVersionPolicy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/agents/{id}": {
         parameters: {
             query?: never;
@@ -2933,6 +2953,30 @@ export interface components {
             version?: string;
             /** Format: int32 */
             versionNumber?: number;
+        };
+        AgentPolicyAutoApprovalDTO: {
+            enabled?: boolean;
+            judgeConfigured?: boolean;
+        };
+        AgentPolicyDTO: {
+            agentId?: string;
+            autoApproval?: components["schemas"]["AgentPolicyAutoApprovalDTO"];
+            /** Format: date-time */
+            catalogResolvedAt?: string;
+            tools?: components["schemas"]["AgentPolicyToolDTO"][];
+            versionId?: string;
+        };
+        AgentPolicyToolDTO: {
+            /** @enum {string} */
+            action?: "ALLOW" | "AUTO" | "APPROVE" | "BLOCK" | "DENY";
+            matchedRules?: string[];
+            /** @enum {string} */
+            policyClass?: "READ" | "WRITE" | "DESTRUCTIVE";
+            /** @enum {string} */
+            source?: "ANNOTATIONS" | "BUILTIN" | "RULE" | "UNCLASSIFIED";
+            tool?: string;
+            /** @enum {string} */
+            verdict?: "EXECUTE" | "RELAY" | "PAUSE_APPROVAL" | "JUDGE" | "BLOCK" | "FAIL";
         };
         AgentVersionDTO: {
             agentId?: string;
@@ -5808,6 +5852,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AgentVersionDTO"];
+                };
+            };
+        };
+    };
+    getAgentVersionPolicy: {
+        parameters: {
+            query?: {
+                tool?: string;
+                installation?: string;
+            };
+            header?: never;
+            path: {
+                agentId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AgentPolicyDTO"];
                 };
             };
         };
