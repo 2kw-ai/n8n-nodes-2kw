@@ -13,7 +13,7 @@ export interface paths {
         };
         /**
          * List agents
-         * @description Retrieve a paginated list of agents for the current organization.
+         * @description Retrieve a paginated list of agents for the current organization. Carries the full agent configuration and is therefore VIEWER+; a chat-only USER reads GET /v1/agents/catalog instead.
          */
         get: operations["find_6"];
         put?: never;
@@ -22,6 +22,26 @@ export interface paths {
          * @description Create a new agent for the current organization.
          */
         post: operations["create_10"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agents/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the agent catalog
+         * @description Published agents of the current organization as {id, name, description}, name-ascending. Readable by every organization member including the chat-only USER role, and the only agent read that role has: the response never carries instructions, tools, options, the HITL policy, skills or model configuration. An agent with no published version is omitted. The sort parameter is ignored.
+         */
+        get: operations["listAgentCatalog"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -233,7 +253,7 @@ export interface paths {
         };
         /**
          * Get agent
-         * @description Retrieve an agent by its ID.
+         * @description Retrieve an agent by its ID, including its instructions, tools, options, HITL policy and skills. VIEWER+; a chat-only USER reads GET /v1/agents/catalog instead.
          */
         get: operations["get_6"];
         /**
@@ -2921,6 +2941,11 @@ export interface components {
         AddQueueItemsRequest: {
             items: components["schemas"]["Item"][];
         };
+        AgentCatalogEntryDTO: {
+            description?: string;
+            id?: string;
+            name?: string;
+        };
         AgentDTO: {
             /** Format: date-time */
             readonly createdAt?: string;
@@ -4038,6 +4063,24 @@ export interface components {
             annotations?: unknown[];
             text?: string;
         });
+        PageAgentCatalogEntryDTO: {
+            content?: components["schemas"]["AgentCatalogEntryDTO"][];
+            empty?: boolean;
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            number?: number;
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            /** Format: int32 */
+            size?: number;
+            sort?: components["schemas"]["SortObject"];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
         PageAgentDTO: {
             content?: components["schemas"]["AgentDTO"][];
             empty?: boolean;
@@ -5567,6 +5610,29 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AgentDTO"];
+                };
+            };
+        };
+    };
+    listAgentCatalog: {
+        parameters: {
+            query: {
+                search?: string;
+                pageable: components["schemas"]["Pageable"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageAgentCatalogEntryDTO"];
                 };
             };
         };
