@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/.well-known/mcp-relay-jwks.json": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public keys that sign relay request assertions */
+        get: operations["getMcpRelayJwks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/agents": {
         parameters: {
             query?: never;
@@ -1911,6 +1928,106 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/mcp-relay/enrol": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Redeem a relay enrolment token
+         * @description Unauthenticated. Called by the relay container on first start.
+         */
+        post: operations["enrolMcpRelay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/mcp-relay/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Report a relay's inventory
+         * @description Called by the relay container with its own relay JWT on every start.
+         */
+        put: operations["reportMcpRelayInventory"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/mcp-relays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List MCP relays */
+        get: operations["listMcpRelays"];
+        put?: never;
+        /**
+         * Create an MCP relay
+         * @description Returns a single-use enrolment token (valid 24 h, shown once) and a docker run snippet.
+         */
+        post: operations["createMcpRelay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/mcp-relays/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an MCP relay with its inventory */
+        get: operations["getMcpRelay"];
+        put?: never;
+        post?: never;
+        /** Revoke an MCP relay for good */
+        delete: operations["revokeMcpRelay"];
+        options?: never;
+        head?: never;
+        /** Rename, disable or enable an MCP relay */
+        patch: operations["updateMcpRelay"];
+        trace?: never;
+    };
+    "/v1/mcp-relays/{id}/enrolment-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Issue a new enrolment token
+         * @description Redeeming it replaces the relay's key (re-enrolment).
+         */
+        post: operations["issueMcpRelayEnrolmentToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/models": {
         parameters: {
             query?: never;
@@ -3408,6 +3525,9 @@ export interface components {
             schemaId: string;
             schemaVersionId?: string;
         };
+        CreateMcpRelayRequest: {
+            name: string;
+        };
         CreatePluginRequest: {
             gitUrl: string;
             name?: string;
@@ -3626,6 +3746,12 @@ export interface components {
             backboneOrigin?: string;
             installationId?: string;
             surfaceOrigin?: string;
+        };
+        EnrolmentTokenDTO: {
+            dockerRun?: string;
+            /** Format: date-time */
+            enrolmentExpiresAt?: string;
+            enrolmentToken?: string;
         };
         ErrorItem: {
             componentType?: string;
@@ -4031,6 +4157,37 @@ export interface components {
             /** Format: int32 */
             topK?: number;
         };
+        McpRelayCreatedDTO: {
+            dockerRun?: string;
+            /** Format: date-time */
+            enrolmentExpiresAt?: string;
+            enrolmentToken?: string;
+            relay?: components["schemas"]["McpRelayDTO"];
+        };
+        McpRelayDTO: {
+            /** Format: date-time */
+            createdAt?: string;
+            createdBy?: string;
+            enrolledFromIp?: string;
+            /** Format: date-time */
+            enrolmentExpiresAt?: string;
+            id?: string;
+            inventory?: components["schemas"]["RelayInventory"];
+            /** Format: date-time */
+            inventoryReportedAt?: string;
+            kid?: string;
+            /** Format: date-time */
+            lastEnrolledAt?: string;
+            /** Format: date-time */
+            lastSeenAt?: string;
+            name?: string;
+            online?: boolean;
+            /** Format: int32 */
+            protocolVersion?: number;
+            relayVersion?: string;
+            /** @enum {string} */
+            status?: "PENDING" | "ACTIVE" | "DISABLED" | "REVOKED";
+        };
         MessageItem: {
             type: "MessageItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
@@ -4330,6 +4487,24 @@ export interface components {
         };
         PageKnowledgeBaseDTO: {
             content?: components["schemas"]["KnowledgeBaseDTO"][];
+            empty?: boolean;
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            number?: number;
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            /** Format: int32 */
+            size?: number;
+            sort?: components["schemas"]["SortObject"];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
+        PageMcpRelayDTO: {
+            content?: components["schemas"]["McpRelayDTO"][];
             empty?: boolean;
             first?: boolean;
             last?: boolean;
@@ -4865,6 +5040,34 @@ export interface components {
             regressed?: number;
             /** Format: int32 */
             unchanged?: number;
+        };
+        RelayEnrolRequest: {
+            kid: string;
+            proof: string;
+            publicKey: string;
+            token: string;
+        };
+        RelayEnrolResponse: {
+            issuer?: string;
+            jwks?: {
+                [key: string]: unknown;
+            };
+            organizationId?: string;
+            relayId?: string;
+        };
+        RelayInventory: {
+            configHash: string;
+            /** Format: int32 */
+            protocolVersion: number;
+            relayVersion: string;
+            servers: components["schemas"]["RelayInventoryServer"][];
+        };
+        RelayInventoryServer: {
+            allow: string[];
+            authMode: string;
+            name: string;
+            type: string;
+            url: string;
         };
         ReplaceOriginsRequest: {
             origins: string[];
@@ -5494,6 +5697,10 @@ export interface components {
         UpdateItemExpectedOutputRequest: {
             expectedOutput?: components["schemas"]["JsonNode"];
         };
+        UpdateMcpRelayRequest: {
+            disabled?: boolean;
+            name?: string;
+        };
         UpdatePluginRequest: {
             refPolicy?: string;
             /** @enum {string} */
@@ -5598,6 +5805,28 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getMcpRelayJwks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     find_6: {
         parameters: {
             query: {
@@ -9021,6 +9250,229 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SearchResponse"];
+                };
+            };
+        };
+    };
+    enrolMcpRelay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RelayEnrolRequest"];
+            };
+        };
+        responses: {
+            /** @description Enrolled */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RelayEnrolResponse"];
+                };
+            };
+            /** @description Invalid key, kid or proof */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RelayEnrolResponse"];
+                };
+            };
+            /** @description Token invalid, expired or already used */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RelayEnrolResponse"];
+                };
+            };
+            /** @description Too many attempts from this address */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RelayEnrolResponse"];
+                };
+            };
+        };
+    };
+    reportMcpRelayInventory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RelayInventory"];
+            };
+        };
+        responses: {
+            /** @description Stored */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A URL is not normalized, or a name or URL repeats */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The relay JWT is missing, expired or unknown */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listMcpRelays: {
+        parameters: {
+            query: {
+                pageable: components["schemas"]["Pageable"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageMcpRelayDTO"];
+                };
+            };
+        };
+    };
+    createMcpRelay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMcpRelayRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["McpRelayCreatedDTO"];
+                };
+            };
+        };
+    };
+    getMcpRelay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["McpRelayDTO"];
+                };
+            };
+        };
+    };
+    revokeMcpRelay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateMcpRelay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMcpRelayRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["McpRelayDTO"];
+                };
+            };
+        };
+    };
+    issueMcpRelayEnrolmentToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EnrolmentTokenDTO"];
                 };
             };
         };
