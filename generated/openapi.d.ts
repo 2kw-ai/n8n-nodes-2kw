@@ -1074,6 +1074,26 @@ export interface paths {
         patch: operations["updateItemExpectedOutput"];
         trace?: never;
     };
+    "/v1/dictation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Transcribe one dictation slice
+         * @description Transcribes one PCM16 mono 16 kHz WAV slice (`audio`, at most 1 MiB, about 31 s) on the built-in speech model. Optional `locale` is a BCP-47 tag such as de-DE; without it the language is detected. Optional `phrases`, one part per phrase, lists up to 50 words or names of 1 to 64 characters to favour, such as names already in the draft. Called by the chat composer while the user dictates.
+         */
+        post: operations["createDictation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/evaluation-scores/human": {
         parameters: {
             query?: never;
@@ -3499,6 +3519,17 @@ export interface components {
             version?: string;
             /** Format: int32 */
             versionNumber?: number;
+        };
+        /**
+         * @description Text transcribed from one dictation slice
+         * @default null
+         */
+        DictationResponse: {
+            /**
+             * @description Transcribed text; may be empty
+             * @default
+             */
+            text: string;
         };
         DocumentAttachRequest: {
             /**
@@ -7363,6 +7394,80 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["DatasetItemDTO"];
+                };
+            };
+        };
+    };
+    createDictation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    audio: string;
+                    locale?: string;
+                    phrases?: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description The slice's text */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DictationResponse"];
+                };
+            };
+            /** @description locale not a BCP-47 tag such as de-DE, or more than 50 phrases, or a phrase that is not 1 to 64 characters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DictationResponse"];
+                };
+            };
+            /** @description Slice larger than 1 MiB */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DictationResponse"];
+                };
+            };
+            /** @description Slice is not PCM16 mono 16 kHz WAV */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DictationResponse"];
+                };
+            };
+            /** @description Dictation rate exceeded; see Retry-After */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DictationResponse"];
+                };
+            };
+            /** @description Dictation is unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DictationResponse"];
                 };
             };
         };
