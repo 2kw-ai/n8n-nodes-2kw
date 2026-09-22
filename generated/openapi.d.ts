@@ -4,23 +4,6 @@
  */
 
 export interface paths {
-    "/.well-known/mcp-relay-jwks.json": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Public keys that sign relay request assertions */
-        get: operations["getMcpRelayJwks"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/agents": {
         parameters: {
             query?: never;
@@ -1091,26 +1074,6 @@ export interface paths {
         patch: operations["updateItemExpectedOutput"];
         trace?: never;
     };
-    "/v1/dictation": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Transcribe one dictation slice
-         * @description Transcribes one PCM16 mono 16 kHz WAV slice (`audio`, at most 1 MiB, about 31 s) on the built-in speech model. Optional `locale` is a BCP-47 tag such as de-DE; without it the language is detected. Optional `phrases`, one part per phrase, lists up to 50 words or names of 1 to 64 characters to favour, such as names already in the draft. Called by the chat composer while the user dictates.
-         */
-        post: operations["createDictation"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/evaluation-scores/human": {
         parameters: {
             query?: never;
@@ -1922,106 +1885,6 @@ export interface paths {
          * @description Hybrid dense + lexical retrieval with Reciprocal Rank Fusion. topK is clamped to 1..100. Results are visible to the caller's own principals only; an empty result is not an error. Search is top-k and deliberately not paginated: every request re-embeds the query, re-runs both retrievers under a bounded per-retriever fetch, and re-fuses their rankings, so there is no stable global ordering to offset into. Raise topK instead of asking for a later page. The knowledge-base and document list endpoints do paginate.
          */
         post: operations["search"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/mcp-relay/enrol": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Redeem a relay enrolment token
-         * @description Unauthenticated. Called by the relay container on first start.
-         */
-        post: operations["enrolMcpRelay"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/mcp-relay/inventory": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Report a relay's inventory
-         * @description Called by the relay container with its own relay JWT on every start.
-         */
-        put: operations["reportMcpRelayInventory"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/mcp-relays": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List MCP relays */
-        get: operations["listMcpRelays"];
-        put?: never;
-        /**
-         * Create an MCP relay
-         * @description Returns a single-use enrolment token (valid 24 h, shown once) and a docker run snippet.
-         */
-        post: operations["createMcpRelay"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/mcp-relays/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get an MCP relay with its inventory */
-        get: operations["getMcpRelay"];
-        put?: never;
-        post?: never;
-        /** Revoke an MCP relay for good */
-        delete: operations["revokeMcpRelay"];
-        options?: never;
-        head?: never;
-        /** Rename, disable or enable an MCP relay */
-        patch: operations["updateMcpRelay"];
-        trace?: never;
-    };
-    "/v1/mcp-relays/{id}/enrolment-token": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Issue a new enrolment token
-         * @description Redeeming it replaces the relay's key (re-enrolment).
-         */
-        post: operations["issueMcpRelayEnrolmentToken"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3525,9 +3388,6 @@ export interface components {
             schemaId: string;
             schemaVersionId?: string;
         };
-        CreateMcpRelayRequest: {
-            name: string;
-        };
         CreatePluginRequest: {
             gitUrl: string;
             name?: string;
@@ -3640,17 +3500,6 @@ export interface components {
             /** Format: int32 */
             versionNumber?: number;
         };
-        /**
-         * @description Text transcribed from one dictation slice
-         * @default null
-         */
-        DictationResponse: {
-            /**
-             * @description Transcribed text; may be empty
-             * @default
-             */
-            text: string;
-        };
         DocumentAttachRequest: {
             /**
              * @description Id of a file uploaded with purpose=knowledge
@@ -3746,12 +3595,6 @@ export interface components {
             backboneOrigin?: string;
             installationId?: string;
             surfaceOrigin?: string;
-        };
-        EnrolmentTokenDTO: {
-            dockerRun?: string;
-            /** Format: date-time */
-            enrolmentExpiresAt?: string;
-            enrolmentToken?: string;
         };
         ErrorItem: {
             componentType?: string;
@@ -4157,37 +4000,6 @@ export interface components {
             /** Format: int32 */
             topK?: number;
         };
-        McpRelayCreatedDTO: {
-            dockerRun?: string;
-            /** Format: date-time */
-            enrolmentExpiresAt?: string;
-            enrolmentToken?: string;
-            relay?: components["schemas"]["McpRelayDTO"];
-        };
-        McpRelayDTO: {
-            /** Format: date-time */
-            createdAt?: string;
-            createdBy?: string;
-            enrolledFromIp?: string;
-            /** Format: date-time */
-            enrolmentExpiresAt?: string;
-            id?: string;
-            inventory?: components["schemas"]["RelayInventory"];
-            /** Format: date-time */
-            inventoryReportedAt?: string;
-            kid?: string;
-            /** Format: date-time */
-            lastEnrolledAt?: string;
-            /** Format: date-time */
-            lastSeenAt?: string;
-            name?: string;
-            online?: boolean;
-            /** Format: int32 */
-            protocolVersion?: number;
-            relayVersion?: string;
-            /** @enum {string} */
-            status?: "PENDING" | "ACTIVE" | "DISABLED" | "REVOKED";
-        };
         MessageItem: {
             type: "MessageItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
@@ -4487,24 +4299,6 @@ export interface components {
         };
         PageKnowledgeBaseDTO: {
             content?: components["schemas"]["KnowledgeBaseDTO"][];
-            empty?: boolean;
-            first?: boolean;
-            last?: boolean;
-            /** Format: int32 */
-            number?: number;
-            /** Format: int32 */
-            numberOfElements?: number;
-            pageable?: components["schemas"]["PageableObject"];
-            /** Format: int32 */
-            size?: number;
-            sort?: components["schemas"]["SortObject"];
-            /** Format: int64 */
-            totalElements?: number;
-            /** Format: int32 */
-            totalPages?: number;
-        };
-        PageMcpRelayDTO: {
-            content?: components["schemas"]["McpRelayDTO"][];
             empty?: boolean;
             first?: boolean;
             last?: boolean;
@@ -5040,34 +4834,6 @@ export interface components {
             regressed?: number;
             /** Format: int32 */
             unchanged?: number;
-        };
-        RelayEnrolRequest: {
-            kid: string;
-            proof: string;
-            publicKey: string;
-            token: string;
-        };
-        RelayEnrolResponse: {
-            issuer?: string;
-            jwks?: {
-                [key: string]: unknown;
-            };
-            organizationId?: string;
-            relayId?: string;
-        };
-        RelayInventory: {
-            configHash: string;
-            /** Format: int32 */
-            protocolVersion: number;
-            relayVersion: string;
-            servers: components["schemas"]["RelayInventoryServer"][];
-        };
-        RelayInventoryServer: {
-            allow: string[];
-            authMode: string;
-            name: string;
-            type: string;
-            url: string;
         };
         ReplaceOriginsRequest: {
             origins: string[];
@@ -5697,10 +5463,6 @@ export interface components {
         UpdateItemExpectedOutputRequest: {
             expectedOutput?: components["schemas"]["JsonNode"];
         };
-        UpdateMcpRelayRequest: {
-            disabled?: boolean;
-            name?: string;
-        };
         UpdatePluginRequest: {
             refPolicy?: string;
             /** @enum {string} */
@@ -5805,28 +5567,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    getMcpRelayJwks: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
     find_6: {
         parameters: {
             query: {
@@ -7627,80 +7367,6 @@ export interface operations {
             };
         };
     };
-    createDictation: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "multipart/form-data": {
-                    /** Format: binary */
-                    audio: string;
-                    locale?: string;
-                    phrases?: string[];
-                };
-            };
-        };
-        responses: {
-            /** @description The slice's text */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DictationResponse"];
-                };
-            };
-            /** @description locale not a BCP-47 tag such as de-DE, or more than 50 phrases, or a phrase that is not 1 to 64 characters */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DictationResponse"];
-                };
-            };
-            /** @description Slice larger than 1 MiB */
-            413: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DictationResponse"];
-                };
-            };
-            /** @description Slice is not PCM16 mono 16 kHz WAV */
-            415: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DictationResponse"];
-                };
-            };
-            /** @description Dictation rate exceeded; see Retry-After */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DictationResponse"];
-                };
-            };
-            /** @description Dictation is unavailable */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DictationResponse"];
-                };
-            };
-        };
-    };
     listScoresForSubject: {
         parameters: {
             query: {
@@ -9250,229 +8916,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SearchResponse"];
-                };
-            };
-        };
-    };
-    enrolMcpRelay: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RelayEnrolRequest"];
-            };
-        };
-        responses: {
-            /** @description Enrolled */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["RelayEnrolResponse"];
-                };
-            };
-            /** @description Invalid key, kid or proof */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["RelayEnrolResponse"];
-                };
-            };
-            /** @description Token invalid, expired or already used */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["RelayEnrolResponse"];
-                };
-            };
-            /** @description Too many attempts from this address */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["RelayEnrolResponse"];
-                };
-            };
-        };
-    };
-    reportMcpRelayInventory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RelayInventory"];
-            };
-        };
-        responses: {
-            /** @description Stored */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description A URL is not normalized, or a name or URL repeats */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description The relay JWT is missing, expired or unknown */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    listMcpRelays: {
-        parameters: {
-            query: {
-                pageable: components["schemas"]["Pageable"];
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["PageMcpRelayDTO"];
-                };
-            };
-        };
-    };
-    createMcpRelay: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateMcpRelayRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["McpRelayCreatedDTO"];
-                };
-            };
-        };
-    };
-    getMcpRelay: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["McpRelayDTO"];
-                };
-            };
-        };
-    };
-    revokeMcpRelay: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    updateMcpRelay: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateMcpRelayRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["McpRelayDTO"];
-                };
-            };
-        };
-    };
-    issueMcpRelayEnrolmentToken: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["EnrolmentTokenDTO"];
                 };
             };
         };
