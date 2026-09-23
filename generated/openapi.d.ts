@@ -2821,6 +2821,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/settings/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a setting
+         * @description The effective value for the caller (the caller's own member value if usable, else the organization's), its source, both raw tiers with a usable flag, and the tiers that were skipped. No value is a 200 with value and source null. updatedBy is shown to ADMIN and OWNER only.
+         */
+        get: operations["getSetting"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/settings/{key}/member": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set your own value
+         * @description Replaces the caller's own member tier, which wins over the organization's value while it is usable.
+         */
+        put: operations["setMemberSetting"];
+        post?: never;
+        /**
+         * Clear your own value
+         * @description Removes the caller's own member tier; the organization's value applies again.
+         */
+        delete: operations["clearMemberSetting"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/settings/{key}/org": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set the organization's value
+         * @description Replaces the organization tier. Requires the key's write role — ADMIN or OWNER for agents.default. The value is a JSON object the key validates.
+         */
+        put: operations["setOrganizationSetting"];
+        post?: never;
+        /**
+         * Clear the organization's value
+         * @description Removes the organization tier. Same role as setting it.
+         */
+        delete: operations["clearOrganizationSetting"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/skills": {
         parameters: {
             query?: never;
@@ -3895,10 +3963,6 @@ export interface components {
             /** @enum {string} */
             type: "CODE" | "LLM_JUDGE" | "HUMAN";
         };
-        ExecutionError: {
-            content?: string;
-            type?: string;
-        };
         ExperimentDTO: {
             /** Format: date-time */
             readonly createdAt?: string;
@@ -4254,38 +4318,38 @@ export interface components {
         McpApprovalRequestItem: {
             type: "McpApprovalRequestItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
-            arguments?: string;
-            id?: string;
-            name?: string;
-            server_label?: string;
+            arguments: string;
+            id: string;
+            name: string;
+            server_label: string;
         });
         McpApprovalResponseItem: {
             type: "McpApprovalResponseItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
-            approval_request_id?: string;
-            approve?: boolean;
-            id?: string;
-            reason?: string;
+            approval_request_id: string;
+            approve: boolean;
+            id?: string | null;
+            reason?: string | null;
             remember?: string;
         });
         McpCallItem: {
             type: "McpCallItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
-            approval_request_id?: string;
-            arguments?: string;
-            error?: components["schemas"]["ExecutionError"];
-            id?: string;
-            name?: string;
-            output?: string;
-            server_label?: string;
-            status?: string;
+            approval_request_id: string | null;
+            arguments: string;
+            error: components["schemas"]["McpToolExecutionError"] | null;
+            id: string;
+            name: string;
+            output: string | null;
+            server_label: string;
+            status: string;
         });
         McpListToolsItem: {
             type: "McpListToolsItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
-            id?: string;
-            server_label?: string;
-            tools?: components["schemas"]["JsonNode"];
+            id: string;
+            server_label: string;
+            tools: components["schemas"]["JsonNode"];
         });
         McpRelayCreatedDTO: {
             dockerRun?: string;
@@ -4317,6 +4381,11 @@ export interface components {
             relayVersion?: string;
             /** @enum {string} */
             status?: "PENDING" | "ACTIVE" | "DISABLED" | "REVOKED";
+        };
+        /** @default null */
+        McpToolExecutionError: {
+            content?: string;
+            type?: string;
         };
         MessageItem: {
             type: "MessageItem";
@@ -5441,6 +5510,38 @@ export interface components {
             /** Format: date-time */
             startTime?: string;
             traceIds?: string[];
+        };
+        SettingMemberTier: {
+            /** Format: date-time */
+            updatedAt?: string;
+            usable?: boolean;
+            value?: {
+                [key: string]: unknown;
+            };
+        };
+        SettingOrganizationTier: {
+            /** Format: date-time */
+            updatedAt?: string;
+            updatedBy?: string;
+            usable?: boolean;
+            value?: {
+                [key: string]: unknown;
+            };
+        };
+        SettingView: {
+            key?: string;
+            member?: components["schemas"]["SettingMemberTier"];
+            org?: components["schemas"]["SettingOrganizationTier"];
+            skipped?: string[];
+            source?: string;
+            value?: {
+                [key: string]: unknown;
+            };
+        };
+        SettingWriteRequest: {
+            value: {
+                [key: string]: unknown;
+            };
         };
         SkillBinding: {
             /**
@@ -7109,7 +7210,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorPublicHostDTO"];
                 };
             };
-            /** @description Already approved on this port */
+            /** @description Already approved on this port, or the organization's approval list is full */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -10957,6 +11058,124 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SchemaVersionDTO"];
+                };
+            };
+        };
+    };
+    getSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SettingView"];
+                };
+            };
+        };
+    };
+    setMemberSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettingWriteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SettingView"];
+                };
+            };
+        };
+    };
+    clearMemberSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SettingView"];
+                };
+            };
+        };
+    };
+    setOrganizationSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettingWriteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SettingView"];
+                };
+            };
+        };
+    };
+    clearOrganizationSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SettingView"];
                 };
             };
         };
