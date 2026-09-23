@@ -3189,9 +3189,15 @@ export interface components {
             tools?: components["schemas"]["AgentPolicyToolDTO"][];
             versionId?: string;
         };
+        AgentPolicyJudgeDTO: {
+            allow?: string[];
+            environment?: string[];
+            soft_deny?: string[];
+        };
         AgentPolicyToolDTO: {
             /** @enum {string} */
             action?: "ALLOW" | "AUTO" | "APPROVE" | "BLOCK" | "DENY";
+            judge?: components["schemas"]["AgentPolicyJudgeDTO"];
             matchedRules?: string[];
             /** @enum {string} */
             policyClass?: "READ" | "WRITE" | "DESTRUCTIVE";
