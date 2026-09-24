@@ -3361,6 +3361,7 @@ export interface components {
             decision?: string;
             hmac?: string;
             id?: string;
+            mode?: string;
             policy_class?: string;
             reason?: string;
             status?: string;
@@ -3538,6 +3539,7 @@ export interface components {
             head_response_id?: string;
             /** Format: int64 */
             last_activity_at?: number;
+            mode?: string;
             pause_reason?: string;
             status?: string;
         };
@@ -3702,7 +3704,7 @@ export interface components {
         };
         CreateResponseBody: {
             conversation?: string;
-            input?: (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ReasoningItem"])[];
+            input?: (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"])[];
             instructions?: string;
             /** Format: int32 */
             max_output_tokens?: number;
@@ -4395,6 +4397,12 @@ export interface components {
             phase?: string;
             role?: string;
             status?: string;
+        });
+        ModeItem: {
+            type: "ModeItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            id?: string;
+            mode?: string;
         });
         ModelInfo: {
             /** Format: int64 */
@@ -5573,6 +5581,12 @@ export interface components {
             /** Format: int32 */
             versionNumber?: number;
         };
+        SkillItem: {
+            type: "SkillItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            id?: string;
+            name?: string;
+        });
         SkillLabelDTO: {
             id?: string;
             name?: string;
@@ -5809,6 +5823,8 @@ export interface components {
             arguments?: string;
             callId?: string;
             conversationId?: string;
+            /** @enum {string} */
+            conversationMode?: "plan" | "ask" | "auto";
             /** Format: date-time */
             createdAt?: string;
             createdBy?: string;
