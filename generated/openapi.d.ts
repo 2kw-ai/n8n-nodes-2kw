@@ -12543,8 +12543,28 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description Spans accepted */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                    "application/x-protobuf": string;
+                };
+            };
+            /** @description Malformed OTLP payload; no span is persisted */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                    "application/x-protobuf": string;
+                };
+            };
+            /** @description Request body over the ingestion cap (4 MB by default); no span is persisted */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
