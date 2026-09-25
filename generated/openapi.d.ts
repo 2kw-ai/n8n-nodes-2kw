@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/.well-known/mcp-relay-jwks.json": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public keys that sign relay request assertions */
+        get: operations["getMcpRelayJwks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/agents": {
         parameters: {
             query?: never;
@@ -111,6 +128,26 @@ export interface paths {
          * @description Delete a label. The 'latest' label cannot be deleted.
          */
         delete: operations["deleteLabel_2"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agents/{agentId}/skills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List an agent's skills
+         * @description The skills bound by the latest published version of an agent, in authored order, as {name, description, versionNumber, ref, sourcePluginId, pluginName}. Readable by every organization member including the chat-only USER role, which cannot read the version itself. An agent with no published version, or one binding nothing, returns an empty list rather than a 404. A binding whose skill is archived or no longer resolves is omitted. 404 for an agent of another organization.
+         */
+        get: operations["listAgentSkills"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -662,6 +699,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/connectors/public-hosts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the approved public MCP hosts */
+        get: operations["listConnectorPublicHosts"];
+        put?: never;
+        /**
+         * Approve a public MCP host
+         * @description Approving a host approves every path and account on it. Omit the port to approve 443.
+         */
+        post: operations["addConnectorPublicHost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/connectors/public-hosts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Withdraw an approved public MCP host
+         * @description Takes effect on the next request; nothing is cached.
+         */
+        delete: operations["removeConnectorPublicHost"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/conversations": {
         parameters: {
             query?: never;
@@ -1072,6 +1150,26 @@ export interface paths {
          * @description Update only the expectedOutput of a dataset item. Other fields (input, tags, metadata) are immutable after creation.
          */
         patch: operations["updateItemExpectedOutput"];
+        trace?: never;
+    };
+    "/v1/dictation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Transcribe one dictation slice
+         * @description Transcribes one PCM16 mono 16 kHz WAV slice (`audio`, at most 1 MiB, about 31 s) on the built-in speech model. Optional `locale` is a BCP-47 tag such as de-DE; without it the language is detected. Optional `phrases`, one part per phrase, lists up to 50 words or names of 1 to 64 characters to favour, such as names already in the draft. Called by the chat composer while the user dictates.
+         */
+        post: operations["createDictation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/evaluation-scores/human": {
@@ -1891,6 +1989,214 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/mcp-relay/enrol": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Redeem a relay enrolment token
+         * @description Unauthenticated. Called by the relay container on first start.
+         */
+        post: operations["enrolMcpRelay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/mcp-relay/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Report a relay's inventory
+         * @description Called by the relay container with its own relay JWT on every start.
+         */
+        put: operations["reportMcpRelayInventory"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/mcp-relays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List MCP relays */
+        get: operations["listMcpRelays"];
+        put?: never;
+        /**
+         * Create an MCP relay
+         * @description Returns a single-use enrolment token (valid 24 h, shown once) and a docker run snippet.
+         */
+        post: operations["createMcpRelay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/mcp-relays/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an MCP relay with its inventory */
+        get: operations["getMcpRelay"];
+        put?: never;
+        post?: never;
+        /** Revoke an MCP relay for good */
+        delete: operations["revokeMcpRelay"];
+        options?: never;
+        head?: never;
+        /** Rename, disable or enable an MCP relay */
+        patch: operations["updateMcpRelay"];
+        trace?: never;
+    };
+    "/v1/mcp-relays/{id}/enrolment-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Issue a new enrolment token
+         * @description Redeeming it replaces the relay's key (re-enrolment).
+         */
+        post: operations["issueMcpRelayEnrolmentToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memories/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Forget everything
+         * @description Deletes the caller's whole memory space. An agent run that started before this call can no longer write to it. Cannot be undone.
+         */
+        delete: operations["forgetMyMemory"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memories/me/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read one of your memory files
+         * @description The raw content of the file at path, with its version as ETag. Marks the file as read for retention. A directory path is 404.
+         */
+        get: operations["getMyMemoryFile"];
+        /**
+         * Create or replace one of your memory files
+         * @description Stores content at path: 201 when the file is new, 200 when it replaced one. With If-Match (the ETag of a GET) the write succeeds only if the file still has that version, else 412; If-Match on a path without a file is 412. The same limits and credential guard as the agent's memory tool apply.
+         */
+        put: operations["putMyMemoryFile"];
+        post?: never;
+        /**
+         * Delete one of your memory files or directories
+         * @description Deletes the file at path, or every file below path when it is a directory. /memories itself is 409; use forgetMyMemory instead.
+         */
+        delete: operations["deleteMyMemoryFile"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memories/me/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List your memory files
+         * @description Every file in the caller's memory space, ordered by path, without content. Does not count as a read for retention.
+         */
+        get: operations["listMyMemoryFiles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memories/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List members' memory totals
+         * @description Per member of the organization with memory: file count, total bytes and the last write. Never paths or content. ADMIN or OWNER.
+         */
+        get: operations["listMemberMemoryUsage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memories/users/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Erase a member's memory
+         * @description Deletes the member's whole memory space in this organization. An agent run that started before this call can no longer write to it. Cannot be undone. ADMIN or OWNER.
+         */
+        delete: operations["eraseMemberMemory"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/models": {
         parameters: {
             query?: never;
@@ -2623,6 +2929,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/settings/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a setting
+         * @description The effective value for the caller (the caller's own member value if usable, else the organization's), its source, both raw tiers with a usable flag, and the tiers that were skipped. No value is a 200 with value and source null. updatedBy is shown to ADMIN and OWNER only.
+         */
+        get: operations["getSetting"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/settings/{key}/member": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set your own value
+         * @description Replaces the caller's own member tier, which wins over the organization's value while it is usable.
+         */
+        put: operations["setMemberSetting"];
+        post?: never;
+        /**
+         * Clear your own value
+         * @description Removes the caller's own member tier; the organization's value applies again.
+         */
+        delete: operations["clearMemberSetting"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/settings/{key}/org": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set the organization's value
+         * @description Replaces the organization tier. Requires the key's write role — ADMIN or OWNER for agents.default. The value is a JSON object the key validates.
+         */
+        put: operations["setOrganizationSetting"];
+        post?: never;
+        /**
+         * Clear the organization's value
+         * @description Removes the organization tier. Same role as setting it.
+         */
+        delete: operations["clearOrganizationSetting"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/skills": {
         parameters: {
             query?: never;
@@ -2956,6 +3330,8 @@ export interface components {
             /** Format: date-time */
             readonly lastModifiedAt?: string;
             latestVersionId?: string;
+            /** Format: int32 */
+            readonly latestVersionNumber?: number;
             model?: string;
             models?: string[];
             name: string;
@@ -2991,9 +3367,15 @@ export interface components {
             tools?: components["schemas"]["AgentPolicyToolDTO"][];
             versionId?: string;
         };
+        AgentPolicyJudgeDTO: {
+            allow?: string[];
+            environment?: string[];
+            soft_deny?: string[];
+        };
         AgentPolicyToolDTO: {
             /** @enum {string} */
             action?: "ALLOW" | "AUTO" | "APPROVE" | "BLOCK" | "DENY";
+            judge?: components["schemas"]["AgentPolicyJudgeDTO"];
             matchedRules?: string[];
             /** @enum {string} */
             policyClass?: "READ" | "WRITE" | "DESTRUCTIVE";
@@ -3002,6 +3384,15 @@ export interface components {
             tool?: string;
             /** @enum {string} */
             verdict?: "EXECUTE" | "RELAY" | "PAUSE_APPROVAL" | "JUDGE" | "BLOCK" | "FAIL";
+        };
+        AgentSkillDTO: {
+            description?: string;
+            name?: string;
+            pluginName?: string;
+            ref?: string;
+            sourcePluginId?: string;
+            /** Format: int32 */
+            versionNumber?: number;
         };
         AgentVersionDTO: {
             agentId?: string;
@@ -3080,6 +3471,7 @@ export interface components {
             decision?: string;
             hmac?: string;
             id?: string;
+            mode?: string;
             policy_class?: string;
             reason?: string;
             status?: string;
@@ -3240,6 +3632,15 @@ export interface components {
             flags?: components["schemas"]["FlagOutcome"][];
             truncated?: boolean;
         };
+        ConnectorPublicHostDTO: {
+            /** Format: date-time */
+            createdAt?: string;
+            createdBy?: string;
+            host?: string;
+            id?: string;
+            /** Format: int32 */
+            port?: number;
+        };
         ContentPart: {
             type: string;
         };
@@ -3248,6 +3649,7 @@ export interface components {
             head_response_id?: string;
             /** Format: int64 */
             last_activity_at?: number;
+            mode?: string;
             pause_reason?: string;
             status?: string;
         };
@@ -3374,6 +3776,11 @@ export interface components {
             description?: string;
             name: string;
         };
+        CreateConnectorPublicHostRequest: {
+            host: string;
+            /** Format: int32 */
+            port?: number;
+        };
         CreateConversationRequest: {
             items?: components["schemas"]["JsonNode"];
             metadata?: components["schemas"]["JsonNode"];
@@ -3387,6 +3794,9 @@ export interface components {
             model: string;
             schemaId: string;
             schemaVersionId?: string;
+        };
+        CreateMcpRelayRequest: {
+            name: string;
         };
         CreatePluginRequest: {
             gitUrl: string;
@@ -3404,7 +3814,7 @@ export interface components {
         };
         CreateResponseBody: {
             conversation?: string;
-            input?: (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ReasoningItem"])[];
+            input?: (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"])[];
             instructions?: string;
             /** Format: int32 */
             max_output_tokens?: number;
@@ -3499,6 +3909,17 @@ export interface components {
             version?: string;
             /** Format: int32 */
             versionNumber?: number;
+        };
+        /**
+         * @description Text transcribed from one dictation slice
+         * @default null
+         */
+        DictationResponse: {
+            /**
+             * @description Transcribed text; may be empty
+             * @default
+             */
+            text: string;
         };
         DocumentAttachRequest: {
             /**
@@ -3595,6 +4016,12 @@ export interface components {
             backboneOrigin?: string;
             installationId?: string;
             surfaceOrigin?: string;
+        };
+        EnrolmentTokenDTO: {
+            dockerRun?: string;
+            /** Format: date-time */
+            enrolmentExpiresAt?: string;
+            enrolmentToken?: string;
         };
         ErrorItem: {
             componentType?: string;
@@ -4000,6 +4427,115 @@ export interface components {
             /** Format: int32 */
             topK?: number;
         };
+        McpApprovalRequestItem: {
+            type: "McpApprovalRequestItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            arguments: string;
+            id: string;
+            name: string;
+            server_label: string;
+        });
+        McpApprovalResponseItem: {
+            type: "McpApprovalResponseItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            approval_request_id: string;
+            approve: boolean;
+            id?: string | null;
+            reason?: string | null;
+            remember?: string;
+        });
+        McpCallItem: {
+            type: "McpCallItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            approval_request_id: string | null;
+            arguments: string;
+            error: components["schemas"]["McpToolExecutionError"] | null;
+            id: string;
+            name: string;
+            output: string | null;
+            server_label: string;
+            status: string;
+        });
+        McpListToolsItem: {
+            type: "McpListToolsItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            id: string;
+            server_label: string;
+            tools: components["schemas"]["JsonNode"];
+        });
+        McpRelayCreatedDTO: {
+            dockerRun?: string;
+            /** Format: date-time */
+            enrolmentExpiresAt?: string;
+            enrolmentToken?: string;
+            relay?: components["schemas"]["McpRelayDTO"];
+        };
+        McpRelayDTO: {
+            /** Format: date-time */
+            createdAt?: string;
+            createdBy?: string;
+            enrolledFromIp?: string;
+            /** Format: date-time */
+            enrolmentExpiresAt?: string;
+            id?: string;
+            inventory?: components["schemas"]["RelayInventory"];
+            /** Format: date-time */
+            inventoryReportedAt?: string;
+            kid?: string;
+            /** Format: date-time */
+            lastEnrolledAt?: string;
+            /** Format: date-time */
+            lastSeenAt?: string;
+            name?: string;
+            online?: boolean;
+            /** Format: int32 */
+            protocolVersion?: number;
+            relayVersion?: string;
+            /** @enum {string} */
+            status?: "PENDING" | "ACTIVE" | "DISABLED" | "REVOKED";
+        };
+        /** @default null */
+        McpToolExecutionError: {
+            content?: string;
+            type?: string;
+        };
+        MemberMemoryUsage: {
+            /** Format: int32 */
+            fileCount?: number;
+            /** Format: date-time */
+            lastUpdatedAt?: string;
+            /** Format: int64 */
+            totalBytes?: number;
+            userId?: string;
+        };
+        MemoryFileContent: {
+            content?: string;
+            /** Format: date-time */
+            lastAccessedAt?: string;
+            lastWrittenByAgentId?: string;
+            path?: string;
+            /** Format: int32 */
+            sizeBytes?: number;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: int64 */
+            version?: number;
+        };
+        MemoryFileSummary: {
+            /** Format: date-time */
+            lastAccessedAt?: string;
+            lastWrittenByAgentId?: string;
+            path?: string;
+            /** Format: int32 */
+            sizeBytes?: number;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: int64 */
+            version?: number;
+        };
+        MemoryFileWriteRequest: {
+            content: string;
+        };
         MessageItem: {
             type: "MessageItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
@@ -4008,6 +4544,12 @@ export interface components {
             phase?: string;
             role?: string;
             status?: string;
+        });
+        ModeItem: {
+            type: "ModeItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            id?: string;
+            mode?: string;
         });
         ModelInfo: {
             /** Format: int64 */
@@ -4299,6 +4841,24 @@ export interface components {
         };
         PageKnowledgeBaseDTO: {
             content?: components["schemas"]["KnowledgeBaseDTO"][];
+            empty?: boolean;
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            number?: number;
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            /** Format: int32 */
+            size?: number;
+            sort?: components["schemas"]["SortObject"];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
+        PageMcpRelayDTO: {
+            content?: components["schemas"]["McpRelayDTO"][];
             empty?: boolean;
             first?: boolean;
             last?: boolean;
@@ -4835,6 +5395,34 @@ export interface components {
             /** Format: int32 */
             unchanged?: number;
         };
+        RelayEnrolRequest: {
+            kid: string;
+            proof: string;
+            publicKey: string;
+            token: string;
+        };
+        RelayEnrolResponse: {
+            issuer?: string;
+            jwks?: {
+                [key: string]: unknown;
+            };
+            organizationId?: string;
+            relayId?: string;
+        };
+        RelayInventory: {
+            configHash: string;
+            /** Format: int32 */
+            protocolVersion: number;
+            relayVersion: string;
+            servers: components["schemas"]["RelayInventoryServer"][];
+        };
+        RelayInventoryServer: {
+            allow: string[];
+            authMode: string;
+            name: string;
+            type: string;
+            url: string;
+        };
         ReplaceOriginsRequest: {
             origins: string[];
         };
@@ -5078,6 +5666,38 @@ export interface components {
             startTime?: string;
             traceIds?: string[];
         };
+        SettingMemberTier: {
+            /** Format: date-time */
+            updatedAt?: string;
+            usable?: boolean;
+            value?: {
+                [key: string]: unknown;
+            };
+        };
+        SettingOrganizationTier: {
+            /** Format: date-time */
+            updatedAt?: string;
+            updatedBy?: string;
+            usable?: boolean;
+            value?: {
+                [key: string]: unknown;
+            };
+        };
+        SettingView: {
+            key?: string;
+            member?: components["schemas"]["SettingMemberTier"];
+            org?: components["schemas"]["SettingOrganizationTier"];
+            skipped?: string[];
+            source?: string;
+            value?: {
+                [key: string]: unknown;
+            };
+        };
+        SettingWriteRequest: {
+            value: {
+                [key: string]: unknown;
+            };
+        };
         SkillBinding: {
             /**
              * @description The org skill name.
@@ -5108,6 +5728,12 @@ export interface components {
             /** Format: int32 */
             versionNumber?: number;
         };
+        SkillItem: {
+            type: "SkillItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            id?: string;
+            name?: string;
+        });
         SkillLabelDTO: {
             id?: string;
             name?: string;
@@ -5344,8 +5970,11 @@ export interface components {
             arguments?: string;
             callId?: string;
             conversationId?: string;
+            /** @enum {string} */
+            conversationMode?: "plan" | "ask" | "auto";
             /** Format: date-time */
             createdAt?: string;
+            createdBy?: string;
             /** Format: date-time */
             decidedAt?: string;
             decidedByPrincipal?: string;
@@ -5463,6 +6092,10 @@ export interface components {
         UpdateItemExpectedOutputRequest: {
             expectedOutput?: components["schemas"]["JsonNode"];
         };
+        UpdateMcpRelayRequest: {
+            disabled?: boolean;
+            name?: string;
+        };
         UpdatePluginRequest: {
             refPolicy?: string;
             /** @enum {string} */
@@ -5567,6 +6200,28 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getMcpRelayJwks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     find_6: {
         parameters: {
             query: {
@@ -5755,6 +6410,28 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    listAgentSkills: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AgentSkillDTO"][];
+                };
             };
         };
     };
@@ -6645,6 +7322,88 @@ export interface operations {
             };
         };
     };
+    listConnectorPublicHosts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorPublicHostDTO"][];
+                };
+            };
+        };
+    };
+    addConnectorPublicHost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateConnectorPublicHostRequest"];
+            };
+        };
+        responses: {
+            /** @description Approved */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorPublicHostDTO"];
+                };
+            };
+            /** @description Not a plain, fully qualified host name */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorPublicHostDTO"];
+                };
+            };
+            /** @description Already approved on this port, or the organization's approval list is full */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorPublicHostDTO"];
+                };
+            };
+        };
+    };
+    removeConnectorPublicHost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Withdrawn */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     listConversations: {
         parameters: {
             query?: {
@@ -7363,6 +8122,80 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["DatasetItemDTO"];
+                };
+            };
+        };
+    };
+    createDictation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    audio: string;
+                    locale?: string;
+                    phrases?: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description The slice's text */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DictationResponse"];
+                };
+            };
+            /** @description locale not a BCP-47 tag such as de-DE, or more than 50 phrases, or a phrase that is not 1 to 64 characters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DictationResponse"];
+                };
+            };
+            /** @description Slice larger than 1 MiB */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DictationResponse"];
+                };
+            };
+            /** @description Slice is not PCM16 mono 16 kHz WAV */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DictationResponse"];
+                };
+            };
+            /** @description Dictation rate exceeded; see Retry-After */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DictationResponse"];
+                };
+            };
+            /** @description Dictation is unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DictationResponse"];
                 };
             };
         };
@@ -8778,16 +9611,20 @@ export interface operations {
     };
     upload: {
         parameters: {
-            query: {
-                files: string[];
-            };
+            query?: never;
             header?: never;
             path: {
                 knowledgeBaseId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    files: string[];
+                };
+            };
+        };
         responses: {
             /** @description Accepted */
             202: {
@@ -8917,6 +9754,377 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["SearchResponse"];
                 };
+            };
+        };
+    };
+    enrolMcpRelay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RelayEnrolRequest"];
+            };
+        };
+        responses: {
+            /** @description Enrolled */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RelayEnrolResponse"];
+                };
+            };
+            /** @description Invalid key, kid or proof */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RelayEnrolResponse"];
+                };
+            };
+            /** @description Token invalid, expired or already used */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RelayEnrolResponse"];
+                };
+            };
+            /** @description Too many attempts from this address */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RelayEnrolResponse"];
+                };
+            };
+        };
+    };
+    reportMcpRelayInventory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RelayInventory"];
+            };
+        };
+        responses: {
+            /** @description Stored */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A URL is not normalized, or a name or URL repeats */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The relay JWT is missing, expired or unknown */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listMcpRelays: {
+        parameters: {
+            query: {
+                pageable: components["schemas"]["Pageable"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageMcpRelayDTO"];
+                };
+            };
+        };
+    };
+    createMcpRelay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMcpRelayRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["McpRelayCreatedDTO"];
+                };
+            };
+        };
+    };
+    getMcpRelay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["McpRelayDTO"];
+                };
+            };
+        };
+    };
+    revokeMcpRelay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateMcpRelay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMcpRelayRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["McpRelayDTO"];
+                };
+            };
+        };
+    };
+    issueMcpRelayEnrolmentToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EnrolmentTokenDTO"];
+                };
+            };
+        };
+    };
+    forgetMyMemory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getMyMemoryFile: {
+        parameters: {
+            query: {
+                path: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemoryFileContent"];
+                };
+            };
+        };
+    };
+    putMyMemoryFile: {
+        parameters: {
+            query: {
+                path: string;
+            };
+            header?: {
+                "If-Match"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemoryFileWriteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemoryFileContent"];
+                };
+            };
+        };
+    };
+    deleteMyMemoryFile: {
+        parameters: {
+            query: {
+                path: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listMyMemoryFiles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemoryFileSummary"][];
+                };
+            };
+        };
+    };
+    listMemberMemoryUsage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemberMemoryUsage"][];
+                };
+            };
+        };
+    };
+    eraseMemberMemory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -10165,6 +11373,124 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SchemaVersionDTO"];
+                };
+            };
+        };
+    };
+    getSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SettingView"];
+                };
+            };
+        };
+    };
+    setMemberSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettingWriteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SettingView"];
+                };
+            };
+        };
+    };
+    clearMemberSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SettingView"];
+                };
+            };
+        };
+    };
+    setOrganizationSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettingWriteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SettingView"];
+                };
+            };
+        };
+    };
+    clearOrganizationSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SettingView"];
                 };
             };
         };
