@@ -21,6 +21,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/connectors/client.json": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Backbone's OAuth client ID metadata document for MCP connectors */
+        get: operations["getConnectorClientDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/connectors/jwks.json": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public keys that sign connector client assertions */
+        get: operations["getConnectorJwks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/agents": {
         parameters: {
             query?: never;
@@ -54,7 +88,7 @@ export interface paths {
         };
         /**
          * List the agent catalog
-         * @description Published agents of the current organization as {id, name, description}, name-ascending. Readable by every organization member including the chat-only USER role, and the only agent read that role has: the response never carries instructions, tools, options, the HITL policy, skills or model configuration. An agent with no published version is omitted. The sort parameter is ignored.
+         * @description Published agents of the current organization as {id, name, description, conversationModes}, name-ascending. Readable by every organization member including the chat-only USER role, and the only agent read that role has: the response never carries instructions, tools, options, skills or model configuration, and of the HITL policy only the conversation modes the operator offers end users. An agent with no published version is omitted. The sort parameter is ignored.
          */
         get: operations["listAgentCatalog"];
         put?: never;
@@ -693,6 +727,86 @@ export interface paths {
          * @description OpenAI-compatible chat completions endpoint. Supports streaming (stream=true) and non-streaming. Model format: provider/model (e.g., openai/gpt-4o).
          */
         post: operations["chatCompletions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/connectors/authorizations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start connecting a connector as the signed-in member
+         * @description Resolves the connector from the agent's current version and returns the authorization server's URL to open in a new tab.
+         */
+        post: operations["startConnectorAuthorization"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/connectors/authorizations/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete a connector consent from the callback page
+         * @description Single use: a second completion is refused with 409 and redeems nothing.
+         */
+        post: operations["completeConnectorAuthorization"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/connectors/authorizations/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * How the caller's connector consent stands
+         * @description pending, completed, failed or expired.
+         */
+        get: operations["getConnectorAuthorizationStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/connectors/grants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Allow an agent to use the signed-in member's connection
+         * @description Binds the grant to the agent's current egress; allowing again re-binds it.
+         */
+        post: operations["allowConnectorForAgent"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3316,6 +3430,7 @@ export interface components {
             items: components["schemas"]["Item"][];
         };
         AgentCatalogEntryDTO: {
+            conversationModes?: components["schemas"]["ConversationModes"];
             description?: string;
             id?: string;
             name?: string;
@@ -3473,6 +3588,7 @@ export interface components {
             id?: string;
             mode?: string;
             policy_class?: string;
+            preview?: components["schemas"]["SkillsApplyPreview"];
             reason?: string;
             status?: string;
             tool?: string;
@@ -3625,12 +3741,52 @@ export interface components {
             /** Format: int32 */
             versionNumber?: number;
         };
+        CompleteConnectorAuthorizationRequest: {
+            code?: string;
+            error?: string;
+            iss?: string;
+            state: string;
+        };
+        CompletedAuthorization: {
+            returnTo?: string;
+            status?: components["schemas"]["ConnectorAuthorizationStatus"];
+        };
         ConfidenceSummary: {
             calibrated?: boolean;
             /** Format: int32 */
             flagCount?: number;
             flags?: components["schemas"]["FlagOutcome"][];
             truncated?: boolean;
+        };
+        ConnectorAuthRequestItem: {
+            type: "ConnectorAuthRequestItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            call_id: string;
+            destinations?: string[];
+            host: string;
+            id: string;
+            reason: string;
+            server_label: string;
+            status: string;
+        });
+        ConnectorAuthorizationStarted: {
+            authorizationUrl?: string;
+            /** Format: date-time */
+            expiresAt?: string;
+            state?: string;
+        };
+        ConnectorAuthorizationStatus: {
+            errorCode?: string;
+            serverLabel?: string;
+            status?: string;
+        };
+        ConnectorGrantDTO: {
+            agentId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            host?: string;
+            id?: string;
+            serverLabel?: string;
         };
         ConnectorPublicHostDTO: {
             /** Format: date-time */
@@ -3671,6 +3827,20 @@ export interface components {
             has_more?: boolean;
             last_id?: string;
             object?: string;
+        };
+        /**
+         * @description The conversation modes an agent's end users may pick, and the one a new conversation starts in
+         * @default null
+         */
+        ConversationModes: {
+            /**
+             * @description The mode a new conversation starts in
+             * @default
+             * @enum {string}
+             */
+            default: "plan" | "ask" | "auto";
+            /** @description Offered modes, in the order plan, ask, auto */
+            offered: ("plan" | "ask" | "auto")[];
         };
         ConversationResource: {
             backbone?: components["schemas"]["ConversationBackbone"];
@@ -3776,6 +3946,10 @@ export interface components {
             description?: string;
             name: string;
         };
+        CreateConnectorGrantRequest: {
+            agentId: string;
+            serverLabel: string;
+        };
         CreateConnectorPublicHostRequest: {
             host: string;
             /** Format: int32 */
@@ -3814,7 +3988,7 @@ export interface components {
         };
         CreateResponseBody: {
             conversation?: string;
-            input?: (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"])[];
+            input?: (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"])[];
             instructions?: string;
             /** Format: int32 */
             max_output_tokens?: number;
@@ -3990,6 +4164,8 @@ export interface components {
              * @default
              */
             agentName: string | null;
+            /** @description The conversation modes the operator offers this agent's users and the default one; present exactly when agentName is */
+            conversationModes: components["schemas"]["ConversationModes"] | null;
             origins?: string[];
             /** @enum {string} */
             status?: "PENDING" | "ACTIVE" | "DISABLED";
@@ -5775,6 +5951,49 @@ export interface components {
             /** Format: int32 */
             versionNumber?: number;
         };
+        /** @default null */
+        SkillsApplyPreview: {
+            agent?: components["schemas"]["SkillsApplyPreviewAgent"];
+            followers?: components["schemas"]["SkillsApplyPreviewFollowers"];
+            skills?: components["schemas"]["SkillsApplyPreviewSkill"][];
+        };
+        /** @default null */
+        SkillsApplyPreviewAgent: {
+            bind?: string[];
+            /** Format: int32 */
+            from?: number;
+        };
+        /** @default null */
+        SkillsApplyPreviewFile: {
+            /** Format: int32 */
+            added?: number;
+            /** Format: int64 */
+            bytes?: number;
+            diff?: string;
+            op?: string;
+            path?: string;
+            /** Format: int32 */
+            removed?: number;
+            truncated?: boolean;
+        };
+        /** @default null */
+        SkillsApplyPreviewFollowers: {
+            agents?: string[];
+            as_of?: string;
+            /** Format: int32 */
+            more?: number;
+        };
+        /** @default null */
+        SkillsApplyPreviewSkill: {
+            files?: components["schemas"]["SkillsApplyPreviewFile"][];
+            /** Format: int32 */
+            files_omitted?: number;
+            fork_of_plugin?: string;
+            /** Format: int32 */
+            from?: number;
+            moves?: string[];
+            name?: string;
+        };
         SkippedFile: {
             path?: string;
             reason?: string;
@@ -5818,6 +6037,11 @@ export interface components {
             statusCode?: string;
             statusMessage?: string;
             traceId?: string;
+        };
+        StartConnectorAuthorizationRequest: {
+            agentId: string;
+            returnTo?: string;
+            serverLabel: string;
         };
         StartRunRequest: {
             variantId?: string;
@@ -6216,6 +6440,50 @@ export interface operations {
                 };
                 content: {
                     "*/*": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    getConnectorClientDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    getConnectorJwks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
                         [key: string]: unknown;
                     };
                 };
@@ -7318,6 +7586,199 @@ export interface operations {
                 content: {
                     "application/json": Record<string, never>;
                     "text/event-stream": Record<string, never>;
+                };
+            };
+        };
+    };
+    startConnectorAuthorization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartConnectorAuthorizationRequest"];
+            };
+        };
+        responses: {
+            /** @description Started */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorAuthorizationStarted"];
+                };
+            };
+            /** @description returnTo is not on the chat or the console */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorAuthorizationStarted"];
+                };
+            };
+            /** @description Not a signed-in member */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorAuthorizationStarted"];
+                };
+            };
+            /** @description No such agent, or no such connector in its current version */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorAuthorizationStarted"];
+                };
+            };
+            /** @description Sign-in cannot be started for this connector */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorAuthorizationStarted"];
+                };
+            };
+        };
+    };
+    completeConnectorAuthorization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompleteConnectorAuthorizationRequest"];
+            };
+        };
+        responses: {
+            /** @description Completed, failed or expired — see status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CompletedAuthorization"];
+                };
+            };
+            /** @description Not a signed-in member */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CompletedAuthorization"];
+                };
+            };
+            /** @description No consent of the caller has this state */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CompletedAuthorization"];
+                };
+            };
+            /** @description Already completed */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CompletedAuthorization"];
+                };
+            };
+        };
+    };
+    getConnectorAuthorizationStatus: {
+        parameters: {
+            query: {
+                state: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Not a signed-in member */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorAuthorizationStatus"];
+                };
+            };
+            /** @description No consent of the caller has this state */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorAuthorizationStatus"];
+                };
+            };
+        };
+    };
+    allowConnectorForAgent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateConnectorGrantRequest"];
+            };
+        };
+        responses: {
+            /** @description Allowed */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorGrantDTO"];
+                };
+            };
+            /** @description Not a signed-in member */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorGrantDTO"];
+                };
+            };
+            /** @description No such agent, or no such connector in its current version */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorGrantDTO"];
+                };
+            };
+            /** @description The member has no usable connection to this connector */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorGrantDTO"];
                 };
             };
         };
