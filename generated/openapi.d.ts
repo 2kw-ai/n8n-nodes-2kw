@@ -3641,10 +3641,7 @@ export interface components {
             result?: boolean;
         };
         CancelTurnRequest: {
-            /**
-             * @description The turn to stop: the value the client sent as the Backbone-Turn-Id header on POST /v1/responses. 1-64 characters of A-Z, a-z, 0-9, '_' or '-'.
-             * @default
-             */
+            /** @description The turn to stop: the value the client sent as the Backbone-Turn-Id header on POST /v1/responses. 1-64 characters of A-Z, a-z, 0-9, '_' or '-'. */
             turn_id: string;
         };
         ChatCompletionRequest: {
@@ -3696,11 +3693,8 @@ export interface components {
             type: "image_url";
         };
         ChatMessage: {
-            /**
-             * @description Message content: a plain string, or an array of typed content parts (text | image_url) for multimodal input. Responses always carry a plain string. Null is legal on assistant messages that carry only tool_calls.
-             * @default
-             */
-            content: string | components["schemas"]["ChatContentPart"][];
+            /** @description Message content: a plain string, or an array of typed content parts (text | image_url) for multimodal input. Responses always carry a plain string. Null is legal on assistant messages that carry only tool_calls. */
+            content?: string | components["schemas"]["ChatContentPart"][];
             function_call?: components["schemas"]["FunctionCall"];
             name?: string;
             role?: string;
@@ -3864,7 +3858,6 @@ export interface components {
         ConversationModes: {
             /**
              * @description The mode a new conversation starts in
-             * @default
              * @enum {string}
              */
             default: "plan" | "ask" | "auto";
@@ -3902,46 +3895,34 @@ export interface components {
              * @default false
              */
             extractMetadata: boolean;
-            /**
-             * @description Options for ocr/vlm pipelines. Ignored when pipeline is 'fast'.
-             * @default
-             */
-            options: components["schemas"]["PipelineOptions"];
+            /** @description Options for ocr/vlm pipelines. Ignored when pipeline is 'fast'. */
+            options?: components["schemas"]["PipelineOptions"];
             /**
              * @description Processing pipeline. 'fast' (default) — fast in-process text extraction, best for text-heavy documents. 'ocr' — OCR-based extraction with layout analysis, good for scanned documents. 'vlm' — Vision Language Model processing, ideal for image-heavy or complex-layout documents. For compound files (MSG/EML), the email body is always extracted as plain text. The pipeline setting applies to each attachment individually based on its type.
-             * @default
              * @example fast
              * @enum {string}
              */
-            pipeline: "fast" | "ocr" | "vlm";
+            pipeline?: "fast" | "ocr" | "vlm";
             /**
              * Format: int32
              * @description Per-document processing timeout in seconds. Default: 120
-             * @default
              */
-            timeout: number;
+            timeout?: number;
         };
         /**
          * @description Conversion result. On PARTIAL_SUCCESS (207), documents contains successfully converted content and errors contains details about failed items (e.g. unsupported attachments).
          * @default null
          */
         ConvertResponse: {
-            /**
-             * @description Successfully converted documents
-             * @default
-             */
-            documents: components["schemas"]["ExportDocument"][];
-            /**
-             * @description Conversion errors. For compound files, this includes unsupported attachment formats that could not be converted.
-             * @default
-             */
-            errors: components["schemas"]["ErrorItem"][];
+            /** @description Successfully converted documents */
+            documents?: components["schemas"]["ExportDocument"][];
+            /** @description Conversion errors. For compound files, this includes unsupported attachment formats that could not be converted. */
+            errors?: components["schemas"]["ErrorItem"][];
             /**
              * Format: double
              * @description Total processing time in seconds
-             * @default
              */
-            processingTime: number;
+            processingTime?: number;
             /**
              * @description Conversion result status
              * @default null
@@ -4119,16 +4100,12 @@ export interface components {
          * @default null
          */
         DictationResponse: {
-            /**
-             * @description Transcribed text; may be empty
-             * @default
-             */
-            text: string;
+            /** @description Transcribed text; may be empty */
+            text?: string;
         };
         DocumentAttachRequest: {
             /**
              * @description Id of a file uploaded with purpose=knowledge
-             * @default
              * @example file_0123456789abcdef0123456789abcdef
              */
             fileId: string;
@@ -4189,11 +4166,8 @@ export interface components {
             versionNo?: number;
         };
         EmbedConfigDTO: {
-            /**
-             * @description Display name of the agent named by ?agent=, when it belongs to this installation's organisation
-             * @default
-             */
-            agentName: string | null;
+            /** @description Display name of the agent named by ?agent=, when it belongs to this installation's organisation */
+            agentName?: string | null;
             /** @description The conversation modes the operator offers this agent's users and the default one; present exactly when agentName is */
             conversationModes: components["schemas"]["ConversationModes"] | null;
             origins?: string[];
@@ -5345,43 +5319,26 @@ export interface components {
          * @default null
          */
         PipelineOptions: {
-            /**
-             * @description Image export mode: 'placeholder' (default) or 'embedded'
-             * @default
-             */
-            imageExportMode: string;
+            /** @description Image export mode: 'placeholder' (default) or 'embedded' */
+            imageExportMode?: string;
             /**
              * Format: double
              * @description Scale factor for exported images
-             * @default
              */
-            imagesScale: number;
+            imagesScale?: number;
             /**
              * Format: int32
              * @description Maximum number of pages to process
-             * @default
              */
-            maxPages: number;
-            /**
-             * @description OCR engine (e.g. 'easyocr', 'tesseract')
-             * @default
-             */
-            ocrEngine: string;
-            /**
-             * @description OCR languages (e.g. ['en', 'de'])
-             * @default
-             */
-            ocrLanguages: string[];
-            /**
-             * @description Output formats. Default: [MD]
-             * @default
-             */
-            outputFormats: ("MD" | "TEXT" | "JSON" | "HTML")[];
-            /**
-             * @description PDF backend (e.g. 'dlparser', 'pypdfium2')
-             * @default
-             */
-            pdfBackend: string;
+            maxPages?: number;
+            /** @description OCR engine (e.g. 'easyocr', 'tesseract') */
+            ocrEngine?: string;
+            /** @description OCR languages (e.g. ['en', 'de']) */
+            ocrLanguages?: string[];
+            /** @description Output formats. Default: [MD] */
+            outputFormats?: ("MD" | "TEXT" | "JSON" | "HTML")[];
+            /** @description PDF backend (e.g. 'dlparser', 'pypdfium2') */
+            pdfBackend?: string;
             /**
              * @description Enable picture classification
              * @default false
@@ -8076,7 +8033,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "application/json": components["schemas"]["CancelTurnRequest"];
             };
@@ -8091,6 +8048,13 @@ export interface operations {
             };
             /** @description turn_id is missing or not 1-64 characters of A-Z, a-z, 0-9, '_' or '-' */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The caller is a VIEWER */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
