@@ -926,6 +926,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/conversations/{conversationId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stop a running turn
+         * @description Backbone extension: asks the turn named by turn_id - the value the client sent as the Backbone-Turn-Id header on POST /v1/responses - to stop at its next step boundary. 204 means the stop was accepted, not that the turn stopped: the turn's own response reports status cancelled, or completed when the stop arrived too late. Work in flight finishes, and a model round that returns after the stop is billed and discarded. A stop applies to the id, in this conversation: every later request carrying it stops at its first check, a tool-output continuation included. A stop for an id no request carries again changes nothing. Mint a fresh id per turn and never reuse one. Closing the connection is not a stop.
+         */
+        post: operations["cancelConversationTurn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/conversations/{conversationId}/items": {
         parameters: {
             query?: never;
@@ -3620,6 +3640,13 @@ export interface components {
         BooleanResultDTO: {
             result?: boolean;
         };
+        CancelTurnRequest: {
+            /**
+             * @description The turn to stop: the value the client sent as the Backbone-Turn-Id header on POST /v1/responses. 1-64 characters of A-Z, a-z, 0-9, '_' or '-'.
+             * @default
+             */
+            turn_id: string;
+        };
         ChatCompletionRequest: {
             /** Format: double */
             frequency_penalty?: number;
@@ -3639,9 +3666,11 @@ export interface components {
             parallel_tool_calls?: boolean;
             /** Format: double */
             presence_penalty?: number;
+            prompt_cache_key?: string;
             response_format?: components["schemas"]["ResponseFormat"];
             stop?: string[];
             stream?: boolean;
+            stream_options?: components["schemas"]["StreamOptions"];
             /** Format: double */
             temperature?: number;
             tool_choice?: unknown;
@@ -3997,6 +4026,7 @@ export interface components {
             };
             model?: string;
             previous_response_id?: string;
+            prompt_cache_key?: string;
             store?: boolean;
             stream?: boolean;
             /** Format: double */
@@ -6046,6 +6076,9 @@ export interface components {
         StartRunRequest: {
             variantId?: string;
         };
+        StreamOptions: {
+            include_usage?: boolean;
+        };
         SurfaceErrorDTO: {
             /** Format: int64 */
             count?: number;
@@ -8031,6 +8064,44 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["ConversationDeletedResource"];
                 };
+            };
+        };
+    };
+    cancelConversationTurn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CancelTurnRequest"];
+            };
+        };
+        responses: {
+            /** @description The stop was accepted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description turn_id is missing or not 1-64 characters of A-Z, a-z, 0-9, '_' or '-' */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No conversation with this id is visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -11383,7 +11454,10 @@ export interface operations {
     responses: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Names this turn so POST /v1/conversations/{id}/cancel can stop it. Send the same value on every request of one turn. 1-64 characters of A-Z, a-z, 0-9, '_' or '-'. */
+                "Backbone-Turn-Id"?: string;
+            };
             path?: never;
             cookie?: never;
         };

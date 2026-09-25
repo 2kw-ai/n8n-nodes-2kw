@@ -33,8 +33,8 @@ Agent, Label, Schema, Prompt, Schema Version, and Prompt Label fields are **sear
 
 | Resource | Operation | Notes |
 | --- | --- | --- |
-| Agent | Decide Approval | Approves or rejects every pending approval of a paused run and continues it. Required: `Agent`, `Response ID`, `Decision` (`Approve All` / `Reject All`, default reject). Optional: `Label` (the one the run used), `Reason`, `Remember for Conversation` (approvals only). Options: `Return Paused Runs`, `Simplify Output`. See [Human approval from a workflow](#human-approval-from-a-workflow). |
-| Agent | Send Message | Runs one turn of a stored agent. `Agent` and `Label` are pickers (empty label = latest). Options: `Binary Properties` (comma-separated, uploaded as attachments), `Conversation ID`, `Previous Response ID`, `Return Paused Runs`, `Simplify Output`. Fails if the agent pauses unless `Return Paused Runs` is on — see [Agents in n8n](#agents-in-n8n). |
+| Agent | Decide Approval | Approves or rejects every pending approval of a paused run and continues it. Required: `Agent`, `Response ID`, `Decision` (`Approve All` / `Reject All`, default reject). Optional: `Label` (the one the run used), `Reason`, `Remember for Conversation` (approvals only). Options: `Mode`, `Return Paused Runs`, `Simplify Output`. See [Human approval from a workflow](#human-approval-from-a-workflow). |
+| Agent | Send Message | Runs one turn of a stored agent. `Agent` and `Label` are pickers (empty label = latest). Options: `Binary Properties` (comma-separated, uploaded as attachments), `Conversation ID`, `Mode`, `Previous Response ID`, `Return Paused Runs`, `Simplify Output`. Fails if the agent pauses unless `Return Paused Runs` is on — see [Agents in n8n](#agents-in-n8n). |
 | Schema | Get | Searchable picker. Returns schema metadata + active version. |
 | Prompt | Get | Searchable picker. Returns prompt metadata. |
 | Prompt | Compile | Compiles a prompt with a `Variables` JSON map. Optional `Version ID` (string) or `Label` (picker, depends on prompt). |
@@ -48,9 +48,19 @@ Agent, Label, Schema, Prompt, Schema Version, and Prompt Label fields are **sear
 
 ## Agents in n8n
 
-**Agent › Send Message** runs one turn of an agent you built in 2kw and returns its answer as `text`, together with `status`, `responseId`, `conversationId`, `model` and `usage`. Pass `conversationId` (or `responseId` as *Previous Response ID*) to a later Send Message to continue the thread. Files from binary properties are uploaded and attached to the message; images reach the model as pixels.
+**Agent › Send Message** runs one turn of an agent you built in 2kw and returns its answer as `text`, together with `status`, `responseId`, `conversationId`, `conversationMode`, `model` and `usage`. `conversationMode` is the [conversation mode](#conversation-mode) the turn ran under: `plan`, `ask`, `auto`, or `null` when none is set. Pass `conversationId` (or `responseId` as *Previous Response ID*) to a later Send Message to continue the thread. Files from binary properties are uploaded and attached to the message; images reach the model as pixels.
 
 **n8n runs agents unattended by default.** When an agent's policy wants a human to approve a tool call, the run pauses and this operation fails with the tools that are waiting, for example `Agent paused for approval: create_invoice (apreq_…)`. To ask a person instead, see [Human approval from a workflow](#human-approval-from-a-workflow). For agents you call from n8n, use tools their policy lets run without a human decision — once auto-approval is available, set `classes.write` to `auto` in the agent's policy. A run that asks for a client-side tool fails the same way (`Agent requested client-side tool …`), because n8n cannot execute it. A run that stops early (`status: incomplete`, e.g. too many tool iterations) is returned, not failed; check `incompleteReason`. Leave *Retry On Fail* off for agents with write tools: a timed-out turn may still be running, and a retry repeats its tool calls.
+
+### Conversation mode
+
+The **Mode** option of Send Message and Decide Approval sets the conversation's mode, which narrows what the agent may do without touching the agent:
+
+- **Plan**: read only. Anything that could change something is refused.
+- **Ask**: no automatic approver. Calls that need approval wait for a person.
+- **Auto**: the operator's policy as written, automatic approver included.
+
+Leave the option out to keep the conversation's mode; the node then sends nothing. Once added, it defaults to `Ask`, and the node appends a `backbone:mode` item to the request. The mode is stored on the conversation and applies to its later turns too. A mode only tightens the agent's policy, never loosens it. See [Conversation Mode](https://docs.2kw.ai/agents#conversation-mode) in the API docs.
 
 ### Human approval from a workflow
 
@@ -68,6 +78,7 @@ It fails the item when:
 
 - nothing is pending on the response: already decided by a person, a conversation grant or the auto-approver, or the ID is not a paused run of this agent;
 - the platform refuses the decision, for example because an approval was decided automatically (`2kw refused the decision on response …`) or is no longer pending;
+- the conversation is in Plan and an approval is not read-only (`conversation_in_plan_mode`). The approval stays pending. Setting Mode to `Ask` on the same Decide Approval leaves Plan and approves in one request; leaving Plan is the person's decision, so ask them first;
 - the continued run asks for a client-side tool, which n8n still cannot execute. A turn can wait for approvals and a client-side tool at once; deciding the approvals does not run the client-side tool.
 
 Approvals remain a human decision. Do not give Decide Approval to an AI Agent as a tool, and do not wire it to approve without asking someone. For tools that should run without a person, set `classes.write` to `auto` in the agent's policy once auto-approval is available.
@@ -122,6 +133,7 @@ Prereleases publish under the `dev` dist-tag (`npm install n8n-nodes-2kw@dev`), 
 ### Unreleased
 - Added Agent › Send Message: agent and label pickers, file attachments, loud failure when the agent pauses for approval.
 - Added Agent › Decide Approval: approve or reject every pending approval of a paused run and continue it. Send Message and Decide Approval gained `Return Paused Runs`, which returns an approval pause as an item with `pendingApprovals` instead of failing.
+- Added the `Mode` option (Plan, Ask, Auto) to Agent › Send Message and Decide Approval, which sets the conversation mode, and `conversationMode` to the simplified output.
 
 Entries below `1.0.0` predate npm publication and use the node's own numbering.
 

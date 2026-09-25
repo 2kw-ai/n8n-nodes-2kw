@@ -21,6 +21,24 @@ const simplifyOutput: INodeProperties = {
   description: 'Whether to return text, status, IDs and usage instead of the raw response',
 };
 
+/**
+ * The end user's conversation mode (#656). Absent until added: a workflow that never adds it
+ * sends no backbone:mode item (S3 D2). Values sorted by name, as the node's other options are.
+ */
+const conversationMode: INodeProperties = {
+  displayName: 'Mode',
+  name: 'mode',
+  type: 'options',
+  default: 'ask',
+  description:
+    "Conversation mode for this and later turns of the conversation. Leave the option out to keep the conversation's mode.",
+  options: [
+    { name: 'Ask', value: 'ask', description: 'No automatic approver. Calls that need approval wait for a person.' },
+    { name: 'Auto', value: 'auto', description: "The operator's policy as written, automatic approver included" },
+    { name: 'Plan', value: 'plan', description: 'Read only. Anything that could change something is refused.' },
+  ],
+};
+
 export const agentOperations: INodeProperties = {
   displayName: 'Operation',
   name: 'operation',
@@ -124,6 +142,7 @@ export const agentFields: INodeProperties[] = [
         default: '',
         description: 'Continue an existing conversation',
       },
+      conversationMode,
       {
         displayName: 'Previous Response ID',
         name: 'previousResponseId',
@@ -184,6 +203,6 @@ export const agentFields: INodeProperties[] = [
     placeholder: 'Add Option',
     default: {},
     displayOptions: { show: showDecideApproval },
-    options: [returnPausedRuns, simplifyOutput],
+    options: [conversationMode, returnPausedRuns, simplifyOutput],
   },
 ];

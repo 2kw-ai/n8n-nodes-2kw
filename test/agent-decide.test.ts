@@ -114,6 +114,7 @@ describe('Agent › Send Message › Return Paused Runs (#660)', () => {
       status: 'requires_action',
       responseId: 'resp_p',
       conversationId: 'conv_1',
+      conversationMode: null,
       model: 'agent/support@4',
       usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
       pendingApprovals: [
@@ -228,6 +229,7 @@ describe('Agent › Decide Approval (#660)', () => {
           status: 'completed',
           responseId: 'resp_2',
           conversationId: 'conv_1',
+          conversationMode: null,
           model: 'agent/support@4',
           usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
         },
@@ -365,6 +367,21 @@ describe('Agent › Decide Approval (#660)', () => {
     const error = await executeAgent.call(ctx, 0, 'decideApproval').catch((e: unknown) => e);
 
     expect(error).toBeInstanceOf(NodeApiError);
+  });
+
+  it('appends the Mode option after the decisions (#656)', async () => {
+    const { ctx, fn } = makeCtx({ ...decideParams, decideOptions: { mode: 'ask' } }, [
+      pendingPage([{ id: 'apreq_1', responseId: 'resp_p', hmac: 'h1', policyClass: 'WRITE' }]),
+      completed({ conversation_mode: 'ask' }),
+    ]);
+
+    const [item] = await executeAgent.call(ctx, 0, 'decideApproval');
+
+    expect(fn.mock.calls[1][1].body.input).toEqual([
+      { type: 'backbone:approval_response', approval_id: 'apreq_1', decision: 'approve', hmac: 'h1' },
+      { type: 'backbone:mode', mode: 'ask' },
+    ]);
+    expect(item.json.conversationMode).toBe('ask');
   });
 });
 

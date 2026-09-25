@@ -59,6 +59,7 @@ describe('TwoKw node', () => {
     expect((byName.options.options as { name: string }[]).map((o) => o.name)).toEqual([
       'binaryProperties',
       'conversationId',
+      'mode',
       'previousResponseId',
       'returnPausedRuns',
       'simplify',
@@ -92,9 +93,19 @@ describe('TwoKw node', () => {
     expect(remember?.displayOptions?.show?.decision).toEqual(['approve']);
     const decideOptions = props.find((p) => p.name === 'decideOptions');
     expect((decideOptions?.options as { name: string }[]).map((o) => o.name)).toEqual([
+      'mode',
       'returnPausedRuns',
       'simplify',
     ]);
+    // #656: the same Mode option on both operations, values sorted by name, Ask once added (S3 §5).
+    const sendOptions = props.find((p) => p.name === 'options' && p.displayOptions?.show?.operation?.includes('sendMessage'));
+    for (const collection of [sendOptions, decideOptions]) {
+      const mode = (collection?.options as { name: string; default: unknown; options: { value: string }[] }[]).find(
+        (o) => o.name === 'mode',
+      );
+      expect(mode?.default).toBe('ask');
+      expect(mode?.options.map((o) => o.value)).toEqual(['ask', 'auto', 'plan']);
+    }
   });
 
   it('routes the agent resource to its handler', async () => {

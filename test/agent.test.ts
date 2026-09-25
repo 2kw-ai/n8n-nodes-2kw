@@ -200,6 +200,7 @@ describe('Agent resource — Send Message', () => {
           status: 'completed',
           responseId: 'resp_1',
           conversationId: 'conv_1',
+          conversationMode: null,
           model: 'agent/ag-1',
           usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
         },
@@ -238,6 +239,37 @@ describe('Agent resource — Send Message', () => {
   it('rejects an unknown operation', async () => {
     const { ctx } = makeCtx(baseParams);
     await expect(executeAgent.call(ctx, 0, 'nope')).rejects.toThrow('Unknown agent operation: nope');
+  });
+
+  it('appends the Mode option as a backbone:mode item after the message (#656)', async () => {
+    const { ctx, fn } = makeCtx(
+      { ...baseParams, options: { mode: 'plan' } },
+      { responses: [completed({ conversation_mode: 'plan' })] },
+    );
+
+    const [item] = await executeAgent.call(ctx, 0, 'sendMessage');
+
+    expect(fn.mock.calls[0][1].body.input).toEqual([
+      { type: 'message', role: 'user', content: [{ type: 'input_text', text: 'Hello agent' }] },
+      { type: 'backbone:mode', mode: 'plan' },
+    ]);
+    expect(item.json.conversationMode).toBe('plan');
+  });
+
+  it('sends no mode item without the option and reads a missing echo as null (#656)', async () => {
+    const { ctx, fn } = makeCtx(baseParams, { responses: [completed()] });
+
+    const [item] = await executeAgent.call(ctx, 0, 'sendMessage');
+
+    const input = fn.mock.calls[0][1].body.input as { type: string }[];
+    expect(input.some((i) => i.type === 'backbone:mode')).toBe(false);
+    expect(item.json.conversationMode).toBeNull();
+  });
+
+  it('reads an unknown echoed mode as null (#656)', async () => {
+    const { ctx } = makeCtx(baseParams, { responses: [completed({ conversation_mode: 'yolo' })] });
+    const [item] = await executeAgent.call(ctx, 0, 'sendMessage');
+    expect(item.json.conversationMode).toBeNull();
   });
 });
 

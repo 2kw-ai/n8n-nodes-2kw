@@ -6,9 +6,13 @@ import {
 } from 'n8n-workflow';
 import { apiRequest, extractResourceId } from '../transport';
 
+type ConversationMode = 'plan' | 'ask' | 'auto';
+
 interface RunOptions {
   returnPausedRuns?: boolean;
   simplify?: boolean;
+  /** Absent unless the workflow added the option (#656 D2). */
+  mode?: ConversationMode;
 }
 
 interface SendMessageOptions extends RunOptions {
@@ -38,6 +42,7 @@ export interface AgentResponse {
   usage?: IDataObject | null;
   incomplete_details?: { reason?: string } | null;
   conversation?: { id?: string } | null;
+  conversation_mode?: string | null;
 }
 
 interface UploadedFile {
@@ -122,6 +127,19 @@ async function uploadAttachments(
 
 const APPROVAL_REQUEST = 'backbone:approval_request';
 const APPROVAL_RESPONSE = 'backbone:approval_response';
+const MODE_ITEM = 'backbone:mode';
+const CONVERSATION_MODES: readonly string[] = ['plan', 'ask', 'auto'];
+
+/** The `backbone:mode` item (S1 D7), appended last; nothing when the option was not added. */
+function modeItems(mode: ConversationMode | undefined): IDataObject[] {
+  return mode ? [{ type: MODE_ITEM, mode }] : [];
+}
+
+/** The echoed `conversation_mode` (#656); an absent key or any other value reads as null. */
+function conversationModeOf(response: AgentResponse): string | null {
+  const raw = response.conversation_mode;
+  return typeof raw === 'string' && CONVERSATION_MODES.includes(raw) ? raw : null;
+}
 
 /**
  * Approval requests still waiting for a decision. Requests the auto-approver or a
@@ -139,6 +157,7 @@ function simplify(response: AgentResponse): IDataObject {
     status: response.status,
     responseId: response.id,
     conversationId: response.conversation?.id ?? null,
+    conversationMode: conversationModeOf(response),
     model: response.model,
     usage: response.usage ?? null,
   };
@@ -237,7 +256,7 @@ async function sendMessage(ctx: IExecuteFunctions, itemIndex: number): Promise<I
 
   const body: IDataObject = {
     model: buildAgentModel(ref, label),
-    input: [{ type: 'message', role: 'user', content }],
+    input: [{ type: 'message', role: 'user', content }, ...modeItems(options.mode)],
   };
   const conversationId = options.conversationId?.trim();
   const previousResponseId = options.previousResponseId?.trim();
@@ -418,7 +437,7 @@ async function decideApproval(ctx: IExecuteFunctions, itemIndex: number): Promis
   const body: IDataObject = {
     model: buildAgentModel(agentId, label),
     previous_response_id: responseId,
-    input: approvalResponseItems(rows, decision, reason, remember),
+    input: [...approvalResponseItems(rows, decision, reason, remember), ...modeItems(options.mode)],
   };
 
   let response: AgentResponse;
