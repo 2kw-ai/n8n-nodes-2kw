@@ -3427,12 +3427,12 @@ export interface paths {
         };
         /**
          * Get tracing settings
-         * @description Returns the tracing settings (includePrompts, includeCompletions) for the caller's organization. Defaults to (false, false) if never configured.
+         * @description Returns the caller's organization's tracing settings: the PII capture toggles (includePrompts, includeCompletions; both false until an admin enables them) and trace retention: retentionDays (the organization's choice, null = follow the plan), planRetentionDays (the plan's limit) and effectiveRetentionDays (what the daily sweep enforces).
          */
         get: operations["getSettings"];
         /**
          * Update tracing settings
-         * @description Upserts the tracing settings (includePrompts, includeCompletions) for the caller's organization. Admin-only: enabling prompt or completion capture lands customer PII in the span store, so the toggle is restricted to admin/owner roles.
+         * @description Replaces the caller's organization's tracing settings. Admin-only: enabling prompt or completion capture lands customer PII in the span store, and shortening retentionDays deletes older traces irreversibly at the next daily sweep. Admins, owners and API keys with the admin role may do both. Send every field: a missing retentionDays is null and follows the plan. A retentionDays above the plan's limit answers 422 TRACE_RETENTION_ABOVE_PLAN, unless it equals the value already stored.
          */
         put: operations["updateSettings"];
         post?: never;
@@ -6285,9 +6285,33 @@ export interface components {
             startTime?: string;
             traceId?: string;
         };
-        TracingSettings: {
+        TracingSettingsUpdate: {
             includeCompletions?: boolean;
             includePrompts?: boolean;
+            /**
+             * Format: int32
+             * @description Trace retention in days, at least 1 and at most the plan's limit. null follows the plan. Shortening it deletes older traces at the next daily sweep.
+             */
+            retentionDays?: number | null;
+        };
+        TracingSettingsView: {
+            /**
+             * Format: int32
+             * @description Trace retention the daily sweep enforces, in days: the chosen value, capped at the plan's limit.
+             */
+            effectiveRetentionDays?: number;
+            includeCompletions?: boolean;
+            includePrompts?: boolean;
+            /**
+             * Format: int32
+             * @description Trace retention the organization's plan grants, in days.
+             */
+            planRetentionDays?: number;
+            /**
+             * Format: int32
+             * @description Trace retention the organization chose, in days. null follows the plan's limit.
+             */
+            retentionDays?: number | null;
         };
         UnsupportedComponent: {
             path?: string;
@@ -6862,6 +6886,8 @@ export interface operations {
             query?: {
                 tool?: string;
                 installation?: string;
+                /** @description Answer as a conversation in this mode would be gated: `plan` refuses every call that is not read-only, `ask` puts a person where the policy delegates to the judge, `auto` is the policy as written. Omit for no mode. A mode that contributed is listed in `matchedRules` as `conversation_mode.<mode>`. */
+                mode?: "plan" | "ask" | "auto";
             };
             header?: never;
             path: {
@@ -12625,7 +12651,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["TracingSettings"];
+                    "*/*": components["schemas"]["TracingSettingsView"];
                 };
             };
         };
@@ -12639,7 +12665,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["TracingSettings"];
+                "application/json": components["schemas"]["TracingSettingsUpdate"];
             };
         };
         responses: {
@@ -12649,7 +12675,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["TracingSettings"];
+                    "*/*": components["schemas"]["TracingSettingsView"];
                 };
             };
         };
