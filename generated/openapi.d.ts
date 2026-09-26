@@ -3290,6 +3290,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/skills/{id}/versions/{versionNumber}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore a skill version
+         * @description Creates a new version with this version's content and points latest at it. When the content equals the newest version, that version is returned and latest moves to it.
+         */
+        post: operations["restoreSkillVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/surface/agents/{agentId}/tool-catalog": {
         parameters: {
             query?: never;
@@ -5383,6 +5403,19 @@ export interface components {
             requiredFieldsRestored?: number;
             restoredFieldPaths?: string[];
         };
+        ProblemDetail: {
+            detail?: string;
+            /** Format: uri */
+            instance?: string;
+            properties?: {
+                [key: string]: unknown;
+            };
+            /** Format: int32 */
+            status?: number;
+            title?: string;
+            /** Format: uri */
+            type?: string;
+        };
         PromptDTO: {
             /** Format: date-time */
             readonly createdAt?: string;
@@ -5925,6 +5958,8 @@ export interface components {
         SkillVersionDTO: {
             body?: string;
             contentHash?: string;
+            /** Format: date-time */
+            createdAt?: string;
             description?: string;
             frontmatter?: {
                 [key: string]: unknown;
@@ -10577,8 +10612,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
-            200: {
+            /** @description The caller's memory space was erased */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10597,13 +10632,31 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description The file, with its version as ETag */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "*/*": components["schemas"]["MemoryFileContent"];
+                };
+            };
+            /** @description MEMORY_INVALID_PATH: path is not inside /memories */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description MEMORY_NOT_FOUND: no file at path, or path is a directory */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
@@ -10625,13 +10678,58 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description An existing file was replaced */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "*/*": components["schemas"]["MemoryFileContent"];
+                };
+            };
+            /** @description The file was created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemoryFileContent"];
+                };
+            };
+            /** @description MEMORY_INVALID_PATH: path is not inside /memories; or If-Match is not one version ETag */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description MEMORY_PATH_CONFLICT: path is a directory, or one of its ancestors is a file */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description MEMORY_VERSION_MISMATCH: If-Match does not match the file's current version, or there is no file at path */
+            412: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description MEMORY_FILE_TOO_LARGE, MEMORY_FULL (file count or total size), MEMORY_CREDENTIAL_DETECTED or MEMORY_INVALID_CONTENT (U+0000 or an unpaired surrogate): the content was not stored */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
@@ -10647,12 +10745,39 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
-            200: {
+            /** @description The file or directory was deleted */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description MEMORY_INVALID_PATH: path is not inside /memories */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description MEMORY_NOT_FOUND: nothing at or below path */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description MEMORY_PATH_CONFLICT: path is /memories itself */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
             };
         };
     };
@@ -10707,12 +10832,30 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
-            200: {
+            /** @description The member's memory space was erased */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description userId is longer than 255 characters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The caller is neither ADMIN nor OWNER */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
             };
         };
     };
@@ -12447,6 +12590,38 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    restoreSkillVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                versionNumber: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The newest version already has this content; latest now points at it */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SkillVersionDTO"];
+                };
+            };
+            /** @description A new version was created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SkillVersionDTO"];
+                };
             };
         };
     };
