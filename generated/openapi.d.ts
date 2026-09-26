@@ -176,7 +176,7 @@ export interface paths {
         };
         /**
          * List an agent's skills
-         * @description The skills bound by the latest published version of an agent, in authored order, as {name, description, versionNumber, ref, sourcePluginId, pluginName}. Readable by every organization member including the chat-only USER role, which cannot read the version itself. An agent with no published version, or one binding nothing, returns an empty list rather than a 404. A binding whose skill is archived or no longer resolves is omitted. 404 for an agent of another organization.
+         * @description The skills bound by the latest published version of an agent, in authored order, as {name, description, versionNumber, ref, sourcePluginId, pluginName}. Readable by every organization member including the chat-only USER role, which cannot read the version itself. An agent with no published version, or one binding nothing, returns an empty list rather than a 404. A binding whose skill is archived or no longer resolves is omitted. A binding whose skill has a minimum role above the caller's is omitted. 404 for an agent of another organization.
          */
         get: operations["listAgentSkills"];
         put?: never;
@@ -3238,6 +3238,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/skills/{id}/min-role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set a skill's minimum role
+         * @description Agents leave the skill out for callers whose organization role is below minRole: it is not listed, not readable and not placed in the sandbox. null removes the minimum. Callers without a member identity (anonymous surfaces) are below every role. Admin only. 404 for a skill of another organization.
+         */
+        put: operations["setSkillMinRole"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/skills/{id}/versions": {
         parameters: {
             query?: never;
@@ -5862,6 +5882,10 @@ export interface components {
             startTime?: string;
             traceIds?: string[];
         };
+        SetSkillMinRoleRequest: {
+            /** @enum {string} */
+            minRole?: "USER" | "VIEWER" | "MEMBER" | "ADMIN" | "OWNER";
+        };
         SettingMemberTier: {
             /** Format: date-time */
             updatedAt?: string;
@@ -5910,6 +5934,8 @@ export interface components {
             id?: string;
             /** Format: int32 */
             latestVersionNumber?: number;
+            /** @enum {string} */
+            minRole?: "USER" | "VIEWER" | "MEMBER" | "ADMIN" | "OWNER";
             name?: string;
             /** @enum {string} */
             status?: "ACTIVE" | "ARCHIVED";
@@ -10619,6 +10645,15 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description MEMORY_BUSY: another operation held the memory space past the lock timeout; retry the request */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
         };
     };
     getMyMemoryFile: {
@@ -10732,6 +10767,15 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
+            /** @description MEMORY_BUSY: another operation held the memory space past the lock timeout; retry the request */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
         };
     };
     deleteMyMemoryFile: {
@@ -10772,6 +10816,15 @@ export interface operations {
             };
             /** @description MEMORY_PATH_CONFLICT: path is /memories itself */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description MEMORY_BUSY: another operation held the memory space past the lock timeout; retry the request */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10850,6 +10903,15 @@ export interface operations {
             };
             /** @description The caller is neither ADMIN nor OWNER */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description MEMORY_BUSY: another operation held the memory space past the lock timeout; retry the request */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12496,6 +12558,32 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    setSkillMinRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetSkillMinRoleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SkillDTO"];
+                };
             };
         };
     };
