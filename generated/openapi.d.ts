@@ -1582,7 +1582,7 @@ export interface paths {
         put?: never;
         /**
          * Create variant
-         * @description Create a new variant for the experiment.
+         * @description Create a new variant for the experiment. Its task type must have an adapter, and the adapter validates the configuration against the organization before anything is stored.
          */
         post: operations["createVariant"];
         delete?: never;
@@ -1601,7 +1601,7 @@ export interface paths {
         get?: never;
         /**
          * Update variant
-         * @description Update an existing variant's details.
+         * @description Replace an existing variant's name, description, configuration and sort order. The task type cannot change. Send the variant's current version to be refused with 409 when it changed since you read it; without a version the last write wins. The response carries the new version.
          */
         put: operations["updateVariant"];
         post?: never;
@@ -6405,8 +6405,13 @@ export interface components {
             };
             /** Format: double */
             avgTokens?: number;
+            configuration?: components["schemas"]["JsonNode"];
             /** Format: int32 */
             itemCount?: number;
+            resolvedConfiguration?: components["schemas"]["JsonNode"];
+            /** Format: date-time */
+            runCompletedAt?: string;
+            runId?: string;
             skippedEvaluatorCounts?: {
                 [key: string]: number;
             };
@@ -9223,8 +9228,17 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description The experiment's variants */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["VariantDTO"][];
+                };
+            };
+            /** @description The experiment does not exist in this organization */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9249,8 +9263,26 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Created */
+            /** @description The variant was created */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["VariantDTO"];
+                };
+            };
+            /** @description No adapter for the task type, or the adapter refused the configuration */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["VariantDTO"];
+                };
+            };
+            /** @description The experiment does not exist in this organization */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9276,8 +9308,35 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description The variant was updated */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["VariantDTO"];
+                };
+            };
+            /** @description The task type differs from the stored one, or the adapter refused the configuration */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["VariantDTO"];
+                };
+            };
+            /** @description The experiment does not exist in this organization, or the variant is not one of its variants */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["VariantDTO"];
+                };
+            };
+            /** @description The sent version is not the variant's current version */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9299,8 +9358,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description The variant was deleted */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The experiment does not exist in this organization, or the variant is not one of its variants */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11447,6 +11513,8 @@ export interface operations {
             header?: {
                 /** @description Names this turn so POST /v1/conversations/{id}/cancel can stop it. Send the same value on every request of one turn. 1-64 characters of A-Z, a-z, 0-9, '_' or '-'. */
                 "Backbone-Turn-Id"?: string;
+                /** @description Opt an API-key run into the calling member's agent memory (#720). Send exactly once with the value `enabled`; any other value, or the header sent twice, leaves memory off. Session callers have memory without it; surface callers never do. */
+                "X-Backbone-Memory"?: "enabled";
             };
             path?: never;
             cookie?: never;
