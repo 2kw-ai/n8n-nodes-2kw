@@ -4476,6 +4476,11 @@ export interface components {
             /** Format: int32 */
             versionNo?: number;
         };
+        EffectiveEvaluatorDTO: {
+            evaluatorId?: string;
+            isDefault?: boolean;
+            taskTypes?: string[];
+        };
         EmbedConfigDTO: {
             /** @description Display name of the agent named by ?agent=, when it belongs to this installation's organisation */
             agentName?: string | null;
@@ -4569,8 +4574,13 @@ export interface components {
         ExperimentDTO: {
             /** Format: date-time */
             readonly createdAt?: string;
+            readonly datasetId?: string;
+            readonly datasetName?: string;
             datasetVersionId?: string;
+            /** Format: int32 */
+            readonly datasetVersionNumber?: number;
             description?: string;
+            readonly effectiveEvaluators?: components["schemas"]["EffectiveEvaluatorDTO"][];
             id?: string;
             /** Format: date-time */
             readonly lastModifiedAt?: string;
