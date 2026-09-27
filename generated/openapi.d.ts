@@ -11771,7 +11771,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["PluginDTO"];
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
@@ -11855,13 +11855,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description The sync report; unchanged when the ref did not move */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PluginSyncReport"];
+                };
+            };
             /** @description Plugin disabled, ref gone, or repository no longer a plugin */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["PluginSyncReport"];
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
