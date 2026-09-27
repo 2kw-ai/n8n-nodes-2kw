@@ -2180,7 +2180,7 @@ export interface paths {
         };
         /**
          * List documents
-         * @description List the knowledge base's documents as a page, newest first by default. The optional status filter matches on the document's current revision and is applied in the query, so the page total counts only matching documents; a filter that matches nothing yields an empty page.
+         * @description List the knowledge base's documents as a page, newest first by default. The optional status filter matches on the document's newest revision (latestVersion) and is applied in the query, so the page total counts only matching documents; a filter that matches nothing yields an empty page.
          */
         get: operations["list_1"];
         put?: never;
@@ -2224,7 +2224,7 @@ export interface paths {
         };
         /**
          * Get document
-         * @description Retrieve a document together with the revision retrieval is serving.
+         * @description Retrieve a document together with the revision retrieval is serving and its newest revision, which carries the error when ingestion failed.
          */
         get: operations["get_10"];
         put?: never;
@@ -2234,6 +2234,26 @@ export interface paths {
          * @description Soft-delete a document and take every revision out of retrieval. Previously issued citations still resolve. Requires admin role.
          */
         delete: operations["delete_9"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/knowledge-bases/{knowledgeBaseId}/documents/{documentId}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retry a failed document
+         * @description Queue a document whose newest revision failed for ingestion again, from the file that revision stored. Returns 202 with the accepted revision to poll; a retry already running is returned as is. 409 when the newest revision is READY, 410 when the failed revision's file has been reclaimed.
+         */
+        post: operations["retryKnowledgeDocument"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3872,10 +3892,7 @@ export interface components {
             top_p?: number;
             user?: string;
         };
-        /**
-         * @description A typed chat content part, discriminated by 'type' per the OpenAI API.
-         * @default null
-         */
+        /** @description A typed chat content part, discriminated by 'type' per the OpenAI API. */
         ChatContentPart: {
             type: string;
         };
@@ -4119,6 +4136,7 @@ export interface components {
         };
         ConversationBackbone: {
             agent_id?: string;
+            failed_turn?: components["schemas"]["ConversationFailedTurn"];
             head_response_id?: string;
             /** Format: int64 */
             last_activity_at?: number;
@@ -4130,6 +4148,11 @@ export interface components {
             deleted?: boolean;
             id?: string;
             object?: string;
+        };
+        ConversationFailedTurn: {
+            error?: components["schemas"]["FailedTurnError"];
+            input?: components["schemas"]["JsonNode"];
+            response_id?: string;
         };
         ConversationItemListResource: {
             data?: components["schemas"]["JsonNode"][];
@@ -4145,10 +4168,7 @@ export interface components {
             last_id?: string;
             object?: string;
         };
-        /**
-         * @description The conversation modes an agent's end users may pick, and the one a new conversation starts in
-         * @default null
-         */
+        /** @description The conversation modes an agent's end users may pick, and the one a new conversation starts in */
         ConversationModes: {
             /**
              * @description The mode a new conversation starts in
@@ -4174,21 +4194,12 @@ export interface components {
             /** Format: int64 */
             working?: number;
         };
-        /**
-         * @description Conversion options. All fields are optional — omit to use defaults.
-         * @default null
-         */
+        /** @description Conversion options. All fields are optional — omit to use defaults. */
         ConversionOptions: {
-            /**
-             * @description Abort the entire batch on first error. Default: false
-             * @default false
-             */
-            abortOnError: boolean;
-            /**
-             * @description Extract document metadata (title, author, etc.). Default: true
-             * @default false
-             */
-            extractMetadata: boolean;
+            /** @description Abort the entire batch on first error. Default: false */
+            abortOnError?: boolean;
+            /** @description Extract document metadata (title, author, etc.). Default: true */
+            extractMetadata?: boolean;
             /** @description Options for ocr/vlm pipelines. Ignored when pipeline is 'fast'. */
             options?: components["schemas"]["PipelineOptions"];
             /**
@@ -4203,10 +4214,7 @@ export interface components {
              */
             timeout?: number;
         };
-        /**
-         * @description Conversion result. On PARTIAL_SUCCESS (207), documents contains successfully converted content and errors contains details about failed items (e.g. unsupported attachments).
-         * @default null
-         */
+        /** @description Conversion result. On PARTIAL_SUCCESS (207), documents contains successfully converted content and errors contains details about failed items (e.g. unsupported attachments). */
         ConvertResponse: {
             /** @description Successfully converted documents */
             documents?: components["schemas"]["ExportDocument"][];
@@ -4219,10 +4227,9 @@ export interface components {
             processingTime?: number;
             /**
              * @description Conversion result status
-             * @default null
              * @enum {string}
              */
-            status: "SUCCESS" | "PARTIAL_SUCCESS" | "FAILURE" | "PENDING" | "PROCESSING";
+            status?: "SUCCESS" | "PARTIAL_SUCCESS" | "FAILURE" | "PENDING" | "PROCESSING";
             timings?: {
                 [key: string]: components["schemas"]["TimingInfo"];
             };
@@ -4389,10 +4396,7 @@ export interface components {
             /** Format: int32 */
             versionNumber?: number;
         };
-        /**
-         * @description Text transcribed from one dictation slice
-         * @default null
-         */
+        /** @description Text transcribed from one dictation slice */
         DictationResponse: {
             /** @description Transcribed text; may be empty */
             text?: string;
@@ -4416,6 +4420,7 @@ export interface components {
             currentVersionId?: string;
             id?: string;
             knowledgeBaseId?: string;
+            latestVersion?: components["schemas"]["DocumentVersionDTO"];
             name?: string;
             sourceDocId?: string;
             sourceId?: string;
@@ -4434,7 +4439,6 @@ export interface components {
             subject?: string;
             title?: string;
         };
-        /** @default null */
         DocumentSource: {
             kind: string;
         };
@@ -4653,6 +4657,11 @@ export interface components {
             rules?: components["schemas"]["RuleReport"];
             schemaValidation?: components["schemas"]["SchemaValidationMetadata"];
             scoring?: components["schemas"]["ScoringReport"];
+        };
+        FailedTurnError: {
+            code?: string;
+            message?: string;
+            type?: string;
         };
         FieldScore: {
             basis?: string;
@@ -4975,7 +4984,6 @@ export interface components {
             /** @enum {string} */
             status?: "PENDING" | "ACTIVE" | "DISABLED" | "REVOKED";
         };
-        /** @default null */
         McpToolExecutionError: {
             content?: string;
             type?: string;
@@ -5615,10 +5623,7 @@ export interface components {
             pairingString?: string;
             surfaceOrigin?: string;
         };
-        /**
-         * @description Pipeline options. Most apply to ocr/vlm pipelines. imageExportMode also applies on 'fast' when compound file attachments require advanced processing.
-         * @default null
-         */
+        /** @description Pipeline options. Most apply to ocr/vlm pipelines. imageExportMode also applies on 'fast' when compound file attachments require advanced processing. */
         PipelineOptions: {
             /** @description Image export mode: 'placeholder' (default) or 'embedded' */
             imageExportMode?: string;
@@ -5640,16 +5645,10 @@ export interface components {
             outputFormats?: ("MD" | "TEXT" | "JSON" | "HTML")[];
             /** @description PDF backend (e.g. 'dlparser', 'pypdfium2') */
             pdfBackend?: string;
-            /**
-             * @description Enable picture classification
-             * @default false
-             */
-            pictureClassification: boolean;
-            /**
-             * @description Enable table structure detection
-             * @default false
-             */
-            tableStructure: boolean;
+            /** @description Enable picture classification */
+            pictureClassification?: boolean;
+            /** @description Enable table structure detection */
+            tableStructure?: boolean;
         };
         PluginDTO: {
             /** Format: date-time */
@@ -6266,19 +6265,16 @@ export interface components {
             /** Format: int32 */
             versionNumber?: number;
         };
-        /** @default null */
         SkillsApplyPreview: {
             agent?: components["schemas"]["SkillsApplyPreviewAgent"];
             followers?: components["schemas"]["SkillsApplyPreviewFollowers"];
             skills?: components["schemas"]["SkillsApplyPreviewSkill"][];
         };
-        /** @default null */
         SkillsApplyPreviewAgent: {
             bind?: string[];
             /** Format: int32 */
             from?: number;
         };
-        /** @default null */
         SkillsApplyPreviewFile: {
             /** Format: int32 */
             added?: number;
@@ -6291,14 +6287,12 @@ export interface components {
             removed?: number;
             truncated?: boolean;
         };
-        /** @default null */
         SkillsApplyPreviewFollowers: {
             agents?: string[];
             as_of?: string;
             /** Format: int32 */
             more?: number;
         };
-        /** @default null */
         SkillsApplyPreviewSkill: {
             files?: components["schemas"]["SkillsApplyPreviewFile"][];
             /** Format: int32 */
@@ -6749,6 +6743,8 @@ export interface components {
             skippedEvaluatorCounts?: {
                 [key: string]: number;
             };
+            /** Format: int32 */
+            successfulItemCount?: number;
             totalCost?: number;
             variantId?: string;
             variantName?: string;
@@ -10203,9 +10199,22 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
-            200: {
+            /** @description Extraction finished; the body carries its status and result */
+            201: {
                 headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExtractionDTO"];
+                };
+            };
+            /** @description Input too large to extract synchronously; the extraction runs in the background with status PENDING. Poll the Location URL until the status is COMPLETED or FAILED. */
+            202: {
+                headers: {
+                    /** @description URL of the extraction; GET it to poll for the result */
+                    Location?: string;
+                    /** @description Seconds to wait before the first poll */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -10227,9 +10236,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
-            200: {
+            /** @description Extraction accepted with status PENDING. Poll the Location URL until the status is COMPLETED or FAILED. */
+            202: {
                 headers: {
+                    /** @description URL of the extraction; GET it to poll for the result */
+                    Location?: string;
+                    /** @description Seconds to wait before the first poll */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -10315,9 +10328,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
-            200: {
+            /** @description Re-run finished; the body carries its status and result */
+            201: {
                 headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExtractionDTO"];
+                };
+            };
+            /** @description The re-run runs in the background with status PENDING, because the original did or its input is too large to extract synchronously. Poll the Location URL until the status is COMPLETED or FAILED. */
+            202: {
+                headers: {
+                    /** @description URL of the extraction; GET it to poll for the result */
+                    Location?: string;
+                    /** @description Seconds to wait before the first poll */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -11083,6 +11109,29 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    retryKnowledgeDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                knowledgeBaseId: string;
+                documentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DocumentUploadDTO"];
+                };
             };
         };
     };
