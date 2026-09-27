@@ -1019,7 +1019,7 @@ export interface paths {
         };
         /**
          * List conversations
-         * @description Backbone extension (OpenAI has no conversation list): conversations bound to an agent, newest activity first. scope=mine (default) lists the caller's own; scope=org lists the organisation's and needs the MEMBER role or above. A surface principal always lists its own scope. Conversations written by agent evaluation runs are hidden unless source=experiment, which lists only those. status (a comma-separated subset of idle, working, paused, failed) and active_after (ISO-8601 date-time) narrow the list further; they are applied together with the ownership rule before paging, so they never widen what the caller may see.
+         * @description Backbone extension (OpenAI has no conversation list): conversations bound to an agent, newest activity first. scope=mine (default) lists the caller's own; scope=org lists the organisation's and needs the MEMBER role or above. A surface principal always lists its own scope. Conversations written by agent evaluation runs are hidden unless source=experiment, which lists only those. status (a comma-separated subset of idle, working, paused, failed) and active_after (ISO-8601 date-time) narrow the list further; they are applied together with the ownership rule before paging, so they never widen what the caller may see. q (at most 200 characters) keeps the conversations whose title, or the text of a user or assistant message in any turn, contains it, ignoring case; tool calls, tool output and instructions are not searched.
          */
         get: operations["listConversations"];
         put?: never;
@@ -8705,6 +8705,7 @@ export interface operations {
                 source?: string;
                 status?: string;
                 active_after?: string;
+                q?: string;
             };
             header?: never;
             path?: never;
@@ -8721,7 +8722,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConversationListResource"];
                 };
             };
-            /** @description Unknown scope, source or status, or a malformed active_after */
+            /** @description Unknown scope, source or status, a malformed active_after, or a q longer than 200 characters */
             400: {
                 headers: {
                     [name: string]: unknown;
