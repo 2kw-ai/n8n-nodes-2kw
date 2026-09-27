@@ -3005,7 +3005,7 @@ export interface paths {
         put?: never;
         /**
          * Create schema
-         * @description Create a new extraction schema with a JSON Schema definition.
+         * @description Create a new extraction schema. Its JSON Schema definition is added as a version with POST /v1/schemas/{schemaId}/versions.
          */
         post: operations["create"];
         delete?: never;
@@ -3028,7 +3028,7 @@ export interface paths {
         get: operations["get"];
         /**
          * Update schema
-         * @description Update an existing schema's name, description, or JSON Schema definition.
+         * @description Update an existing schema's name and description. A new JSON Schema definition is a new version: POST /v1/schemas/{schemaId}/versions.
          */
         put: operations["update"];
         post?: never;
@@ -5999,7 +5999,6 @@ export interface components {
             version?: string;
         };
         SchemaDTO: {
-            content?: components["schemas"]["JsonNode"];
             /** Format: date-time */
             readonly createdAt?: string;
             description?: string;
