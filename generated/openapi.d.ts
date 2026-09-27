@@ -979,7 +979,7 @@ export interface paths {
         };
         /**
          * List the organization's MCP servers with the signed-in member's connection
-         * @description Every direct server the latest version of an agent declares, and every server someone is still connected to, with the member's own connection and grants and the number of connected members. Never a token.
+         * @description Every direct server the latest version of an agent declares, and every server someone is still connected to, with the member's own connection and grants and the number of connected members. Never a token. Below MEMBER, serverUrl carries no query string.
          */
         get: operations["listConnectorServers"];
         put?: never;
@@ -7985,7 +7985,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorAuthorizationStarted"];
                 };
             };
-            /** @description Both forms or neither, serverUrl is not a valid URL, or returnTo is not on the chat or the console */
+            /** @description Both forms or neither, serverUrl is not a valid URL or carries a query, or returnTo is not on the chat or the console */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -8172,6 +8172,15 @@ export interface operations {
             };
             /** @description Not an organization admin, or not signed in as one */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DisconnectAllResult"];
+                };
+            };
+            /** @description No agent declares the server and nobody is connected to it */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8666,7 +8675,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorTestResultDTO"];
                 };
             };
-            /** @description Not a URL a connector could name, not on an approved host, or not a valid serverLabel */
+            /** @description Not a URL a connector could name (a query is refused), not on an approved host, or not a valid serverLabel */
             400: {
                 headers: {
                     [name: string]: unknown;
