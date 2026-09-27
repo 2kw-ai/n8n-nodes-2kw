@@ -1985,7 +1985,7 @@ export interface paths {
         get: operations["get_2"];
         /**
          * Update installation
-         * @description Updates name, description, or status. DISABLED refuses catalog sync and skips catalog resolution.
+         * @description Updates name, description, or status. Every field is optional; one left out keeps its stored value. DISABLED refuses catalog sync and skips catalog resolution.
          */
         put: operations["update_2"];
         post?: never;
@@ -4300,7 +4300,8 @@ export interface components {
         };
         CreateResponseBody: {
             conversation?: string;
-            input?: (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"])[];
+            /** @description The turn's input: a string, or an array of items */
+            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"])[];
             instructions?: string;
             /** Format: int32 */
             max_output_tokens?: number;
@@ -4311,7 +4312,11 @@ export interface components {
             previous_response_id?: string;
             prompt_cache_key?: string;
             store?: boolean;
-            stream?: boolean;
+            /**
+             * @description Streaming is not available on this endpoint yet (#465); true is refused with a 501. Omit it or send false.
+             * @enum {boolean}
+             */
+            stream?: false;
             /** Format: double */
             temperature?: number;
             tool_choice?: unknown;
@@ -6654,6 +6659,13 @@ export interface components {
         };
         UpdateConversationRequest: {
             metadata?: components["schemas"]["JsonNode"];
+        };
+        UpdateInstallationRequest: {
+            agentId?: string;
+            description?: string;
+            name?: string;
+            /** @enum {string} */
+            status?: "PENDING" | "ACTIVE" | "DISABLED";
         };
         UpdateItemExpectedOutputRequest: {
             expectedOutput?: components["schemas"]["JsonNode"];
@@ -10642,7 +10654,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["InstallationDTO"];
+                "application/json": components["schemas"]["UpdateInstallationRequest"];
             };
         };
         responses: {
@@ -12525,7 +12537,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": Record<string, never>;
-                    "text/event-stream": Record<string, never>;
                 };
             };
             /** @description Surface turn rate exceeded for this installation and end-user */
@@ -12535,7 +12546,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": Record<string, never>;
-                    "text/event-stream": Record<string, never>;
+                };
+            };
+            /** @description stream: true was sent; streaming is not available on this endpoint yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
                 };
             };
         };
