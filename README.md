@@ -83,6 +83,12 @@ It fails the item when:
 
 Approvals remain a human decision. Do not give Decide Approval to an AI Agent as a tool, and do not wire it to approve without asking someone. For tools that should run without a person, set `classes.write` to `auto` in the agent's policy once auto-approval is available.
 
+### Connectors that need a person's sign-in
+
+An agent can use an MCP connector that acts as a person, through their own OAuth sign-in. When nobody is connected yet, or the agent is not yet allowed to use the connection, the run pauses with a `backbone:connector_auth_request` item instead of calling the connector. n8n cannot sign in for anyone, so by default the item fails with `Agent paused until you connect <label> (<host>) in https://chat.2kw.ai/connectors`. The error says *allow the agent to use* instead of *connect* when the connection exists but this agent is not allowed yet, and *reconnect* when the sign-in expired.
+
+To handle the pause in the workflow, turn on **Return Paused Runs**. The paused item then carries `pendingConnections`, one entry per connector: `serverLabel`, `host`, `reason` (`connect`, `allow` or `reconnect`), `destinations` (the hosts an allow is asked for again, or `null`) and `connectUrl`, the Connectors page of chat.2kw.ai that belongs to the credential's base URL. Send the person the link, wait until they have connected, then continue the run with **Send Message** and **Previous Response ID** `{{ $json.responseId }}`; the message can be anything, for example "connected". The platform checks the connection again on that turn: if the person connected, the agent goes on; if not, it is told so and may ask once more. Never answer the connect call yourself.
+
 **Using n8n's OpenAI node instead.** With the OpenAI credential set up as below, *OpenAI › Message a Model* (n8n 1.117 or later) can call an agent too: pick the model **By ID** and enter `agent/<name>` or `agent/<name>@<label>`. That is fine for text-only turns with agents that never pause. It cannot attach files, and its default *Simplify* setting hides a paused run — the workflow receives empty output and carries on. The OpenAI *Chat Model* inside n8n's AI Agent is not supported for agents: with a streaming trigger it requests streaming, which the 2kw Responses API does not offer yet.
 
 ## Chat completions (via n8n's OpenAI node)
@@ -134,6 +140,7 @@ Prereleases publish under the `dev` dist-tag (`npm install n8n-nodes-2kw@dev`), 
 - Added Agent › Send Message: agent and label pickers, file attachments, loud failure when the agent pauses for approval.
 - Added Agent › Decide Approval: approve or reject every pending approval of a paused run and continue it. Send Message and Decide Approval gained `Return Paused Runs`, which returns an approval pause as an item with `pendingApprovals` instead of failing.
 - Added the `Mode` option (Plan, Ask, Auto) to Agent › Send Message and Decide Approval, which sets the conversation mode, and `conversationMode` to the simplified output.
+- A run paused on a connector the user must connect in chat.2kw.ai now fails with the connector's label, host and the Connectors link instead of "client-side tool mcp__<label>__connect". With Return Paused Runs on it is returned with `pendingConnections`; the simplified output of every paused run now carries `pendingConnections` (empty when none).
 
 Entries below `1.0.0` predate npm publication and use the node's own numbering.
 

@@ -126,6 +126,7 @@ describe('Agent › Send Message › Return Paused Runs (#660)', () => {
           reason: 'amount above the auto limit',
         },
       ],
+      pendingConnections: [],
     });
   });
 
@@ -318,6 +319,32 @@ describe('Agent › Decide Approval (#660)', () => {
 
     await expect(executeAgent.call(ctx, 0, 'decideApproval')).rejects.toThrow(
       'Agent paused for approval: create_invoice (apreq_1)',
+    );
+  });
+
+  it('fails a continuation that pauses on a connector with the connect error, not a client-side tool (#807)', async () => {
+    const { ctx } = makeCtx(decideParams, [
+      pendingPage([{ id: 'apreq_0', responseId: 'resp_p', hmac: 'h0', policyClass: 'WRITE' }]),
+      completed({
+        id: 'resp_q',
+        status: 'requires_action',
+        output: [
+          {
+            type: 'backbone:connector_auth_request',
+            id: 'cauth_c1',
+            call_id: 'c1',
+            server_label: 'crm',
+            host: 'crm.example.com',
+            reason: 'reconnect',
+            status: 'in_progress',
+          },
+          { type: 'function_call', id: 'fc_c1', call_id: 'c1', name: 'mcp__crm__connect', arguments: '{}', status: 'in_progress' },
+        ],
+      }),
+    ]);
+
+    await expect(executeAgent.call(ctx, 0, 'decideApproval')).rejects.toThrow(
+      'Agent paused until you reconnect crm (crm.example.com) in https://chat.2kw.ai/connectors',
     );
   });
 

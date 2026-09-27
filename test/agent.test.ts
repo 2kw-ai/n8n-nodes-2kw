@@ -364,6 +364,123 @@ describe('Agent resource — paused runs', () => {
     );
   });
 
+  describe('on a connector connect pause (#807)', () => {
+    const connectPause = (extra: Record<string, unknown>[] = []) =>
+      completed({
+        id: 'resp_c',
+        status: 'requires_action',
+        output: [
+          ...extra,
+          {
+            type: 'backbone:connector_auth_request',
+            id: 'cauth_call_c1',
+            call_id: 'call_c1',
+            server_label: 'erp',
+            host: 'erp.example.com',
+            reason: 'connect',
+            status: 'in_progress',
+          },
+          { type: 'function_call', id: 'fc_call_c1', call_id: 'call_c1', name: 'mcp__erp__connect', arguments: '{}', status: 'in_progress' },
+        ],
+      });
+
+    it('throws naming the label, host and the chat URL instead of a client-side tool', async () => {
+      const { ctx } = makeCtx(baseParams, { responses: [connectPause()] });
+
+      const error = await executeAgent.call(ctx, 0, 'sendMessage').catch((e: unknown) => e);
+
+      expect((error as Error).message).toBe(
+        'Agent paused until you connect erp (erp.example.com) in https://chat.2kw.ai/connectors',
+      );
+      const description = (error as { description?: string }).description ?? '';
+      expect(description).toContain('erp (erp.example.com)');
+      expect(description).toContain('https://chat.2kw.ai/connectors');
+      expect(description).toContain('resp_c');
+      expect(description).toContain('Previous Response ID');
+      expect(description).toContain('Return Paused Runs');
+    });
+
+    it('maps the chat URL from the credential base URL', async () => {
+      const { ctx } = makeCtx(baseParams, { responses: [connectPause()] });
+      ctx.getCredentials.mockResolvedValue({ baseUrl: 'https://api-dev.2kw.ai/', apiKey: 'k' });
+
+      await expect(executeAgent.call(ctx, 0, 'sendMessage')).rejects.toThrow(
+        'in https://chat-dev.2kw.ai/connectors',
+      );
+    });
+
+    it('does not report the failed sibling of a connect call as a client-side tool', async () => {
+      const response = connectPause([
+        { type: 'function_call', id: 'fc_x', call_id: 'call_x', name: 'lookup', arguments: '{}', status: 'completed' },
+        {
+          type: 'function_call_output',
+          id: 'fco_x',
+          call_id: 'call_x',
+          output: 'not run: waiting for the user to connect erp; call it again after they have',
+          status: 'incomplete',
+        },
+      ]);
+      const { ctx } = makeCtx(baseParams, { responses: [response] });
+
+      const error = await executeAgent.call(ctx, 0, 'sendMessage').catch((e: unknown) => e);
+
+      expect((error as Error).message).not.toContain('client-side tool');
+      expect((error as Error).message).toContain('connect erp');
+    });
+
+    it('fails loudly on a connect call no open request stands for, which the backend never sends', async () => {
+      // The engine emits an in_progress request in front of the first connect call of every
+      // connector it pauses on, and a projection lands in the continuation's input, never in
+      // its output. A connect call without an open request is therefore not a connect pause.
+      const response = completed({
+        id: 'resp_x',
+        status: 'requires_action',
+        output: [
+          {
+            type: 'backbone:connector_auth_request',
+            id: 'cauth_call_c1',
+            call_id: 'call_c1',
+            server_label: 'erp',
+            host: 'erp.example.com',
+            reason: 'connect',
+            status: 'completed',
+          },
+          { type: 'function_call', id: 'fc_call_c2', call_id: 'call_c2', name: 'mcp__erp__connect', arguments: '{}', status: 'in_progress' },
+        ],
+      });
+      const { ctx } = makeCtx(
+        { ...baseParams, options: { returnPausedRuns: true } },
+        { responses: [response] },
+      );
+
+      await expect(executeAgent.call(ctx, 0, 'sendMessage')).rejects.toThrow(
+        'Agent requested client-side tool mcp__erp__connect, which n8n cannot execute',
+      );
+    });
+
+    it('returns the pause with pendingConnections when Return Paused Runs is on', async () => {
+      const { ctx } = makeCtx(
+        { ...baseParams, options: { returnPausedRuns: true } },
+        { responses: [connectPause()] },
+      );
+
+      const [item] = await executeAgent.call(ctx, 0, 'sendMessage');
+
+      expect(item.json.status).toBe('requires_action');
+      expect(item.json.responseId).toBe('resp_c');
+      expect(item.json.pendingApprovals).toEqual([]);
+      expect(item.json.pendingConnections).toEqual([
+        {
+          serverLabel: 'erp',
+          host: 'erp.example.com',
+          reason: 'connect',
+          destinations: null,
+          connectUrl: 'https://chat.2kw.ai/connectors',
+        },
+      ]);
+    });
+  });
+
   it('throws the unexpected-status error when requires_action has nothing pending', async () => {
     const response = completed({
       status: 'requires_action',

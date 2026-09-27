@@ -744,7 +744,7 @@ export interface paths {
         put?: never;
         /**
          * Start connecting a connector as the signed-in member
-         * @description Resolves the connector from the agent's current version and returns the authorization server's URL to open in a new tab.
+         * @description Give agentId and serverLabel to connect an agent's connector (completing it also allows the agent), or serverUrl alone to connect a server without allowing any agent. Returns the authorization server's URL to open in a new tab.
          */
         post: operations["startConnectorAuthorization"];
         delete?: never;
@@ -793,6 +793,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/connectors/connections/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Disconnect the signed-in member from one MCP server
+         * @description Deletes the member's connection and their grants for the server, then revokes the tokens at the server, best effort.
+         */
+        delete: operations["disconnectConnector"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/connectors/disconnect-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Disconnect every member from one MCP server
+         * @description Deletes every member's connection to the server and every grant for it, then revokes the tokens at the server, best effort.
+         */
+        post: operations["disconnectAllConnectorUsers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/connectors/grants": {
         parameters: {
             query?: never;
@@ -808,6 +848,82 @@ export interface paths {
          */
         post: operations["allowConnectorForAgent"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/connectors/grants/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get one of the signed-in member's grants with the server's tools
+         * @description Lists the server's tools as the member sees them, each with the ceiling the agent's author and policy fixed, the member's override and the level that applies. A server that cannot be listed leaves tools null and says why in toolsError. Never a token.
+         */
+        get: operations["getConnectorGrant"];
+        put?: never;
+        post?: never;
+        /**
+         * Revoke one of the signed-in member's grants
+         * @description The agent may no longer use the member's connection; the connection stays. The agent's next run asks for the allow again.
+         */
+        delete: operations["revokeConnectorGrant"];
+        options?: never;
+        head?: never;
+        /**
+         * Replace the signed-in member's per-tool overrides of one grant
+         * @description Overrides only tighten: each tool runs at the stricter of its ceiling and the override, so an override looser than the ceiling is stored and has no effect. The map replaces the stored one whole; an empty map clears it. Applies from the member's next response.
+         */
+        patch: operations["updateConnectorGrantOverrides"];
+        trace?: never;
+    };
+    "/v1/connectors/oauth-clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the organization's connector OAuth client registrations
+         * @description Automatic (CIMD) and manual registrations, by issuer. Never a client secret.
+         */
+        get: operations["listConnectorOAuthClients"];
+        put?: never;
+        /**
+         * Register backbone manually at an authorization server
+         * @description For an authorization server that does not accept backbone automatically. An automatic registration of the same issuer is converted; members connected through it sign in again.
+         */
+        post: operations["registerConnectorOAuthClient"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/connectors/oauth-clients/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Replace a manual connector OAuth client registration
+         * @description Replaces the client id, secret and authentication method; the issuer stays. Members connected through the registration sign in again.
+         */
+        put: operations["updateConnectorOAuthClient"];
+        post?: never;
+        /**
+         * Remove a connector OAuth client registration
+         * @description Manual registrations only. Members connected through it sign in again.
+         */
+        delete: operations["removeConnectorOAuthClient"];
         options?: never;
         head?: never;
         patch?: never;
@@ -849,6 +965,46 @@ export interface paths {
          * @description Takes effect on the next request; nothing is cached.
          */
         delete: operations["removeConnectorPublicHost"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/connectors/servers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the organization's MCP servers with the signed-in member's connection
+         * @description Every direct server the latest version of an agent declares, and every server someone is still connected to, with the member's own connection and grants and the number of connected members. Never a token.
+         */
+        get: operations["listConnectorServers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/connectors/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test an MCP server before or after an agent names it
+         * @description Lists the server's tools anonymously, or with the signed-in member's connection when the server asks for a bearer, and says how a member would sign in. Every tool a run could offer is listed, whatever an agent's entry allows; give serverLabel to leave out the tools whose names are unusable under that label. Changes nothing.
+         */
+        post: operations["testConnector"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3843,6 +3999,17 @@ export interface components {
             serverLabel?: string;
             status?: string;
         };
+        ConnectorConnectionDTO: {
+            /** Format: date-time */
+            connectedAt?: string;
+            id?: string;
+            lastError?: string;
+            /** Format: date-time */
+            lastUsedAt?: string;
+            /** Format: date-time */
+            refreshedAt?: string;
+            status?: string;
+        };
         ConnectorGrantDTO: {
             agentId?: string;
             /** Format: date-time */
@@ -3850,6 +4017,49 @@ export interface components {
             host?: string;
             id?: string;
             serverLabel?: string;
+        };
+        ConnectorGrantDetailDTO: {
+            added?: string[];
+            agentId?: string;
+            agentName?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            egressChanged?: boolean;
+            host?: string;
+            id?: string;
+            overrides?: {
+                [key: string]: string;
+            };
+            serverLabel?: string;
+            serverUrl?: string;
+            tools?: components["schemas"]["ConnectorGrantToolDTO"][];
+            toolsError?: string;
+        };
+        ConnectorGrantSummaryDTO: {
+            added?: string[];
+            /** Format: date-time */
+            createdAt?: string;
+            egressChanged?: boolean;
+            id?: string;
+        };
+        ConnectorGrantToolDTO: {
+            auto?: boolean;
+            ceiling?: string;
+            effective?: string;
+            name?: string;
+            override?: string;
+            toolClass?: string;
+        };
+        ConnectorOAuthClientDTO: {
+            clientId?: string;
+            /** Format: int32 */
+            generation?: number;
+            id?: string;
+            issuer?: string;
+            method?: string;
+            /** Format: date-time */
+            registeredAt?: string;
+            tokenEndpointAuthMethod?: string;
         };
         ConnectorPublicHostDTO: {
             /** Format: date-time */
@@ -3859,6 +4069,50 @@ export interface components {
             id?: string;
             /** Format: int32 */
             port?: number;
+        };
+        ConnectorServerAgentDTO: {
+            agentId?: string;
+            grant?: components["schemas"]["ConnectorGrantSummaryDTO"];
+            name?: string;
+            serverLabel?: string;
+        };
+        ConnectorServerDTO: {
+            agents?: components["schemas"]["ConnectorServerAgentDTO"][];
+            /** Format: int32 */
+            connectedUsers?: number;
+            connection?: components["schemas"]["ConnectorConnectionDTO"];
+            host?: string;
+            relay?: string;
+            serverUrl?: string;
+            signIn?: string;
+        };
+        ConnectorSignInDTO: {
+            issuer?: string;
+            message?: string;
+            registration?: string;
+            status?: string;
+        };
+        ConnectorTestErrorDTO: {
+            code?: string;
+            message?: string;
+        };
+        ConnectorTestRequest: {
+            serverLabel?: string;
+            serverUrl: string;
+        };
+        ConnectorTestResultDTO: {
+            auth?: string;
+            error?: components["schemas"]["ConnectorTestErrorDTO"];
+            protocol?: string;
+            reachable?: boolean;
+            signIn?: components["schemas"]["ConnectorSignInDTO"];
+            tools?: components["schemas"]["ConnectorTestToolDTO"][];
+        };
+        ConnectorTestToolDTO: {
+            annotations?: components["schemas"]["JsonNode"];
+            description?: string;
+            name?: string;
+            toolClass?: string;
         };
         ContentPart: {
             type: string;
@@ -4142,6 +4396,13 @@ export interface components {
         DictationResponse: {
             /** @description Transcribed text; may be empty */
             text?: string;
+        };
+        DisconnectAllRequest: {
+            serverUrl: string;
+        };
+        DisconnectAllResult: {
+            /** Format: int32 */
+            disconnected?: number;
         };
         DocumentAttachRequest: {
             /**
@@ -5561,6 +5822,12 @@ export interface components {
         } & (Omit<components["schemas"]["ContentPart"], "type"> & {
             refusal?: string;
         });
+        RegisterConnectorOAuthClientRequest: {
+            clientId: string;
+            clientSecret?: string;
+            issuer: string;
+            tokenEndpointAuthMethod: string;
+        };
         RegisterInstallationKeyRequest: {
             kid: string;
             publicKeyBase64: string;
@@ -6087,9 +6354,10 @@ export interface components {
             traceId?: string;
         };
         StartConnectorAuthorizationRequest: {
-            agentId: string;
+            agentId?: string;
             returnTo?: string;
-            serverLabel: string;
+            serverLabel?: string;
+            serverUrl?: string;
         };
         StartRunRequest: {
             variantId?: string;
@@ -6384,6 +6652,11 @@ export interface components {
         UpdateAnnotationQueueRequest: {
             description?: string;
             name?: string;
+        };
+        UpdateConnectorGrantOverridesRequest: {
+            overrides: {
+                [key: string]: string;
+            };
         };
         UpdateConversationRequest: {
             metadata?: components["schemas"]["JsonNode"];
@@ -7694,7 +7967,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorAuthorizationStarted"];
                 };
             };
-            /** @description returnTo is not on the chat or the console */
+            /** @description Both forms or neither, serverUrl is not a valid URL, or returnTo is not on the chat or the console */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -7703,7 +7976,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorAuthorizationStarted"];
                 };
             };
-            /** @description Not a signed-in member */
+            /** @description Not a signed-in member, or, below MEMBER, a serverUrl no agent declares and the caller is not connected to */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -7721,7 +7994,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorAuthorizationStarted"];
                 };
             };
-            /** @description Sign-in cannot be started for this connector */
+            /** @description Sign-in cannot be started for this connector, or serverUrl is not on an approved host */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -7814,6 +8087,82 @@ export interface operations {
             };
         };
     };
+    disconnectConnector: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Disconnected */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not a signed-in member */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such connection of the member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    disconnectAllConnectorUsers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DisconnectAllRequest"];
+            };
+        };
+        responses: {
+            /** @description How many members were disconnected */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DisconnectAllResult"];
+                };
+            };
+            /** @description serverUrl is not an absolute URL */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DisconnectAllResult"];
+                };
+            };
+            /** @description Not an organization admin, or not signed in as one */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DisconnectAllResult"];
+                };
+            };
+        };
+    };
     allowConnectorForAgent: {
         parameters: {
             query?: never;
@@ -7862,6 +8211,307 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["ConnectorGrantDTO"];
                 };
+            };
+        };
+    };
+    getConnectorGrant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The grant */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorGrantDetailDTO"];
+                };
+            };
+            /** @description Not a signed-in member */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorGrantDetailDTO"];
+                };
+            };
+            /** @description No such grant of the member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorGrantDetailDTO"];
+                };
+            };
+        };
+    };
+    revokeConnectorGrant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Revoked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not a signed-in member */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such grant of the member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateConnectorGrantOverrides: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateConnectorGrantOverridesRequest"];
+            };
+        };
+        responses: {
+            /** @description The grant with the new overrides */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorGrantDetailDTO"];
+                };
+            };
+            /** @description A tool name, a level or the number of overrides is out of shape (INVALID_CONNECTOR_OVERRIDES) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorGrantDetailDTO"];
+                };
+            };
+            /** @description Not a signed-in member */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorGrantDetailDTO"];
+                };
+            };
+            /** @description No such grant of the member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorGrantDetailDTO"];
+                };
+            };
+        };
+    };
+    listConnectorOAuthClients: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The registrations */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorOAuthClientDTO"][];
+                };
+            };
+            /** @description Not an organization admin, or not signed in as one */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorOAuthClientDTO"][];
+                };
+            };
+        };
+    };
+    registerConnectorOAuthClient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterConnectorOAuthClientRequest"];
+            };
+        };
+        responses: {
+            /** @description Registered */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
+                };
+            };
+            /** @description The issuer is not an https URL on an approved host, or the method and secret do not match */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
+                };
+            };
+            /** @description Not an organization admin, or not signed in as one */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
+                };
+            };
+            /** @description The issuer already has a manual registration */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
+                };
+            };
+        };
+    };
+    updateConnectorOAuthClient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterConnectorOAuthClientRequest"];
+            };
+        };
+        responses: {
+            /** @description Replaced */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
+                };
+            };
+            /** @description Not a usable registration, another issuer, or an automatic registration */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
+                };
+            };
+            /** @description Not an organization admin, or not signed in as one */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
+                };
+            };
+            /** @description No such registration */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
+                };
+            };
+        };
+    };
+    removeConnectorOAuthClient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description An automatic registration, which backbone keeps itself */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not an organization admin, or not signed in as one */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such registration */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -7944,6 +8594,86 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    listConnectorServers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The servers */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorServerDTO"][];
+                };
+            };
+            /** @description Not a signed-in member */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorServerDTO"][];
+                };
+            };
+        };
+    };
+    testConnector: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectorTestRequest"];
+            };
+        };
+        responses: {
+            /** @description What the test found; a server that failed is reported in error */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorTestResultDTO"];
+                };
+            };
+            /** @description Not a URL a connector could name, not on an approved host, or not a valid serverLabel */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorTestResultDTO"];
+                };
+            };
+            /** @description Not a signed-in member, admin or owner */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorTestResultDTO"];
+                };
+            };
+            /** @description Too many tests this minute; see Retry-After */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorTestResultDTO"];
+                };
             };
         };
     };

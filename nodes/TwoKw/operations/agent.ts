@@ -32,6 +32,10 @@ interface OutputItem {
   arguments?: string;
   policy_class?: string;
   reason?: string | null;
+  call_id?: string;
+  server_label?: string;
+  host?: string;
+  destinations?: string[];
 }
 
 export interface AgentResponse {
@@ -151,7 +155,53 @@ function pendingApprovalItems(response: AgentResponse): OutputItem[] {
   );
 }
 
-function simplify(response: AgentResponse): IDataObject {
+const CONNECT_REQUEST = 'backbone:connector_auth_request';
+
+/** Known API-host → chat web host mappings, as the CLI's (#807 R11); anything else is chat.2kw.ai. */
+const CHAT_URL_BY_API_HOST: Record<string, string> = {
+  'api.2kw.ai': 'https://chat.2kw.ai',
+  'api-dev.2kw.ai': 'https://chat-dev.2kw.ai',
+  'backbone.manfred-kunze.dev': 'https://chat.2kw.ai',
+  'localhost:8080': 'http://localhost:3000',
+  '127.0.0.1:8080': 'http://localhost:3000',
+};
+
+/** The Connectors page of the chat web host that belongs to the credential's base URL. */
+export function connectorsUrlFor(baseUrl: unknown): string {
+  let chat = 'https://chat.2kw.ai';
+  try {
+    const host = new URL(String(baseUrl)).host;
+    // hasOwn: a host named after an Object.prototype key must not resolve.
+    if (Object.hasOwn(CHAT_URL_BY_API_HOST, host)) chat = CHAT_URL_BY_API_HOST[host];
+  } catch {
+    // An unparsable base URL keeps the default.
+  }
+  return `${chat}/connectors`;
+}
+
+/**
+ * Connectors the run waits for the user to connect, allow or reconnect in chat.2kw.ai
+ * (#807). A continuation's projection of the same request carries another status.
+ */
+function pendingConnectionItems(response: AgentResponse): OutputItem[] {
+  return (response.output ?? []).filter(
+    (item) => item.type === CONNECT_REQUEST && item.status === 'in_progress',
+  );
+}
+
+function connectionPhrase(item: OutputItem): string {
+  const target = `${item.server_label} (${item.host})`;
+  if (item.reason === 'allow') return `allow the agent to use ${target}`;
+  if (item.reason === 'reconnect') return `reconnect ${target}`;
+  return `connect ${target}`;
+}
+
+function connectionsPhrase(items: OutputItem[]): string {
+  const phrases = items.map(connectionPhrase);
+  return phrases.length > 1 ? `${phrases.slice(0, -1).join(', ')} and ${phrases[phrases.length - 1]}` : phrases[0];
+}
+
+function simplify(response: AgentResponse, connectorsUrl: string): IDataObject {
   const json: IDataObject = {
     text: responseText(response),
     status: response.status,
@@ -172,6 +222,13 @@ function simplify(response: AgentResponse): IDataObject {
       policyClass: item.policy_class ?? null,
       reason: item.reason ?? null,
     }));
+    json.pendingConnections = pendingConnectionItems(response).map((item) => ({
+      serverLabel: item.server_label ?? null,
+      host: item.host ?? null,
+      reason: item.reason ?? null,
+      destinations: Array.isArray(item.destinations) && item.destinations.length > 0 ? item.destinations : null,
+      connectUrl: connectorsUrl,
+    }));
   }
   return json;
 }
@@ -179,14 +236,17 @@ function simplify(response: AgentResponse): IDataObject {
 /**
  * n8n runs agents unattended (spec D2): a turn that waits for a human or for a
  * client-side tool fails the item loudly instead of reaching the workflow as
- * empty output. With Return Paused Runs on, an approval pause is returned as an
- * item instead, for a later Decide Approval (#660); a relay pause still fails.
+ * empty output. With Return Paused Runs on, an approval pause or a connector
+ * connect pause (#807) is returned as an item instead, for a later Decide
+ * Approval (#660) or a Send Message with Previous Response ID; a relay pause
+ * still fails.
  */
 function assertNotPaused(
   ctx: IExecuteFunctions,
   response: AgentResponse,
   itemIndex: number,
   returnPausedRuns: boolean,
+  connectorsUrl: string,
 ): void {
   if (response.status === 'completed' || response.status === 'incomplete') return;
 
@@ -208,11 +268,30 @@ function assertNotPaused(
         },
       );
     }
+    // The connect call is in_progress like a relay call, but nobody answers it: the
+    // user connects in chat and the run is continued (#807, spec §8).
+    const connections = pendingConnectionItems(response);
+    if (connections.length > 0) {
+      if (returnPausedRuns) return;
+      const what = connectionsPhrase(connections);
+      throw new NodeOperationError(
+        ctx.getNode(),
+        `Agent paused until you ${what} in ${connectorsUrl}`,
+        {
+          itemIndex,
+          description:
+            `Response ${response.id} needs a connector signed in as a person: ${what}. ` +
+            `Open ${connectorsUrl} (chat.2kw.ai → Connectors) and do so, then continue the run with ` +
+            `Send Message and Previous Response ID ${response.id}. ` +
+            'Turn on Return Paused Runs to handle this pause in the workflow instead of failing.',
+        },
+      );
+    }
     // Server tools that already ran precede the relay calls as completed
-    // function_call items; only the in_progress ones wait for the caller.
-    const relays = output.filter(
-      (item) => item.type === 'function_call' && item.status === 'in_progress',
-    );
+    // function_call items; only the in_progress ones wait for the caller. No
+    // connect call is left here: the engine puts an open request in front of
+    // every connector's first connect call, and those returned or threw above.
+    const relays = output.filter((item) => item.type === 'function_call' && item.status === 'in_progress');
     if (relays.length > 0) {
       throw new NodeOperationError(
         ctx.getNode(),
@@ -232,14 +311,20 @@ function assertNotPaused(
   );
 }
 
-function runResult(
+async function runResult(
   ctx: IExecuteFunctions,
   response: AgentResponse,
   itemIndex: number,
   options: RunOptions,
-): INodeExecutionData[] {
-  assertNotPaused(ctx, response, itemIndex, options.returnPausedRuns === true);
-  const json = options.simplify === false ? (response as unknown as IDataObject) : simplify(response);
+): Promise<INodeExecutionData[]> {
+  // Read only for a connect pause, the one case that names the chat web host.
+  const connectorsUrl =
+    response.status === 'requires_action' && pendingConnectionItems(response).length > 0
+      ? connectorsUrlFor((await ctx.getCredentials('2kwApi')).baseUrl)
+      : connectorsUrlFor(undefined);
+  assertNotPaused(ctx, response, itemIndex, options.returnPausedRuns === true, connectorsUrl);
+  const json =
+    options.simplify === false ? (response as unknown as IDataObject) : simplify(response, connectorsUrl);
   return [{ json, pairedItem: itemIndex }];
 }
 
