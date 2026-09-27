@@ -4072,6 +4072,7 @@ export interface components {
             /** Format: int32 */
             generation?: number;
             id?: string;
+            invalidated?: boolean;
             issuer?: string;
             method?: string;
             /** Format: date-time */
@@ -6185,7 +6186,7 @@ export interface components {
         };
         SkillBinding: {
             /**
-             * @description The org skill name.
+             * @description The org skill name: a lowercase slug, or plugin:skill for a skill a plugin installed.
              * @example invoice-workflow
              */
             name?: string;
