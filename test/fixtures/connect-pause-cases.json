@@ -1,0 +1,203 @@
+{
+  "_source": "cli/tests/fixtures/connect-pause-cases.json is the canonical copy (#1086, spec §4). Copies in mcp/tests/fixtures, n8n/test/fixtures and surface/tests/fixtures are byte-identical: edit this file, then run `npm run sync:connect-pause` in mcp/ and surface/ and `npm run sync-connect-pause` in n8n/.",
+  "cases": [
+    {
+      "name": "one open request and its connect call",
+      "output": [
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "erp", "host": "erp.example.com", "reason": "connect", "status": "in_progress" },
+        { "type": "function_call", "id": "fc_call_c1", "call_id": "call_c1", "name": "mcp__erp__connect", "arguments": "{}", "status": "in_progress" }
+      ],
+      "pending": [
+        { "id": "cauth_call_c1", "callId": "call_c1", "serverLabel": "erp", "host": "erp.example.com", "reason": "connect" }
+      ],
+      "connectCallIds": ["call_c1"]
+    },
+    {
+      "name": "two requests, an allow with its egress difference and a reconnect",
+      "output": [
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "erp", "host": "erp.example.com", "reason": "allow", "destinations": ["files.example.com"], "status": "in_progress" },
+        { "type": "function_call", "id": "fc_call_c1", "call_id": "call_c1", "name": "mcp__erp__connect", "arguments": "{}", "status": "in_progress" },
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c2", "call_id": "call_c2", "server_label": "crm", "host": "crm.example.com", "reason": "reconnect", "status": "in_progress" },
+        { "type": "function_call", "id": "fc_call_c2", "call_id": "call_c2", "name": "mcp__crm__connect", "arguments": "{}", "status": "in_progress" }
+      ],
+      "pending": [
+        { "id": "cauth_call_c1", "callId": "call_c1", "serverLabel": "erp", "host": "erp.example.com", "reason": "allow", "destinations": ["files.example.com"] },
+        { "id": "cauth_call_c2", "callId": "call_c2", "serverLabel": "crm", "host": "crm.example.com", "reason": "reconnect" }
+      ],
+      "connectCallIds": ["call_c1", "call_c2"]
+    },
+    {
+      "name": "every connect call of a pending connector is withheld, not only the one the request names",
+      "output": [
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "erp", "host": "erp.example.com", "reason": "connect", "status": "in_progress" },
+        { "type": "function_call", "id": "fc_call_c1", "call_id": "call_c1", "name": "mcp__erp__connect", "arguments": "{}", "status": "in_progress" },
+        { "type": "function_call", "id": "fc_call_c2", "call_id": "call_c2", "name": "mcp__erp__connect", "arguments": "{}", "status": "in_progress" },
+        { "type": "function_call", "id": "fc_call_r1", "call_id": "call_r1", "name": "open_dialog", "arguments": "{}", "status": "in_progress" }
+      ],
+      "pending": [
+        { "id": "cauth_call_c1", "callId": "call_c1", "serverLabel": "erp", "host": "erp.example.com", "reason": "connect" }
+      ],
+      "connectCallIds": ["call_c1", "call_c2"]
+    },
+    {
+      "name": "a completed projection is no longer pending",
+      "output": [
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "erp", "host": "erp.example.com", "reason": "connect", "status": "completed" },
+        { "type": "message", "role": "assistant", "content": [{ "type": "output_text", "text": "Here are your invoices." }] }
+      ],
+      "pending": [],
+      "connectCallIds": []
+    },
+    {
+      "name": "a request a later projection of the same id resolved is not pending",
+      "output": [
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "erp", "host": "erp.example.com", "reason": "connect", "status": "in_progress" },
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "erp", "host": "erp.example.com", "reason": "connect", "status": "incomplete" }
+      ],
+      "pending": [],
+      "connectCallIds": []
+    },
+    {
+      "name": "an item with no status is not open",
+      "output": [
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "erp", "host": "erp.example.com", "reason": "connect" }
+      ],
+      "pending": [],
+      "connectCallIds": []
+    },
+    {
+      "name": "an item with no server_label is skipped",
+      "output": [
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "host": "erp.example.com", "reason": "connect", "status": "in_progress" }
+      ],
+      "pending": [],
+      "connectCallIds": ["call_c1"]
+    },
+    {
+      "name": "an item with an empty server_label is skipped",
+      "output": [
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "", "host": "erp.example.com", "reason": "connect", "status": "in_progress" }
+      ],
+      "pending": [],
+      "connectCallIds": ["call_c1"]
+    },
+    {
+      "name": "an item with no host is skipped",
+      "output": [
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "erp", "reason": "connect", "status": "in_progress" }
+      ],
+      "pending": [],
+      "connectCallIds": ["call_c1"]
+    },
+    {
+      "name": "an item with no id is skipped",
+      "output": [
+        { "type": "backbone:connector_auth_request", "call_id": "call_c1", "server_label": "erp", "host": "erp.example.com", "reason": "connect", "status": "in_progress" }
+      ],
+      "pending": [],
+      "connectCallIds": ["call_c1"]
+    },
+    {
+      "name": "an item with no call_id is skipped",
+      "output": [
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "server_label": "erp", "host": "erp.example.com", "reason": "connect", "status": "in_progress" }
+      ],
+      "pending": [],
+      "connectCallIds": []
+    },
+    {
+      "name": "a request too incomplete to show still withholds its own connect call",
+      "output": [
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "erp", "reason": "connect", "status": "in_progress" },
+        { "type": "function_call", "id": "fc_call_c1", "call_id": "call_c1", "name": "mcp__erp__connect", "arguments": "{}", "status": "in_progress" }
+      ],
+      "pending": [],
+      "connectCallIds": ["call_c1"]
+    },
+    {
+      "name": "an unknown reason reads as connect",
+      "output": [
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "erp", "host": "erp.example.com", "reason": "unlock", "status": "in_progress" }
+      ],
+      "pending": [
+        { "id": "cauth_call_c1", "callId": "call_c1", "serverLabel": "erp", "host": "erp.example.com", "reason": "connect" }
+      ],
+      "connectCallIds": ["call_c1"]
+    },
+    {
+      "name": "a missing reason reads as connect",
+      "output": [
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "erp", "host": "erp.example.com", "status": "in_progress" }
+      ],
+      "pending": [
+        { "id": "cauth_call_c1", "callId": "call_c1", "serverLabel": "erp", "host": "erp.example.com", "reason": "connect" }
+      ],
+      "connectCallIds": ["call_c1"]
+    },
+    {
+      "name": "only the string destinations are kept",
+      "output": [
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "erp", "host": "erp.example.com", "reason": "allow", "destinations": ["files.example.com", 42, null, { "host": "x" }, "mail.example.com"], "status": "in_progress" }
+      ],
+      "pending": [
+        { "id": "cauth_call_c1", "callId": "call_c1", "serverLabel": "erp", "host": "erp.example.com", "reason": "allow", "destinations": ["files.example.com", "mail.example.com"] }
+      ],
+      "connectCallIds": ["call_c1"]
+    },
+    {
+      "name": "empty or string-less destinations are omitted",
+      "output": [
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "erp", "host": "erp.example.com", "reason": "allow", "destinations": [], "status": "in_progress" },
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c2", "call_id": "call_c2", "server_label": "crm", "host": "crm.example.com", "reason": "allow", "destinations": [7], "status": "in_progress" },
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c3", "call_id": "call_c3", "server_label": "wiki", "host": "wiki.example.com", "reason": "allow", "destinations": "files.example.com", "status": "in_progress" }
+      ],
+      "pending": [
+        { "id": "cauth_call_c1", "callId": "call_c1", "serverLabel": "erp", "host": "erp.example.com", "reason": "allow" },
+        { "id": "cauth_call_c2", "callId": "call_c2", "serverLabel": "crm", "host": "crm.example.com", "reason": "allow" },
+        { "id": "cauth_call_c3", "callId": "call_c3", "serverLabel": "wiki", "host": "wiki.example.com", "reason": "allow" }
+      ],
+      "connectCallIds": ["call_c1", "call_c2", "call_c3"]
+    },
+    {
+      "name": "a duplicate id is one request, the first",
+      "output": [
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "erp", "host": "erp.example.com", "reason": "connect", "status": "in_progress" },
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "erp", "host": "erp.example.com", "reason": "reconnect", "status": "in_progress" }
+      ],
+      "pending": [
+        { "id": "cauth_call_c1", "callId": "call_c1", "serverLabel": "erp", "host": "erp.example.com", "reason": "connect" }
+      ],
+      "connectCallIds": ["call_c1"]
+    },
+    {
+      "name": "items that are not objects are ignored",
+      "output": [
+        null,
+        "backbone:connector_auth_request",
+        ["backbone:connector_auth_request"],
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_c1", "call_id": "call_c1", "server_label": "erp", "host": "erp.example.com", "reason": "connect", "status": "in_progress" }
+      ],
+      "pending": [
+        { "id": "cauth_call_c1", "callId": "call_c1", "serverLabel": "erp", "host": "erp.example.com", "reason": "connect" }
+      ],
+      "connectCallIds": ["call_c1"]
+    },
+    {
+      "name": "an output that is not an array holds nothing",
+      "output": null,
+      "pending": [],
+      "connectCallIds": []
+    }
+  ],
+  "chatOrigins": [
+    { "baseUrl": "https://api.2kw.ai", "origin": "https://chat.2kw.ai" },
+    { "baseUrl": "https://api-dev.2kw.ai", "origin": "https://chat-dev.2kw.ai" },
+    { "baseUrl": "https://backbone.manfred-kunze.dev/api", "origin": "https://chat.2kw.ai" },
+    { "baseUrl": "http://localhost:8080", "origin": "http://localhost:3000" },
+    { "baseUrl": "http://127.0.0.1:8080", "origin": "http://localhost:3000" },
+    { "baseUrl": "https://elsewhere.example.com", "origin": "https://chat.2kw.ai" },
+    { "baseUrl": "https://constructor", "origin": "https://chat.2kw.ai" },
+    { "baseUrl": "not a url", "origin": "https://chat.2kw.ai" },
+    { "baseUrl": null, "origin": "https://chat.2kw.ai" }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-2kw",
-  "version": "6.3.0-dev.111",
+  "version": "6.3.0-dev.122",
   "description": "n8n community node for the 2kw.ai platform (engineering name: Backbone)",
   "license": "MIT",
   "author": {
@@ -24,10 +24,12 @@
     "dev": "tsc --watch",
     "lint": "tsc --noEmit && npm run scan",
     "scan": "node scripts/scan-source.mjs",
-    "test": "npm run check-types && vitest run",
+    "test": "npm run check-types && npm run check-connect-pause && vitest run",
     "test:watch": "vitest",
     "sync-types": "tsx scripts/sync-openapi-types.ts",
     "check-types": "tsx scripts/sync-openapi-types.ts --check",
+    "sync-connect-pause": "tsx scripts/sync-connect-pause.ts",
+    "check-connect-pause": "tsx scripts/sync-connect-pause.ts --check",
     "prepublishOnly": "npm run build"
   },
   "files": [

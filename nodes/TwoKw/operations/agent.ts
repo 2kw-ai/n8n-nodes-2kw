@@ -5,6 +5,7 @@ import {
   NodeOperationError,
 } from 'n8n-workflow';
 import { apiRequest, extractResourceId } from '../transport';
+import { chatOriginFor, connectionsPhrase, pendingConnectionsOf } from './connect-pause';
 
 type ConversationMode = 'plan' | 'ask' | 'auto';
 
@@ -155,50 +156,26 @@ function pendingApprovalItems(response: AgentResponse): OutputItem[] {
   );
 }
 
-const CONNECT_REQUEST = 'backbone:connector_auth_request';
-
-/** Known API-host → chat web host mappings, as the CLI's (#807 R11); anything else is chat.2kw.ai. */
-const CHAT_URL_BY_API_HOST: Record<string, string> = {
-  'api.2kw.ai': 'https://chat.2kw.ai',
-  'api-dev.2kw.ai': 'https://chat-dev.2kw.ai',
-  'backbone.manfred-kunze.dev': 'https://chat.2kw.ai',
-  'localhost:8080': 'http://localhost:3000',
-  '127.0.0.1:8080': 'http://localhost:3000',
-};
-
-/** The Connectors page of the chat web host that belongs to the credential's base URL. */
+/**
+ * The Connectors page of the chat web host that belongs to the credential's base URL. The host
+ * map is the CLI's, in the guarded copy `connect-pause.ts` (#807 R11, #1086).
+ */
 export function connectorsUrlFor(baseUrl: unknown): string {
-  let chat = 'https://chat.2kw.ai';
-  try {
-    const host = new URL(String(baseUrl)).host;
-    // hasOwn: a host named after an Object.prototype key must not resolve.
-    if (Object.hasOwn(CHAT_URL_BY_API_HOST, host)) chat = CHAT_URL_BY_API_HOST[host];
-  } catch {
-    // An unparsable base URL keeps the default.
-  }
-  return `${chat}/connectors`;
+  return `${chatOriginFor(baseUrl)}/connectors`;
 }
 
 /**
- * Connectors the run waits for the user to connect, allow or reconnect in chat.2kw.ai
- * (#807). A continuation's projection of the same request carries another status.
+ * The connectors a paused run waits on, in the workflow's shape (#807): what the CLI and the MCP
+ * server decode, with `destinations` null when there are none and the page to open beside each.
  */
-function pendingConnectionItems(response: AgentResponse): OutputItem[] {
-  return (response.output ?? []).filter(
-    (item) => item.type === CONNECT_REQUEST && item.status === 'in_progress',
-  );
-}
-
-function connectionPhrase(item: OutputItem): string {
-  const target = `${item.server_label} (${item.host})`;
-  if (item.reason === 'allow') return `allow the agent to use ${target}`;
-  if (item.reason === 'reconnect') return `reconnect ${target}`;
-  return `connect ${target}`;
-}
-
-function connectionsPhrase(items: OutputItem[]): string {
-  const phrases = items.map(connectionPhrase);
-  return phrases.length > 1 ? `${phrases.slice(0, -1).join(', ')} and ${phrases[phrases.length - 1]}` : phrases[0];
+export function pendingConnectionsJson(output: unknown, connectorsUrl: string): IDataObject[] {
+  return pendingConnectionsOf(output).map((connection) => ({
+    serverLabel: connection.serverLabel,
+    host: connection.host,
+    reason: connection.reason,
+    destinations: connection.destinations ?? null,
+    connectUrl: connectorsUrl,
+  }));
 }
 
 function simplify(response: AgentResponse, connectorsUrl: string): IDataObject {
@@ -222,13 +199,7 @@ function simplify(response: AgentResponse, connectorsUrl: string): IDataObject {
       policyClass: item.policy_class ?? null,
       reason: item.reason ?? null,
     }));
-    json.pendingConnections = pendingConnectionItems(response).map((item) => ({
-      serverLabel: item.server_label ?? null,
-      host: item.host ?? null,
-      reason: item.reason ?? null,
-      destinations: Array.isArray(item.destinations) && item.destinations.length > 0 ? item.destinations : null,
-      connectUrl: connectorsUrl,
-    }));
+    json.pendingConnections = pendingConnectionsJson(response.output, connectorsUrl);
   }
   return json;
 }
@@ -270,7 +241,7 @@ function assertNotPaused(
     }
     // The connect call is in_progress like a relay call, but nobody answers it: the
     // user connects in chat and the run is continued (#807, spec §8).
-    const connections = pendingConnectionItems(response);
+    const connections = pendingConnectionsOf(response.output);
     if (connections.length > 0) {
       if (returnPausedRuns) return;
       const what = connectionsPhrase(connections);
@@ -319,7 +290,7 @@ async function runResult(
 ): Promise<INodeExecutionData[]> {
   // Read only for a connect pause, the one case that names the chat web host.
   const connectorsUrl =
-    response.status === 'requires_action' && pendingConnectionItems(response).length > 0
+    response.status === 'requires_action' && pendingConnectionsOf(response.output).length > 0
       ? connectorsUrlFor((await ctx.getCredentials('2kwApi')).baseUrl)
       : connectorsUrlFor(undefined);
   assertNotPaused(ctx, response, itemIndex, options.returnPausedRuns === true, connectorsUrl);

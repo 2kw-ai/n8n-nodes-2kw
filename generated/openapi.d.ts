@@ -3627,7 +3627,7 @@ export interface paths {
         };
         /**
          * List sessions
-         * @description Paginated session summaries for the caller's organization: trace, span, turn and error counts, duration, tokens and cost. A turn is a span carrying a prompt, a completion or a tool call. Optional free-text search over session id and name, and a start-time range. Sessions written by agent evaluation runs are hidden unless source=experiment, which lists only those.
+         * @description Paginated session summaries for the caller's organization: trace, span, turn and error counts, duration, tokens and cost. A turn is a span carrying a prompt, a completion or a tool call. Optional free-text search over session id and name, an exact match on the exporter's session.id, and a start-time range. Sessions written by agent evaluation runs are hidden unless source=experiment, which lists only those. Each row's id is what GET /v1/traces/sessions/{id} takes.
          */
         get: operations["listSessions"];
         put?: never;
@@ -3638,7 +3638,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/traces/sessions/{sessionId}": {
+    "/v1/traces/sessions/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3647,7 +3647,7 @@ export interface paths {
         };
         /**
          * Get a session by id
-         * @description Returns all spans recorded under a session, flat and sorted by start_time ASC, so a client can replay the session chronologically instead of as a set of disconnected traces. The id is the external session.id stamped by the exporter. Unknown and cross-tenant sessions both return 404.
+         * @description Returns all spans recorded under a session, flat and sorted by start_time ASC, so a client can replay the session chronologically instead of as a set of disconnected traces. The id is the session's id from GET /v1/traces/sessions; to find a session by the session.id the exporter stamped, use that list's sessionId filter. Unknown and cross-tenant sessions both return 404.
          */
         get: operations["getSession"];
         put?: never;
@@ -4069,7 +4069,8 @@ export interface components {
             lastUsedAt?: string;
             /** Format: date-time */
             refreshedAt?: string;
-            status?: string;
+            /** @enum {string} */
+            status?: "ACTIVE" | "NEEDS_RECONSENT";
         };
         ConnectorGrantDTO: {
             agentId?: string;
@@ -4146,13 +4147,15 @@ export interface components {
             host?: string;
             relay?: string;
             serverUrl?: string;
-            signIn?: string;
+            /** @enum {string} */
+            signIn?: "required" | "none" | "unknown";
         };
         ConnectorSignInDTO: {
             issuer?: string;
             message?: string;
             registration?: string;
-            status?: string;
+            /** @enum {string} */
+            status?: "connected" | "needs_reconnect" | "not_connected";
         };
         ConnectorTestErrorDTO: {
             code?: string;
@@ -4955,9 +4958,13 @@ export interface components {
             organizationId?: string;
             /** Format: int32 */
             parentChunkSize?: number;
+            /** @enum {string} */
+            pendingTextSearchLanguage?: "arabic" | "armenian" | "basque" | "catalan" | "danish" | "dutch" | "english" | "finnish" | "french" | "german" | "greek" | "hindi" | "hungarian" | "indonesian" | "irish" | "italian" | "lithuanian" | "nepali" | "norwegian" | "portuguese" | "romanian" | "russian" | "serbian" | "simple" | "spanish" | "swedish" | "tamil" | "turkish" | "yiddish";
             rerankerProviderId?: string;
             slug?: string;
             status?: string;
+            /** @enum {string} */
+            textSearchLanguage?: "arabic" | "armenian" | "basque" | "catalan" | "danish" | "dutch" | "english" | "finnish" | "french" | "german" | "greek" | "hindi" | "hungarian" | "indonesian" | "irish" | "italian" | "lithuanian" | "nepali" | "norwegian" | "portuguese" | "romanian" | "russian" | "serbian" | "simple" | "spanish" | "swedish" | "tamil" | "turkish" | "yiddish";
         };
         KnowledgeBaseRequest: {
             /** Format: int32 */
@@ -4977,6 +4984,8 @@ export interface components {
             parentChunkSize?: number;
             rerankerProviderId?: string;
             slug: string;
+            /** @enum {string} */
+            textSearchLanguage?: "arabic" | "armenian" | "basque" | "catalan" | "danish" | "dutch" | "english" | "finnish" | "french" | "german" | "greek" | "hindi" | "hungarian" | "indonesian" | "irish" | "italian" | "lithuanian" | "nepali" | "norwegian" | "portuguese" | "romanian" | "russian" | "serbian" | "simple" | "spanish" | "swedish" | "tamil" | "turkish" | "yiddish";
         };
         KnowledgeSearchRequest: {
             metadataFilter?: {
@@ -6185,6 +6194,7 @@ export interface components {
             endUserId?: string;
             /** Format: int32 */
             errorCount?: number;
+            id?: string;
             /** Format: int64 */
             inputTokens?: number;
             name?: string;
@@ -6207,6 +6217,7 @@ export interface components {
         SessionViewDto: {
             /** Format: date-time */
             endTime?: string;
+            id?: string;
             name?: string;
             sessionId?: string;
             /** Format: int32 */
@@ -8391,7 +8402,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description The grant with the new overrides */
+            /** @description The grant with the new overrides. When no cached listing of the server exists, the detail lists its tools from a fresh tools/list. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -13885,6 +13896,8 @@ export interface operations {
                 page?: number;
                 size?: number;
                 search?: string;
+                /** @description Exact match on the session.id the exporter stamped, slashes included; at most one session matches. */
+                sessionId?: string;
                 from?: string;
                 to?: string;
                 source?: string;
@@ -13911,7 +13924,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sessionId: string;
+                id: string;
             };
             cookie?: never;
         };

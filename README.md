@@ -193,6 +193,8 @@ worth knowing:
 
 Type drift check fails the build if `generated/openapi.d.ts` no longer matches `mcp/src/generated/openapi.d.ts`. Run `npm run sync-types` after any MCP regeneration. In a standalone checkout of the mirror there is no `mcp/` to compare against, so the check accepts the committed copy and the drift guard runs in the monorepo pipeline only.
 
+The connect-pause decoder works the same way. `nodes/TwoKw/operations/connect-pause.ts` and `test/fixtures/connect-pause-cases.json` are copies of the CLI's `cli/src/lib/connect-pause.ts` and its golden fixture, so the CLI, the MCP server and this node read a paused run's connector requests by one rule. `npm test` runs `npm run check-connect-pause` first and fails when either copy has drifted; run `npm run sync-connect-pause` after changing the CLI's files, never edit the copies. The mirror has no `cli/` either, so there the check accepts the committed copies.
+
 ## License
 
 MIT — see [LICENSE](LICENSE). Note that this applies to the n8n node package only; the rest of the 2kw.ai platform is proprietary.
