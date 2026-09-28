@@ -1995,6 +1995,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/installations/{id}/budget": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get installation budget
+         * @description monthlyPercent is null when never set; usedPercent is omitted when the limit is 0.
+         */
+        get: operations["getInstallationBudget"];
+        /**
+         * Set installation budget
+         * @description Sets or changes the installation's monthly share of the organisation's pool, 0-1000 percent. Applies at once: lowering it honours reservations already open but stops new admission past the new limit (spec §6.6, B6).
+         */
+        put: operations["setInstallationBudget"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/installations/{id}/embed-config": {
         parameters: {
             query?: never;
@@ -3530,6 +3554,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/surface/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Surface availability
+         * @description Whether this installation may currently take a pool-funded turn. Outside admission mode enforce, always available. A BYOK-model installation is always available too: it reserves nothing against either budget.
+         */
+        get: operations["getSurfaceAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/surface/enrol": {
         parameters: {
             query?: never;
@@ -4795,6 +4839,15 @@ export interface components {
         } & (Omit<components["schemas"]["ContentPart"], "type"> & {
             text?: string;
         });
+        InstallationBudgetDTO: {
+            /** Format: int32 */
+            monthlyPercent?: number;
+            /** Format: date-time */
+            periodEnd?: string;
+            /** Format: date-time */
+            periodStart?: string;
+            usedPercent?: number;
+        };
         InstallationCreatedDTO: {
             agentId?: string;
             /** Format: date-time */
@@ -6163,6 +6216,10 @@ export interface components {
             startTime?: string;
             traceIds?: string[];
         };
+        SetInstallationBudgetRequest: {
+            /** Format: int32 */
+            monthlyPercent: number;
+        };
         SetSkillMinRoleRequest: {
             /** @enum {string} */
             minRole?: "USER" | "VIEWER" | "MEMBER" | "ADMIN" | "OWNER";
@@ -6373,6 +6430,10 @@ export interface components {
         };
         StreamOptions: {
             include_usage?: boolean;
+        };
+        SurfaceAvailabilityDTO: {
+            available?: boolean;
+            reason?: string;
         };
         SurfaceErrorDTO: {
             /** Format: int64 */
@@ -10689,6 +10750,81 @@ export interface operations {
             };
         };
     };
+    getInstallationBudget: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The installation's current budget */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["InstallationBudgetDTO"];
+                };
+            };
+            /** @description Not an installation of this organisation */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["InstallationBudgetDTO"];
+                };
+            };
+        };
+    };
+    setInstallationBudget: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetInstallationBudgetRequest"];
+            };
+        };
+        responses: {
+            /** @description The budget after the change */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["InstallationBudgetDTO"];
+                };
+            };
+            /** @description monthlyPercent is missing or outside 0-1000 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["InstallationBudgetDTO"];
+                };
+            };
+            /** @description Not an installation of this organisation */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["InstallationBudgetDTO"];
+                };
+            };
+        };
+    };
     embedConfig: {
         parameters: {
             query?: {
@@ -13584,6 +13720,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ToolCatalogSyncResponse"];
+                };
+            };
+        };
+    };
+    getSurfaceAvailability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SurfaceAvailabilityDTO"];
                 };
             };
         };
