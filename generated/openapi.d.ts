@@ -681,6 +681,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/billing/overage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get overage
+         * @description The organisation's opt-in overage setting, whether new overage can be spent now, and this period's overage in euro cents, net of VAT. Needs a member login: API keys and surface tokens are refused.
+         */
+        get: operations["getOverage"];
+        /**
+         * Set overage
+         * @description Turns overage on or off and sets its monthly cap in whole euros, net of VAT (1 to maxCapEuros while enabled; omit it when disabling to keep the stored cap). Lowering the cap honours calls already in flight and stops new overage past it.
+         */
+        put: operations["setOverage"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/billing/tier": {
         parameters: {
             query?: never;
@@ -707,6 +731,30 @@ export interface paths {
         get: operations["getTiers"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/billing/top-ups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List top-ups
+         * @description The organisation's unexpired prepaid credit, soonest expiry first, in euro cents. Needs a member login: API keys and surface tokens are refused.
+         */
+        get: operations["listTopUps"];
+        put?: never;
+        /**
+         * Buy a top-up
+         * @description Starts a Stripe Checkout for packs of 1,000 credits at 15 euros each, net of VAT. Send the admin to checkoutUrl; the credit appears within about a minute of payment and expires 12 months later.
+         */
+        post: operations["startTopUp"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5223,6 +5271,30 @@ export interface components {
             annotations?: unknown[];
             text?: string;
         });
+        OverageDTO: {
+            available?: boolean;
+            /** Format: int32 */
+            capEuros?: number;
+            enabled?: boolean;
+            /** Format: int32 */
+            maxCapEuros?: number;
+            /** Format: date-time */
+            periodEnd?: string;
+            /** Format: date-time */
+            periodStart?: string;
+            /** Format: int64 */
+            reservedCents?: number;
+            /** Format: int64 */
+            spentCents?: number;
+            unavailableReason?: string;
+        };
+        OverageSettingDTO: {
+            /** Format: int32 */
+            capEuros?: number;
+            enabled?: boolean;
+            /** Format: int32 */
+            maxCapEuros?: number;
+        };
         PageAgentCatalogEntryDTO: {
             content?: components["schemas"]["AgentCatalogEntryDTO"][];
             empty?: boolean;
@@ -6294,6 +6366,11 @@ export interface components {
             /** Format: int32 */
             monthlyPercent: number;
         };
+        SetOverageRequest: {
+            /** Format: int32 */
+            capEuros?: number;
+            enabled: boolean;
+        };
         SetSkillMinRoleRequest: {
             /** @enum {string} */
             minRole?: "USER" | "VIEWER" | "MEMBER" | "ADMIN" | "OWNER";
@@ -6501,6 +6578,10 @@ export interface components {
         };
         StartRunRequest: {
             variantId?: string;
+        };
+        StartTopUpRequest: {
+            /** Format: int32 */
+            packs: number;
         };
         StreamOptions: {
             include_usage?: boolean;
@@ -6733,6 +6814,23 @@ export interface components {
             synced_at?: string;
             /** Format: int32 */
             tool_count?: number;
+        };
+        TopUpCheckoutDTO: {
+            checkoutUrl?: string;
+            /** Format: date-time */
+            expiresAt?: string;
+        };
+        TopUpLotDTO: {
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            expiresAt?: string;
+            id?: string;
+            kind?: string;
+            /** Format: int64 */
+            purchasedCents?: number;
+            /** Format: int64 */
+            remainingCents?: number;
         };
         TraceListDto: {
             /** Format: int64 */
@@ -8038,6 +8136,77 @@ export interface operations {
             };
         };
     };
+    getOverage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The overage setting and this period's overage */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["OverageDTO"];
+                };
+            };
+            /** @description Not a member login */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["OverageDTO"];
+                };
+            };
+        };
+    };
+    setOverage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetOverageRequest"];
+            };
+        };
+        responses: {
+            /** @description The overage setting after the change */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["OverageSettingDTO"];
+                };
+            };
+            /** @description capEuros is missing while enabling, or out of range */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["OverageSettingDTO"];
+                };
+            };
+            /** @description The organisation's plan has no overage */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["OverageSettingDTO"];
+                };
+            };
+        };
+    };
     getCurrentTier: {
         parameters: {
             query?: never;
@@ -8074,6 +8243,95 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TierInfoDTO"][];
+                };
+            };
+        };
+    };
+    listTopUps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The unexpired lots */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TopUpLotDTO"][];
+                };
+            };
+            /** @description Not a member login */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TopUpLotDTO"][];
+                };
+            };
+        };
+    };
+    startTopUp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartTopUpRequest"];
+            };
+        };
+        responses: {
+            /** @description The Checkout page to send the admin to */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TopUpCheckoutDTO"];
+                };
+            };
+            /** @description packs is missing or outside 1-20 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TopUpCheckoutDTO"];
+                };
+            };
+            /** @description The subscription admits no top-ups */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TopUpCheckoutDTO"];
+                };
+            };
+            /** @description The billing service could not be reached */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TopUpCheckoutDTO"];
+                };
+            };
+            /** @description Top-ups or tax collection are not configured */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TopUpCheckoutDTO"];
                 };
             };
         };
