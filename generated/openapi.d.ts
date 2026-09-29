@@ -3946,6 +3946,11 @@ export interface components {
             /** Format: double */
             presence_penalty?: number;
             prompt_cache_key?: string;
+            /**
+             * @description How hard a reasoning model thinks. A level the model does not support is adjusted to the nearest one it does and reported in the X-Backbone-Adjustments response header.
+             * @enum {string}
+             */
+            reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
             response_format?: components["schemas"]["ResponseFormat"];
             stop?: string[];
             stream?: boolean;
@@ -4380,6 +4385,7 @@ export interface components {
             model?: string;
             previous_response_id?: string;
             prompt_cache_key?: string;
+            reasoning?: components["schemas"]["Reasoning"];
             store?: boolean;
             /**
              * @description Streaming is not available on this endpoint yet (#465); true is refused with a 501. Omit it or send false.
@@ -5141,7 +5147,7 @@ export interface components {
         MessageItem: {
             type: "MessageItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
-            content?: (components["schemas"]["InputFileContent"] | components["schemas"]["InputImageContent"] | components["schemas"]["InputTextContent"] | components["schemas"]["OutputTextContent"] | components["schemas"]["RefusalContent"])[];
+            content?: (components["schemas"]["InputFileContent"] | components["schemas"]["InputImageContent"] | components["schemas"]["InputTextContent"] | components["schemas"]["OutputTextContent"] | components["schemas"]["RefusalContent"] | components["schemas"]["SummaryTextContent"])[];
             id?: string;
             phase?: string;
             role?: string;
@@ -5932,12 +5938,24 @@ export interface components {
             /** Format: int64 */
             runs?: number;
         };
+        Reasoning: {
+            /**
+             * @description How hard a reasoning model thinks. A level the model does not support is adjusted to the nearest one it does and reported in the X-Backbone-Adjustments response header.
+             * @enum {string}
+             */
+            effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+            /**
+             * @description Ask for a summary of the model's reasoning on the response's reasoning items.
+             * @enum {string}
+             */
+            summary?: "auto" | "concise" | "detailed";
+        };
         ReasoningItem: {
             type: "ReasoningItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
             encrypted_content?: string;
             id?: string;
-            summary?: (components["schemas"]["InputFileContent"] | components["schemas"]["InputImageContent"] | components["schemas"]["InputTextContent"] | components["schemas"]["OutputTextContent"] | components["schemas"]["RefusalContent"])[];
+            summary?: (components["schemas"]["InputFileContent"] | components["schemas"]["InputImageContent"] | components["schemas"]["InputTextContent"] | components["schemas"]["OutputTextContent"] | components["schemas"]["RefusalContent"] | components["schemas"]["SummaryTextContent"])[];
         });
         RefusalContent: {
             type: "RefusalContent";
@@ -6487,6 +6505,11 @@ export interface components {
         StreamOptions: {
             include_usage?: boolean;
         };
+        SummaryTextContent: {
+            type: "SummaryTextContent";
+        } & (Omit<components["schemas"]["ContentPart"], "type"> & {
+            text?: string;
+        });
         SurfaceAvailabilityDTO: {
             available?: boolean;
             reason?: string;
@@ -8068,9 +8091,11 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description The chat completion, or its event stream when stream=true */
             200: {
                 headers: {
+                    /** @description Present when the gateway changed the request to fit the model: ;-separated entries such as effort=minimal->low or temperature=dropped. */
+                    "X-Backbone-Adjustments"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -12785,6 +12810,8 @@ export interface operations {
             /** @description The completed response */
             200: {
                 headers: {
+                    /** @description Present when the gateway changed the request to fit the model: ;-separated entries such as effort=minimal->low or temperature=dropped. */
+                    "X-Backbone-Adjustments"?: string;
                     [name: string]: unknown;
                 };
                 content: {
