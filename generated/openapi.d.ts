@@ -1947,6 +1947,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/files/{fileId}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Preview file
+         * @description A raster preview (png, jpeg, webp or gif) of a file: the file itself, or its <file>.preview.png companion. For a held sandbox output only the caller that requested it may preview it.
+         */
+        get: operations["preview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/installations": {
         parameters: {
             query?: never;
@@ -3864,7 +3884,9 @@ export interface components {
             call_id?: string;
             decided_by?: string;
             decision?: string;
+            deliver?: components["schemas"]["DeliverPreview"];
             hmac?: string;
+            human_only?: boolean;
             id?: string;
             mode?: string;
             policy_class?: string;
@@ -4449,6 +4471,18 @@ export interface components {
             /** Format: int32 */
             versionNumber?: number;
         };
+        DeliverFile: {
+            /** Format: int64 */
+            bytes?: number;
+            content_type?: string;
+            file_id?: string;
+            name?: string;
+            preview?: boolean;
+        };
+        DeliverPreview: {
+            files?: components["schemas"]["DeliverFile"][];
+            note?: string;
+        };
         /** @description Text transcribed from one dictation slice */
         DictationResponse: {
             /** @description Transcribed text; may be empty */
@@ -4789,6 +4823,7 @@ export interface components {
             failed?: boolean;
             id?: string;
             output?: string;
+            output_files?: components["schemas"]["OutputFileRef"][];
             status?: string;
         });
         HttpSource: Omit<components["schemas"]["DocumentSource"], "kind"> & {
@@ -5165,6 +5200,16 @@ export interface components {
         };
         OriginsDTO: {
             origins?: string[];
+        };
+        OutputFileRef: {
+            /** Format: int64 */
+            bytes?: number;
+            content_type?: string;
+            delivery?: string;
+            file_id?: string;
+            kind?: string;
+            name?: string;
+            preview?: boolean;
         };
         OutputTextContent: {
             type: "OutputTextContent";
@@ -10645,6 +10690,46 @@ export interface operations {
                 };
             };
             /** @description Unknown id, foreign organization or foreign scope */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+            /** @description The file was deleted or its TTL passed */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+        };
+    };
+    preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The preview image */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+            /** @description Unknown id, foreign scope, a held file of another requester, or no preview (code no_preview) */
             404: {
                 headers: {
                     [name: string]: unknown;
