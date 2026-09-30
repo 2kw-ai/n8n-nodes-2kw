@@ -4423,7 +4423,7 @@ export interface components {
         CreateResponseBody: {
             conversation?: string;
             /** @description The turn's input: a string, or an array of items */
-            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"])[];
+            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"] | components["schemas"]["ToolImageItem"])[];
             instructions?: string;
             /** Format: int32 */
             max_output_tokens?: number;
@@ -6815,6 +6815,18 @@ export interface components {
             /** Format: int32 */
             tool_count?: number;
         };
+        ToolImageItem: {
+            type: "ToolImageItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            call_id: string;
+            file_id: string;
+            /** Format: int32 */
+            height: number;
+            id: string;
+            path: string;
+            /** Format: int32 */
+            width: number;
+        });
         TopUpCheckoutDTO: {
             checkoutUrl?: string;
             /** Format: date-time */
