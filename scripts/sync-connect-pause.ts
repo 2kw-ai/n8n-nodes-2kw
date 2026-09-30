@@ -12,15 +12,17 @@
  * The sync-openapi-types.ts arrangement (#351): n8n/ is mirrored verbatim to the public
  * 2kw-ai/n8n-nodes-2kw repo, a one-directory checkout with no cli/ next to it. There --check
  * accepts the committed copies, so the mirror's release still runs `npm test`; the guard is
- * sharp in the monorepo only.
+ * sharp in the monorepo only. Which of the two this is comes from the monorepo marker
+ * (scripts/monorepo.ts, #1265), not from cli/ being there: inside the monorepo a missing cli/
+ * is a hard failure.
  */
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isMonorepoCheckout } from './monorepo';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-// The sibling package whose module this one copies. Its presence is what distinguishes a
-// monorepo checkout from the standalone public mirror.
+// The sibling package whose module this one copies.
 const MONOREPO_SIBLING = resolve(packageRoot, '..', 'cli');
 
 /** The header the module's copy starts with; the module itself follows it byte for byte. */
@@ -48,7 +50,7 @@ function normalizeEol(text: string): string {
 }
 
 function main(): void {
-  if (!existsSync(MONOREPO_SIBLING)) {
+  if (!isMonorepoCheckout(packageRoot)) {
     if (!checkOnly) {
       console.error('Cannot sync: this is a standalone checkout with no cli/ package to copy from.');
       console.error('Run "npm run sync-connect-pause" in the backbone monorepo instead.');
@@ -59,8 +61,13 @@ function main(): void {
       for (const { target } of missing) console.error(`Target missing: ${target}`);
       process.exit(1);
     }
-    console.log('Standalone checkout (no sibling cli/) — using the committed connect-pause copies as-is.');
+    console.log('Standalone checkout (no backbone monorepo) — using the committed connect-pause copies as-is.');
     return;
+  }
+  if (!existsSync(MONOREPO_SIBLING)) {
+    console.error(`This is the backbone monorepo, but ${MONOREPO_SIBLING} is missing.`);
+    console.error('A narrowed checkout must include cli/ for the connect-pause guard to compare anything.');
+    process.exit(1);
   }
 
   let failed = false;
