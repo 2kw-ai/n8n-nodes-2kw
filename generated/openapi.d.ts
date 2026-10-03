@@ -872,7 +872,7 @@ export interface paths {
         put?: never;
         /**
          * Disconnect every member from one MCP server
-         * @description Deletes every member's connection to the server and every grant for it, then revokes the tokens at the server, best effort.
+         * @description Deletes every member's connection to the server and every grant for it, then revokes the tokens at the server, best effort. Give relayId for a server reached through a relay.
          */
         post: operations["disconnectAllConnectorUsers"];
         delete?: never;
@@ -938,13 +938,13 @@ export interface paths {
         };
         /**
          * List the organization's connector OAuth client registrations
-         * @description Automatic (CIMD) and manual registrations, by issuer. Never a client secret.
+         * @description Automatic (CIMD) and manual registrations, by issuer; a relayed one names its relay. Never a client secret.
          */
         get: operations["listConnectorOAuthClients"];
         put?: never;
         /**
          * Register backbone manually at an authorization server
-         * @description For an authorization server that does not accept backbone automatically. An automatic registration of the same issuer is converted; members connected through it sign in again.
+         * @description For an authorization server that does not accept backbone automatically. An automatic registration of the same issuer is converted; members connected through it sign in again. Give relayId for an authorization server reached through a relay.
          */
         post: operations["registerConnectorOAuthClient"];
         delete?: never;
@@ -1018,6 +1018,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/connectors/relay-servers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the servers the organization's relays offer
+         * @description Every active relay of the organization with the MCP servers its inventory lists: a connector entry names one by its url and the relay's id as relay_id. Never a relay's allow list, configuration hash or key.
+         */
+        get: operations["listConnectorRelayServers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/connectors/servers": {
         parameters: {
             query?: never;
@@ -1027,7 +1047,7 @@ export interface paths {
         };
         /**
          * List the organization's MCP servers with the signed-in member's connection
-         * @description Every direct server the latest version of an agent declares, and every server someone is still connected to, with the member's own connection and grants and the number of connected members. Never a token. Below MEMBER, serverUrl carries no query string.
+         * @description Every server the latest version of an agent declares, directly or through a relay, and every server someone is still connected to, with the member's own connection and grants and the number of connected members. One URL directly and behind a relay are two servers. Never a token. Below MEMBER, serverUrl carries no query string.
          */
         get: operations["listConnectorServers"];
         put?: never;
@@ -1049,7 +1069,7 @@ export interface paths {
         put?: never;
         /**
          * Test an MCP server before or after an agent names it
-         * @description Lists the server's tools anonymously, or with the signed-in member's connection when the server asks for a bearer, and says how a member would sign in. Every tool a run could offer is listed, whatever an agent's entry allows; give serverLabel to leave out the tools whose names are unusable under that label. Changes nothing.
+         * @description Lists the server's tools anonymously, or with the signed-in member's connection when the server asks for a bearer, and says how a member would sign in. Every tool a run could offer is listed, whatever an agent's entry allows; give serverLabel to leave out the tools whose names are unusable under that label. Give relayId for a server reached through one of the organization's relays. Changes nothing.
          */
         post: operations["testConnector"];
         delete?: never;
@@ -1504,6 +1524,26 @@ export interface paths {
          * @description Transcribes one PCM16 mono 16 kHz WAV slice (`audio`, at most 1 MiB, about 31 s) on the built-in speech model. Optional `locale` is a BCP-47 tag such as de-DE; without it the language is detected. Optional `phrases`, one part per phrase, lists up to 50 words or names of 1 to 64 characters to favour, such as names already in the draft. Called by the chat composer while the user dictates.
          */
         post: operations["createDictation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/embeddings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create embeddings
+         * @description OpenAI-compatible embeddings endpoint. A bare model name (text-embedding-3-small) runs on the built-in models and is charged at the embedding rate; provider/model (openai/text-embedding-3-small) runs on your own openai or azure-openai provider and is not charged. Bounds: at most 2048 inputs, each a non-empty string, at most 1 MiB of UTF-8 in total; arrays of token ids are not supported.
+         */
+        post: operations["createEmbedding"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3051,7 +3091,7 @@ export interface paths {
         };
         /**
          * List embedding models for a provider
-         * @description Models the given provider serves that fit a provisioned embedding dimension. Empty when the provider type has no catalogued embedding models; never an error.
+         * @description Models the given provider serves that fit a provisioned embedding dimension. Empty when the provider type has no catalogued embedding models; never an error. With the provider id `builtin`, the platform's built-in embedding models: empty when the platform offers none.
          */
         get: operations["listEmbeddingModels"];
         put?: never;
@@ -4121,6 +4161,7 @@ export interface components {
             host: string;
             id: string;
             reason: string;
+            relay_name?: string;
             server_label: string;
             status: string;
         });
@@ -4197,6 +4238,7 @@ export interface components {
             method?: string;
             /** Format: date-time */
             registeredAt?: string;
+            relayId?: string;
             tokenEndpointAuthMethod?: string;
         };
         ConnectorPublicHostDTO: {
@@ -4207,6 +4249,20 @@ export interface components {
             id?: string;
             /** Format: int32 */
             port?: number;
+        };
+        ConnectorRelayDTO: {
+            id?: string;
+            name?: string;
+            online?: boolean;
+            servers?: components["schemas"]["ConnectorRelayServerDTO"][];
+        };
+        ConnectorRelayServerDTO: {
+            /** @enum {string} */
+            authMode?: "none" | "service" | "oauth";
+            name?: string;
+            /** @enum {string} */
+            type?: "http" | "stdio";
+            url?: string;
         };
         ConnectorServerAgentDTO: {
             agentId?: string;
@@ -4221,6 +4277,7 @@ export interface components {
             connection?: components["schemas"]["ConnectorConnectionDTO"];
             host?: string;
             relay?: string;
+            relayName?: string;
             serverUrl?: string;
             /** @enum {string} */
             signIn?: "required" | "none" | "unknown";
@@ -4237,6 +4294,7 @@ export interface components {
             message?: string;
         };
         ConnectorTestRequest: {
+            relayId?: string;
             serverLabel?: string;
             serverUrl: string;
         };
@@ -4423,7 +4481,7 @@ export interface components {
         CreateResponseBody: {
             conversation?: string;
             /** @description The turn's input: a string, or an array of items */
-            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"])[];
+            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"] | components["schemas"]["ToolImageItem"])[];
             instructions?: string;
             /** Format: int32 */
             max_output_tokens?: number;
@@ -4543,6 +4601,7 @@ export interface components {
             text?: string;
         };
         DisconnectAllRequest: {
+            relayId?: string;
             serverUrl: string;
         };
         DisconnectAllResult: {
@@ -4625,6 +4684,34 @@ export interface components {
             /** @enum {string} */
             status?: "PENDING" | "ACTIVE" | "DISABLED";
         };
+        EmbeddingCreateRequest: {
+            /**
+             * Format: int32
+             * @description The width of each vector, for models that support shortening.
+             * @example 256
+             */
+            dimensions?: number;
+            /**
+             * @description float (default) or base64: the vector as little-endian float32, base64-encoded.
+             * @enum {string}
+             */
+            encoding_format?: "float" | "base64";
+            /** @description The text to embed: a string, or an array of at most 2048 non-empty strings totalling at most 1 MiB of UTF-8. Arrays of token ids are not supported. */
+            input: string | string[];
+            /**
+             * @description A bare model name (text-embedding-3-small) runs on the platform's built-in models and is charged; provider/model (openai/text-embedding-3-small) runs on your own provider and is not charged.
+             * @example text-embedding-3-small
+             */
+            model: string;
+            /** @description An opaque identifier of the end user, recorded on the trace. */
+            user?: string;
+        };
+        EmbeddingCreateResponse: {
+            data?: components["schemas"]["EmbeddingObject"][];
+            model?: string;
+            object?: string;
+            usage?: components["schemas"]["EmbeddingUsage"];
+        };
         EmbeddingModelDTO: {
             /** Format: int32 */
             dimensions?: number;
@@ -4633,6 +4720,19 @@ export interface components {
         EmbeddingModelsResponse: {
             models?: components["schemas"]["EmbeddingModelDTO"][];
             supportedDimensions?: number[];
+        };
+        EmbeddingObject: {
+            /** @description The vector: an array of numbers, or with encoding_format base64 a string of little-endian float32 values, base64-encoded. */
+            embedding?: number[] | string;
+            /** Format: int32 */
+            index?: number;
+            object?: string;
+        };
+        EmbeddingUsage: {
+            /** Format: int32 */
+            prompt_tokens?: number;
+            /** Format: int32 */
+            total_tokens?: number;
         };
         EnrolRequest: {
             code: string;
@@ -4654,11 +4754,20 @@ export interface components {
             enrolmentExpiresAt?: string;
             enrolmentToken?: string;
         };
+        ErrorDetail: {
+            code?: string;
+            message?: string;
+            param?: string;
+            type?: string;
+        };
         ErrorItem: {
             componentType?: string;
             errorMessage?: string;
             filename?: string;
             moduleName?: string;
+        };
+        ErrorResponse: {
+            error?: components["schemas"]["ErrorDetail"];
         };
         EvaluationScoreDTO: {
             annotatorId?: string;
@@ -5066,11 +5175,13 @@ export interface components {
             /** Format: int32 */
             embeddingDim: number;
             embeddingModel: string;
+            /** @description The provider that embeds this knowledge base's documents and queries: the id of one of the organization's provider rows, or `builtin` for the platform's built-in embedding models (text-embedding-3-small and text-embedding-3-large, charged per input token; GET /v1/providers/builtin/embedding-models lists them). Changing it on an update re-runs the model check on the new provider but re-embeds nothing: stored vectors stay comparable only if the new provider serves the same model at the same width. The safe way to move is a new knowledge base on the new provider, with the documents uploaded again. */
             embeddingProviderId: string;
             hybridSearchEnabled?: boolean;
             name: string;
             /** Format: int32 */
             parentChunkSize?: number;
+            /** @description The id of one of the organization's provider rows to rerank results with. `builtin` is refused with a 400: there is no built-in reranker. */
             rerankerProviderId?: string;
             slug: string;
             /** @enum {string} */
@@ -6038,6 +6149,7 @@ export interface components {
             clientId: string;
             clientSecret?: string;
             issuer: string;
+            relayId?: string;
             tokenEndpointAuthMethod: string;
         };
         RegisterInstallationKeyRequest: {
@@ -6572,6 +6684,7 @@ export interface components {
         };
         StartConnectorAuthorizationRequest: {
             agentId?: string;
+            relayId?: string;
             returnTo?: string;
             serverLabel?: string;
             serverUrl?: string;
@@ -6815,6 +6928,18 @@ export interface components {
             /** Format: int32 */
             tool_count?: number;
         };
+        ToolImageItem: {
+            type: "ToolImageItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            call_id: string;
+            file_id: string;
+            /** Format: int32 */
+            height: number;
+            id: string;
+            path: string;
+            /** Format: int32 */
+            width: number;
+        });
         TopUpCheckoutDTO: {
             checkoutUrl?: string;
             /** Format: date-time */
@@ -8819,7 +8944,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
                 };
             };
-            /** @description The issuer is not an https URL on an approved host, or the method and secret do not match */
+            /** @description The issuer is not an https URL on an approved host (with relayId: not reached through the relay), or the method and secret do not match */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -8872,7 +8997,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
                 };
             };
-            /** @description Not a usable registration, another issuer, or an automatic registration */
+            /** @description Not a usable registration, another issuer or relay, or an automatic registration */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -9024,6 +9149,35 @@ export interface operations {
             };
         };
     };
+    listConnectorRelayServers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The active relays and their servers */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorRelayDTO"][];
+                };
+            };
+            /** @description Not a signed-in member, admin or owner */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorRelayDTO"][];
+                };
+            };
+        };
+    };
     listConnectorServers: {
         parameters: {
             query?: never;
@@ -9075,7 +9229,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorTestResultDTO"];
                 };
             };
-            /** @description Not a URL a connector could name (a query is refused), not on an approved host, or not a valid serverLabel */
+            /** @description Not a URL a connector could name (a query is refused), not on an approved host (with relayId: not offered by an active relay), or not a valid serverLabel */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -9942,6 +10096,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DictationResponse"];
+                };
+            };
+        };
+    };
+    createEmbedding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmbeddingCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description The embeddings, in input order */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmbeddingCreateResponse"];
+                };
+            };
+            /** @description Invalid request, or an input bound exceeded */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Out of credits, or the plan does not include this provider */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description No provider configured for the model prefix */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The Accept header excludes application/json */
+            406: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too many concurrent calls */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -13030,6 +13253,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description The id of one of the organization's providers, or `builtin` for the platform's built-in embedding models. */
                 providerId: string;
             };
             cookie?: never;
