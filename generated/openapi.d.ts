@@ -872,7 +872,7 @@ export interface paths {
         put?: never;
         /**
          * Disconnect every member from one MCP server
-         * @description Deletes every member's connection to the server and every grant for it, then revokes the tokens at the server, best effort. Give relayId for a server reached through a relay.
+         * @description Deletes every member's connection to the server and every grant for it, then revokes the tokens at the server, best effort.
          */
         post: operations["disconnectAllConnectorUsers"];
         delete?: never;
@@ -938,13 +938,13 @@ export interface paths {
         };
         /**
          * List the organization's connector OAuth client registrations
-         * @description Automatic (CIMD) and manual registrations, by issuer; a relayed one names its relay. Never a client secret.
+         * @description Automatic (CIMD) and manual registrations, by issuer. Never a client secret.
          */
         get: operations["listConnectorOAuthClients"];
         put?: never;
         /**
          * Register backbone manually at an authorization server
-         * @description For an authorization server that does not accept backbone automatically. An automatic registration of the same issuer is converted; members connected through it sign in again. Give relayId for an authorization server reached through a relay.
+         * @description For an authorization server that does not accept backbone automatically. An automatic registration of the same issuer is converted; members connected through it sign in again.
          */
         post: operations["registerConnectorOAuthClient"];
         delete?: never;
@@ -1018,26 +1018,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/connectors/relay-servers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List the servers the organization's relays offer
-         * @description Every active relay of the organization with the MCP servers its inventory lists: a connector entry names one by its url and the relay's id as relay_id. Never a relay's allow list, configuration hash or key.
-         */
-        get: operations["listConnectorRelayServers"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/connectors/servers": {
         parameters: {
             query?: never;
@@ -1047,7 +1027,7 @@ export interface paths {
         };
         /**
          * List the organization's MCP servers with the signed-in member's connection
-         * @description Every server the latest version of an agent declares, directly or through a relay, and every server someone is still connected to, with the member's own connection and grants and the number of connected members. One URL directly and behind a relay are two servers. Never a token. Below MEMBER, serverUrl carries no query string.
+         * @description Every direct server the latest version of an agent declares, and every server someone is still connected to, with the member's own connection and grants and the number of connected members. Never a token. Below MEMBER, serverUrl carries no query string.
          */
         get: operations["listConnectorServers"];
         put?: never;
@@ -1069,7 +1049,7 @@ export interface paths {
         put?: never;
         /**
          * Test an MCP server before or after an agent names it
-         * @description Lists the server's tools anonymously, or with the signed-in member's connection when the server asks for a bearer, and says how a member would sign in. Every tool a run could offer is listed, whatever an agent's entry allows; give serverLabel to leave out the tools whose names are unusable under that label. Give relayId for a server reached through one of the organization's relays. Changes nothing.
+         * @description Lists the server's tools anonymously, or with the signed-in member's connection when the server asks for a bearer, and says how a member would sign in. Every tool a run could offer is listed, whatever an agent's entry allows; give serverLabel to leave out the tools whose names are unusable under that label. Changes nothing.
          */
         post: operations["testConnector"];
         delete?: never;
@@ -4141,7 +4121,6 @@ export interface components {
             host: string;
             id: string;
             reason: string;
-            relay_name?: string;
             server_label: string;
             status: string;
         });
@@ -4218,7 +4197,6 @@ export interface components {
             method?: string;
             /** Format: date-time */
             registeredAt?: string;
-            relayId?: string;
             tokenEndpointAuthMethod?: string;
         };
         ConnectorPublicHostDTO: {
@@ -4229,20 +4207,6 @@ export interface components {
             id?: string;
             /** Format: int32 */
             port?: number;
-        };
-        ConnectorRelayDTO: {
-            id?: string;
-            name?: string;
-            online?: boolean;
-            servers?: components["schemas"]["ConnectorRelayServerDTO"][];
-        };
-        ConnectorRelayServerDTO: {
-            /** @enum {string} */
-            authMode?: "none" | "service" | "oauth";
-            name?: string;
-            /** @enum {string} */
-            type?: "http" | "stdio";
-            url?: string;
         };
         ConnectorServerAgentDTO: {
             agentId?: string;
@@ -4257,7 +4221,6 @@ export interface components {
             connection?: components["schemas"]["ConnectorConnectionDTO"];
             host?: string;
             relay?: string;
-            relayName?: string;
             serverUrl?: string;
             /** @enum {string} */
             signIn?: "required" | "none" | "unknown";
@@ -4274,7 +4237,6 @@ export interface components {
             message?: string;
         };
         ConnectorTestRequest: {
-            relayId?: string;
             serverLabel?: string;
             serverUrl: string;
         };
@@ -4461,7 +4423,7 @@ export interface components {
         CreateResponseBody: {
             conversation?: string;
             /** @description The turn's input: a string, or an array of items */
-            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"] | components["schemas"]["ToolImageItem"])[];
+            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"])[];
             instructions?: string;
             /** Format: int32 */
             max_output_tokens?: number;
@@ -4581,7 +4543,6 @@ export interface components {
             text?: string;
         };
         DisconnectAllRequest: {
-            relayId?: string;
             serverUrl: string;
         };
         DisconnectAllResult: {
@@ -6077,7 +6038,6 @@ export interface components {
             clientId: string;
             clientSecret?: string;
             issuer: string;
-            relayId?: string;
             tokenEndpointAuthMethod: string;
         };
         RegisterInstallationKeyRequest: {
@@ -6612,7 +6572,6 @@ export interface components {
         };
         StartConnectorAuthorizationRequest: {
             agentId?: string;
-            relayId?: string;
             returnTo?: string;
             serverLabel?: string;
             serverUrl?: string;
@@ -6856,18 +6815,6 @@ export interface components {
             /** Format: int32 */
             tool_count?: number;
         };
-        ToolImageItem: {
-            type: "ToolImageItem";
-        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
-            call_id: string;
-            file_id: string;
-            /** Format: int32 */
-            height: number;
-            id: string;
-            path: string;
-            /** Format: int32 */
-            width: number;
-        });
         TopUpCheckoutDTO: {
             checkoutUrl?: string;
             /** Format: date-time */
@@ -8872,7 +8819,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
                 };
             };
-            /** @description The issuer is not an https URL on an approved host (with relayId: not reached through the relay), or the method and secret do not match */
+            /** @description The issuer is not an https URL on an approved host, or the method and secret do not match */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -8925,7 +8872,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
                 };
             };
-            /** @description Not a usable registration, another issuer or relay, or an automatic registration */
+            /** @description Not a usable registration, another issuer, or an automatic registration */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -9077,35 +9024,6 @@ export interface operations {
             };
         };
     };
-    listConnectorRelayServers: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The active relays and their servers */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ConnectorRelayDTO"][];
-                };
-            };
-            /** @description Not a signed-in member, admin or owner */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ConnectorRelayDTO"][];
-                };
-            };
-        };
-    };
     listConnectorServers: {
         parameters: {
             query?: never;
@@ -9157,7 +9075,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorTestResultDTO"];
                 };
             };
-            /** @description Not a URL a connector could name (a query is refused), not on an approved host (with relayId: not offered by an active relay), or not a valid serverLabel */
+            /** @description Not a URL a connector could name (a query is refused), not on an approved host, or not a valid serverLabel */
             400: {
                 headers: {
                     [name: string]: unknown;
