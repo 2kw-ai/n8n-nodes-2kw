@@ -6,10 +6,10 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isMonorepoCheckout } from './monorepo';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-// The sibling package whose generated types this one mirrors.
+// The sibling package whose generated types this one mirrors. Its presence is what
+// distinguishes a monorepo checkout from the standalone public mirror (#351).
 const MONOREPO_SIBLING = resolve(__dirname, '..', '..', 'mcp');
 const SOURCE = resolve(MONOREPO_SIBLING, 'src', 'generated', 'openapi.d.ts');
 const TARGET = resolve(__dirname, '..', 'generated', 'openapi.d.ts');
@@ -22,10 +22,9 @@ function main(): void {
   // `check-types` is a prerequisite of both `build` and `test`, so without this branch
   // the mirror's release workflow dies before it can publish.
   //
-  // Keyed on the monorepo marker (scripts/monorepo.ts, #1265), not on mcp/ or SOURCE, so the
-  // monorepo guard stays sharp: a narrowed checkout without mcp/, and an mcp/ that has not
-  // been generated, are both hard failures below.
-  if (!isMonorepoCheckout(resolve(__dirname, '..'))) {
+  // Keyed on the sibling directory, not on SOURCE, so the monorepo guard stays sharp:
+  // an mcp/ that exists but has not been generated is still a hard failure below.
+  if (!existsSync(MONOREPO_SIBLING)) {
     if (!checkOnly) {
       console.error('Cannot sync: this is a standalone checkout with no mcp/ package to copy from.');
       console.error('Run "npm run sync-types" in the backbone monorepo instead.');
@@ -36,13 +35,8 @@ function main(): void {
       console.error('The published package must ship generated/openapi.d.ts.');
       process.exit(1);
     }
-    console.log('Standalone checkout (no backbone monorepo) — using the committed generated/openapi.d.ts as-is.');
+    console.log('Standalone checkout (no sibling mcp/) — using the committed generated/openapi.d.ts as-is.');
     return;
-  }
-  if (!existsSync(MONOREPO_SIBLING)) {
-    console.error(`This is the backbone monorepo, but ${MONOREPO_SIBLING} is missing.`);
-    console.error('A narrowed checkout must include mcp/ for the types guard to compare anything.');
-    process.exit(1);
   }
 
   if (!existsSync(SOURCE)) {
