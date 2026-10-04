@@ -6102,7 +6102,6 @@ export interface components {
             };
             /** Format: date-time */
             readonly createdAt?: string;
-            readonly enabled?: boolean;
             id?: string;
             /** Format: date-time */
             readonly lastModifiedAt?: string;
@@ -6113,7 +6112,7 @@ export interface components {
             version?: string;
         };
         ProviderRequest: {
-            apiKey: string;
+            apiKey?: string;
             config: {
                 [key: string]: unknown;
             };
