@@ -4481,7 +4481,7 @@ export interface components {
         CreateResponseBody: {
             conversation?: string;
             /** @description The turn's input: a string, or an array of items */
-            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"] | components["schemas"]["ToolImageItem"])[];
+            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["InputRequestItem"] | components["schemas"]["InputResponseItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"] | components["schemas"]["ToolImageItem"])[];
             instructions?: string;
             /** Format: int32 */
             max_output_tokens?: number;
@@ -5017,6 +5017,10 @@ export interface components {
             detail?: string;
             url?: string;
         };
+        InputAnswerBody: {
+            action: string;
+            content?: components["schemas"]["JsonNode"];
+        };
         InputFileContent: {
             type: "InputFileContent";
         } & (Omit<components["schemas"]["ContentPart"], "type"> & {
@@ -5034,6 +5038,32 @@ export interface components {
         } & (Omit<components["schemas"]["ContentPart"], "type"> & {
             detail?: string;
             image_url?: string;
+        });
+        InputRequestItem: {
+            type: "InputRequestItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            call_id: string;
+            expires_at?: string;
+            id: string;
+            name: string;
+            requester: components["schemas"]["InputRequester"];
+            requests: components["schemas"]["JsonNode"];
+            /** Format: int32 */
+            round: number;
+            server_label: string;
+            status: string;
+        });
+        InputRequester: {
+            kind?: string;
+            user_id?: string;
+        };
+        InputResponseItem: {
+            type: "InputResponseItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            input_request_id: string;
+            responses: {
+                [key: string]: components["schemas"]["InputAnswerBody"];
+            };
         });
         InputTextContent: {
             type: "InputTextContent";
