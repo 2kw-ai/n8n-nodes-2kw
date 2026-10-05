@@ -3824,6 +3824,8 @@ export interface components {
             name?: string;
         };
         AgentDTO: {
+            /** @description Whether this deployment runs the Bash tool. Where it is false, a backbone.bash entry is stored but never offered to the model. */
+            readonly bashAvailable?: boolean;
             /** Format: date-time */
             readonly createdAt?: string;
             description?: string;
