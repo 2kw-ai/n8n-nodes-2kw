@@ -5391,7 +5391,6 @@ export interface components {
             successRate?: number;
             /** Format: int64 */
             successfulOperations?: number;
-            totalCostUsd?: number;
             /** Format: int64 */
             totalOperations?: number;
             /** Format: int64 */
@@ -6132,7 +6131,6 @@ export interface components {
             provider: "OPENAI" | "AZURE_OPENAI" | "ANTHROPIC" | "XAI" | "MISTRAL" | "VERTEX_AI" | "OLLAMA";
         };
         ProviderStatsDTO: {
-            avgCost?: number;
             /** Format: double */
             avgDurationMs?: number;
             providerId?: string;
@@ -6141,7 +6139,6 @@ export interface components {
             successRate?: number;
             /** Format: int64 */
             successfulExtractions?: number;
-            totalCost?: number;
             /** Format: int64 */
             totalExtractions?: number;
             /** Format: int64 */
@@ -6403,7 +6400,6 @@ export interface components {
             versionNumber?: number;
         };
         SchemaStatsDTO: {
-            avgCost?: number;
             /** Format: double */
             avgDurationMs?: number;
             schemaName?: string;
@@ -6412,7 +6408,6 @@ export interface components {
             successRate?: number;
             /** Format: int64 */
             successfulExtractions?: number;
-            totalCost?: number;
             /** Format: int64 */
             totalExtractions?: number;
             /** Format: int64 */
@@ -6757,7 +6752,6 @@ export interface components {
             surface?: string;
         };
         SurfacePoint: {
-            costUsd?: number;
             /** Format: int64 */
             count?: number;
             /** Format: int64 */
@@ -6766,7 +6760,6 @@ export interface components {
         SurfaceSummary: {
             /** Format: double */
             avgDurationMs?: number;
-            costUsd?: number;
             /** Format: int64 */
             failedOperations?: number;
             /** Format: int64 */
