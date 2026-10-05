@@ -4952,6 +4952,15 @@ export interface components {
             object?: string;
             purpose?: string;
         };
+        FileUploadRequest: {
+            /** Format: binary */
+            file: string;
+            /**
+             * @description Why the file exists; determines its lifecycle
+             * @enum {string}
+             */
+            purpose: "agent_input" | "knowledge";
+        };
         FlagOutcome: {
             /** Format: double */
             confidence?: number;
@@ -11074,19 +11083,14 @@ export interface operations {
     };
     create_4: {
         parameters: {
-            query: {
-                purpose: string;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "multipart/form-data": {
-                    /** Format: binary */
-                    file: string;
-                };
+                "multipart/form-data": components["schemas"]["FileUploadRequest"];
             };
         };
         responses: {
@@ -11108,7 +11112,7 @@ export interface operations {
                     "*/*": components["schemas"]["FileResource"];
                 };
             };
-            /** @description File over the per-file limit */
+            /** @description File over the per-file limit (error.code file_too_large). A file far above the limit is refused before the request is read and answers 413 with a problem+json body that has no error.code. */
             413: {
                 headers: {
                     [name: string]: unknown;
