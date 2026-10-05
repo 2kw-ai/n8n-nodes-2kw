@@ -6852,7 +6852,8 @@ export interface components {
             maxSchemas?: number;
             /** Format: int32 */
             maxTeamMembers?: number;
-            name?: string;
+            /** @description Tier name, or null when the organisation has no plan */
+            name?: string | null;
             prioritySupport?: boolean;
             resourceLimits?: {
                 [key: string]: number;
@@ -7122,7 +7123,8 @@ export interface components {
             promptsAtLimit?: boolean;
             resources?: components["schemas"]["ResourceUsageDTO"][];
             schemasAtLimit?: boolean;
-            tier?: string;
+            /** @description Subscription tier name, or null when the organisation has no plan */
+            tier?: string | null;
         };
         ValidateSchemaRequest: {
             jsonSchema: components["schemas"]["JsonNode"];
