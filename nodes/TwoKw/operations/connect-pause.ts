@@ -9,7 +9,8 @@
  * `n8n/nodes/TwoKw/operations/connect-pause.ts` are byte copies of it under a header: edit it
  * here, then run `npm run sync:connect-pause` in mcp/ and `npm run sync-connect-pause` in n8n/.
  * Its golden fixture, `cli/tests/fixtures/connect-pause-cases.json`, is copied the same way into
- * mcp/, n8n/ and surface/, and every client's decoder test runs every case of it.
+ * mcp/, n8n/ and surface/, and every client's decoder test runs every case of it. The input pause
+ * (#1320, connectors spec §12) lives here too, with its own fixture `input-pause-cases.json`.
  *
  * Plain TypeScript with no imports, no `process`, no Node types and no timers, so n8n's source
  * scanner and its empty `dependencies` accept the copy. The CLI and the MCP server keep their
@@ -175,4 +176,93 @@ export function connectionsPhrase(connections: readonly ConnectTarget[]): string
   const phrases = connections.map(connectionPhrase);
   if (phrases.length < 2) return phrases[0] ?? "";
   return `${phrases.slice(0, -1).join(", ")} and ${phrases[phrases.length - 1]}`;
+}
+
+/**
+ * What an open input request asks for: a form, a page to open, both (`mixed`), or neither of the
+ * modes this client knows (`unknown`). It names no URL: the question stays in chat (D7).
+ */
+export type InputMode = "form" | "url" | "mixed" | "unknown";
+
+/**
+ * One open `backbone:input_request` (#1320, connectors spec §12): a connector's question that only
+ * the requester can answer, and only in chat. `id` is the item's `inreq_…` id. Its message, schema
+ * and URL are never read: no assistant may see them (D7).
+ */
+export interface PendingInput {
+  id: string;
+  callId: string;
+  serverLabel: string;
+  /** The tool's own name, without the `mcp__<label>__` prefix. */
+  tool: string;
+  mode: InputMode;
+}
+
+const INPUT_REQUEST = "backbone:input_request";
+const INPUT_RESPONSE = "backbone:input_response";
+
+function roundOf(value: unknown): number {
+  return typeof value === "number" && Number.isInteger(value) ? value : 1;
+}
+
+function inputModeOf(requests: Item[]): InputMode {
+  const modes = new Set(requests.map((entry) => entry.mode).filter((mode) => mode === "form" || mode === "url"));
+  if (modes.size === 2) return "mixed";
+  if (modes.has("form")) return "form";
+  return modes.has("url") ? "url" : "unknown";
+}
+
+/**
+ * The questions a response's `output` still waits on, in order, by the chat's own rule
+ * (`surface/src/core/chat.ts`, so a link never points at a question the chat would not show): an
+ * `in_progress` request whose id no other-status projection and no `backbone:input_response`
+ * resolved, and only the newest open round of its call. An item without a non-empty `id`,
+ * `call_id`, `server_label` or `name`, or without one request entry that has a `key`, is skipped.
+ */
+export function pendingInputsOf(output: unknown): PendingInput[] {
+  const items = itemsOf(output);
+  const resolved = new Set<string>();
+  const newestRound = new Map<string, number>();
+  for (const item of items) {
+    if (item.type === INPUT_REQUEST) {
+      const id = text(item.id);
+      if (id && item.status !== "in_progress") resolved.add(id);
+      const callId = text(item.call_id);
+      if (callId && item.status === "in_progress") {
+        newestRound.set(callId, Math.max(newestRound.get(callId) ?? 0, roundOf(item.round)));
+      }
+    } else if (item.type === INPUT_RESPONSE) {
+      const id = text(item.input_request_id);
+      if (id) resolved.add(id);
+    }
+  }
+  const pending = new Map<string, PendingInput>();
+  for (const item of items) {
+    if (item.type !== INPUT_REQUEST || item.status !== "in_progress") continue;
+    const id = text(item.id);
+    const callId = text(item.call_id);
+    const serverLabel = text(item.server_label);
+    const tool = text(item.name);
+    if (!id || !callId || !serverLabel || !tool || resolved.has(id) || pending.has(id)) continue;
+    if (roundOf(item.round) !== newestRound.get(callId)) continue;
+    const requests = itemsOf(item.requests).filter((entry) => text(entry.key) !== undefined);
+    if (requests.length === 0) continue;
+    pending.set(id, { id, callId, serverLabel, tool, mode: inputModeOf(requests) });
+  }
+  return [...pending.values()];
+}
+
+/**
+ * Where the user answers: the chat's slug-less conversation link (`<chat>/c/<id>`, the path
+ * `surface/src/hosts/web/routes.ts` `answerPath` builds), or the chat itself without a conversation.
+ */
+export function answerUrlFor(chatOrigin: string, conversationId: string | null | undefined): string {
+  return conversationId ? `${chatOrigin}/c/${encodeURIComponent(conversationId)}` : `${chatOrigin}/`;
+}
+
+/** "erp", "erp and crm", "erp, crm and drive": each connector that asks, once; empty for none. */
+export function inputLabelsPhrase(inputs: readonly Pick<PendingInput, "serverLabel">[]): string {
+  const labels = [...new Set(inputs.map((input) => input.serverLabel))];
+  if (labels.length < 2) return labels[0] ?? "";
+  return `${labels.slice(0, -1).join(", ")} and ${labels[labels.length - 1]}`;
 }

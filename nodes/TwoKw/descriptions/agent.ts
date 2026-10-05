@@ -10,7 +10,7 @@ const returnPausedRuns: INodeProperties = {
   type: 'boolean',
   default: false,
   description:
-    'Whether to return a run that pauses for approval or for a connector the user must connect in chat as an item (status requires_action, with pendingApprovals and pendingConnections) instead of failing, so Agent › Decide Approval or a Send Message with Previous Response ID can continue it',
+    'Whether to return a paused run as an item (status requires_action) instead of failing. An approval pause (pendingApprovals) or a connector the user must connect in chat (pendingConnections) is continued with Agent › Decide Approval or a Send Message with Previous Response ID. A connector question (pendingInputs) is answered only by the user who started the run, in chat at its answerUrl, and the run continues there',
 };
 
 const simplifyOutput: INodeProperties = {

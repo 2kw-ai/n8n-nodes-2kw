@@ -4,6 +4,7 @@
  *
  *   cli/src/lib/connect-pause.ts               → n8n/nodes/TwoKw/operations/connect-pause.ts (under a header)
  *   cli/tests/fixtures/connect-pause-cases.json → n8n/test/fixtures/connect-pause-cases.json
+ *   cli/tests/fixtures/input-pause-cases.json   → n8n/test/fixtures/input-pause-cases.json (#1320)
  *
  * With --check it writes nothing and exits non-zero when either copy differs from its source
  * (the CI guard, run by `npm test`). Line endings are normalized before comparing, as
@@ -39,6 +40,12 @@ const copies = [
   {
     source: resolve(MONOREPO_SIBLING, 'tests', 'fixtures', 'connect-pause-cases.json'),
     target: resolve(packageRoot, 'test', 'fixtures', 'connect-pause-cases.json'),
+    header: '',
+  },
+  // The input pause's golden fixture (#1320), decoded by the same module.
+  {
+    source: resolve(MONOREPO_SIBLING, 'tests', 'fixtures', 'input-pause-cases.json'),
+    target: resolve(packageRoot, 'test', 'fixtures', 'input-pause-cases.json'),
     header: '',
   },
 ];

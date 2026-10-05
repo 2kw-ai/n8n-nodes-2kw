@@ -5,7 +5,14 @@ import {
   NodeOperationError,
 } from 'n8n-workflow';
 import { apiRequest, extractResourceId } from '../transport';
-import { chatOriginFor, connectionsPhrase, pendingConnectionsOf } from './connect-pause';
+import {
+  answerUrlFor,
+  chatOriginFor,
+  connectionsPhrase,
+  inputLabelsPhrase,
+  pendingConnectionsOf,
+  pendingInputsOf,
+} from './connect-pause';
 
 type ConversationMode = 'plan' | 'ask' | 'auto';
 
@@ -178,7 +185,22 @@ export function pendingConnectionsJson(output: unknown, connectorsUrl: string): 
   }));
 }
 
-function simplify(response: AgentResponse, connectorsUrl: string): IDataObject {
+/**
+ * A connector's questions a paused run waits on (#1320), in the workflow's shape: what the CLI and the
+ * MCP server publish, and the conversation to answer in beside each. Never the question, its form or
+ * its link (connectors spec D7).
+ */
+export function pendingInputsJson(output: unknown, answerUrl: string): IDataObject[] {
+  return pendingInputsOf(output).map((input) => ({
+    inputRequestId: input.id,
+    serverLabel: input.serverLabel,
+    tool: input.tool,
+    mode: input.mode,
+    answerUrl,
+  }));
+}
+
+function simplify(response: AgentResponse, connectorsUrl: string, answerUrl: string): IDataObject {
   const json: IDataObject = {
     text: responseText(response),
     status: response.status,
@@ -192,14 +214,21 @@ function simplify(response: AgentResponse, connectorsUrl: string): IDataObject {
     json.incompleteReason = response.incomplete_details?.reason ?? null;
   }
   if (response.status === 'requires_action') {
-    json.pendingApprovals = pendingApprovalItems(response).map((item) => ({
-      approvalId: item.id ?? null,
-      tool: item.tool ?? null,
-      arguments: item.arguments ?? null,
-      policyClass: item.policy_class ?? null,
-      reason: item.reason ?? null,
-    }));
-    json.pendingConnections = pendingConnectionsJson(response.output, connectorsUrl);
+    json.pendingInputs = pendingInputsJson(response.output, answerUrl);
+    // A question outranks every other pause (#1320, P91): only the requester's answer in chat continues
+    // the run and resolves the rest (spec D9), so Decide Approval would be refused. Listing nothing else
+    // keeps a workflow that routes on pendingApprovals or pendingConnections from trying.
+    const questionOpen = (json.pendingInputs as IDataObject[]).length > 0;
+    json.pendingApprovals = questionOpen
+      ? []
+      : pendingApprovalItems(response).map((item) => ({
+          approvalId: item.id ?? null,
+          tool: item.tool ?? null,
+          arguments: item.arguments ?? null,
+          policyClass: item.policy_class ?? null,
+          reason: item.reason ?? null,
+        }));
+    json.pendingConnections = questionOpen ? [] : pendingConnectionsJson(response.output, connectorsUrl);
   }
   return json;
 }
@@ -209,8 +238,9 @@ function simplify(response: AgentResponse, connectorsUrl: string): IDataObject {
  * client-side tool fails the item loudly instead of reaching the workflow as
  * empty output. With Return Paused Runs on, an approval pause or a connector
  * connect pause (#807) is returned as an item instead, for a later Decide
- * Approval (#660) or a Send Message with Previous Response ID; a relay pause
- * still fails.
+ * Approval (#660) or a Send Message with Previous Response ID; so is a
+ * connector's question (#1320), which only the user answers, in chat. A relay
+ * pause still fails.
  */
 function assertNotPaused(
   ctx: IExecuteFunctions,
@@ -218,11 +248,32 @@ function assertNotPaused(
   itemIndex: number,
   returnPausedRuns: boolean,
   connectorsUrl: string,
+  answerUrl: string,
 ): void {
   if (response.status === 'completed' || response.status === 'incomplete') return;
 
   const output = response.output ?? [];
   if (response.status === 'requires_action') {
+    // A question outranks every other pause (#1320, P91): only the requester's answer in chat
+    // continues the run, and it resolves the rest. The error names where, never what (D7).
+    const inputs = pendingInputsOf(response.output);
+    if (inputs.length > 0) {
+      if (returnPausedRuns) return;
+      const labels = inputLabelsPhrase(inputs);
+      const needs = new Set(inputs.map((input) => input.serverLabel)).size > 1 ? 'need' : 'needs';
+      throw new NodeOperationError(
+        ctx.getNode(),
+        `${labels} ${needs} the user's input — answer in chat: ${answerUrl}`,
+        {
+          itemIndex,
+          description:
+            `Response ${response.id} waits for the person who started it to answer a connector's question, ` +
+            'which only the chat app can take, and n8n runs agents unattended. ' +
+            `Open ${answerUrl} as that person and answer it; the run continues in chat. ` +
+            'Turn on Return Paused Runs to handle this pause in the workflow instead of failing.',
+        },
+      );
+    }
     const pending = pendingApprovalItems(response);
     if (pending.length > 0) {
       if (returnPausedRuns) return;
@@ -288,14 +339,16 @@ async function runResult(
   itemIndex: number,
   options: RunOptions,
 ): Promise<INodeExecutionData[]> {
-  // Read only for a connect pause, the one case that names the chat web host.
-  const connectorsUrl =
-    response.status === 'requires_action' && pendingConnectionsOf(response.output).length > 0
-      ? connectorsUrlFor((await ctx.getCredentials('2kwApi')).baseUrl)
-      : connectorsUrlFor(undefined);
-  assertNotPaused(ctx, response, itemIndex, options.returnPausedRuns === true, connectorsUrl);
+  // Read only for a connect pause or a question (#1320), the cases that name the chat web host.
+  const namesChat =
+    response.status === 'requires_action' &&
+    (pendingConnectionsOf(response.output).length > 0 || pendingInputsOf(response.output).length > 0);
+  const chatOrigin = chatOriginFor(namesChat ? (await ctx.getCredentials('2kwApi')).baseUrl : undefined);
+  const connectorsUrl = `${chatOrigin}/connectors`;
+  const answerUrl = answerUrlFor(chatOrigin, response.conversation?.id ?? null);
+  assertNotPaused(ctx, response, itemIndex, options.returnPausedRuns === true, connectorsUrl, answerUrl);
   const json =
-    options.simplify === false ? (response as unknown as IDataObject) : simplify(response, connectorsUrl);
+    options.simplify === false ? (response as unknown as IDataObject) : simplify(response, connectorsUrl, answerUrl);
   return [{ json, pairedItem: itemIndex }];
 }
 
@@ -416,6 +469,19 @@ export function gatewayError(error: unknown): { code?: string; message?: string 
 }
 
 /** Gateway refusals of a decision continuation (approval-gate spec §7), rewritten for a workflow author. */
+/**
+ * A decision on a response that also waits for a connector's question (#1320): only the user who
+ * started the run answers it, in chat, and that answer carries the approvals too (connectors spec D9).
+ */
+function questionPending(ctx: IExecuteFunctions, itemIndex: number, responseId: string, detail: string): NodeOperationError {
+  return new NodeOperationError(ctx.getNode(), `Response ${responseId} waits for the answer to a connector's question`, {
+    itemIndex,
+    description:
+      'Decide Approval cannot continue it: only the user who started the run answers the question, in chat, ' +
+      `and the run continues there with their decisions on the approvals.${detail}`,
+  });
+}
+
 function decisionError(
   ctx: IExecuteFunctions,
   error: unknown,
@@ -436,7 +502,12 @@ function decisionError(
         itemIndex,
         description: `It was cancelled or expired, or this is not the response that raised it.${detail}`,
       });
+    case 'input_pending_for_requester':
+      return questionPending(ctx, itemIndex, responseId, detail);
     case 'incomplete_tool_outputs':
+      // The same code refuses a continuation that leaves a connector's question open (#1320); its
+      // message names the open inreq_ ids. Deciding again can never clear that.
+      if (/\binreq_|\binput request/.test(message ?? '')) return questionPending(ctx, itemIndex, responseId, detail);
       return new NodeOperationError(ctx.getNode(), `Response ${responseId} has pending approvals this decision did not cover`, {
         itemIndex,
         description: `Run Decide Approval again to decide them all.${detail}`,

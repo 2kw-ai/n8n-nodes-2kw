@@ -481,6 +481,125 @@ describe('Agent resource — paused runs', () => {
     });
   });
 
+  describe("on a connector's question (#1320)", () => {
+    const question = (label: string, n: number) => ({
+      type: 'backbone:input_request',
+      id: `inreq_q${n}_1`,
+      call_id: `call_q${n}`,
+      server_label: label,
+      name: 'create_invoice',
+      status: 'in_progress',
+      round: 1,
+      requester: { kind: 'member', user_id: 'usr_1' },
+      requests: [
+        { key: 'customer', mode: 'form', message: 'SECRET which customer?', requested_schema: { type: 'object' } },
+        { key: 'terms', mode: 'url', message: 'SECRET accept', url: 'https://secret.example/terms', host: 'secret.example' },
+      ],
+    });
+    const inputPause = (output: Record<string, unknown>[]) =>
+      completed({ id: 'resp_q', status: 'requires_action', conversation: { id: 'conv_q' }, output });
+
+    it('throws naming the connector and the chat link to answer in, never the question', async () => {
+      const { ctx } = makeCtx(baseParams, { responses: [inputPause([question('erp', 1)])] });
+
+      const error = await executeAgent.call(ctx, 0, 'sendMessage').catch((e: unknown) => e);
+
+      expect((error as Error).message).toBe("erp needs the user's input — answer in chat: https://chat.2kw.ai/c/conv_q");
+      const description = (error as { description?: string }).description ?? '';
+      expect(description).toContain('resp_q');
+      expect(description).toContain('Return Paused Runs');
+      expect(`${(error as Error).message} ${description}`).not.toMatch(/SECRET|secret\.example/);
+    });
+
+    it('names several connectors and maps the chat URL from the credential base URL', async () => {
+      const { ctx } = makeCtx(baseParams, { responses: [inputPause([question('erp', 1), question('crm', 2)])] });
+      ctx.getCredentials.mockResolvedValue({ baseUrl: 'http://localhost:8080', apiKey: 'k' });
+
+      await expect(executeAgent.call(ctx, 0, 'sendMessage')).rejects.toThrow(
+        "erp and crm need the user's input — answer in chat: http://localhost:3000/c/conv_q",
+      );
+    });
+
+    it('outranks an approval in the same response', async () => {
+      const approval = {
+        type: 'backbone:approval_request',
+        id: 'apreq_1',
+        call_id: 'c1',
+        tool: 'send_email',
+        arguments: '{}',
+        policy_class: 'write',
+        status: 'in_progress',
+      };
+      const { ctx } = makeCtx(baseParams, { responses: [inputPause([approval, question('erp', 1)])] });
+
+      await expect(executeAgent.call(ctx, 0, 'sendMessage')).rejects.toThrow("erp needs the user's input");
+    });
+
+    it('returns the pause with pendingInputs when Return Paused Runs is on', async () => {
+      const { ctx } = makeCtx(
+        { ...baseParams, options: { returnPausedRuns: true } },
+        { responses: [inputPause([question('erp', 1)])] },
+      );
+
+      const [item] = await executeAgent.call(ctx, 0, 'sendMessage');
+
+      expect(item.json.status).toBe('requires_action');
+      expect(item.json.pendingInputs).toEqual([
+        {
+          inputRequestId: 'inreq_q1_1',
+          serverLabel: 'erp',
+          tool: 'create_invoice',
+          mode: 'mixed',
+          answerUrl: 'https://chat.2kw.ai/c/conv_q',
+        },
+      ]);
+      expect(JSON.stringify(item.json)).not.toMatch(/SECRET|secret\.example/);
+    });
+
+    it('lists no approval or connection beside a question, so no workflow routes to Decide Approval', async () => {
+      const approval = {
+        type: 'backbone:approval_request',
+        id: 'apreq_1',
+        call_id: 'c1',
+        tool: 'send_email',
+        arguments: '{}',
+        policy_class: 'write',
+        status: 'in_progress',
+      };
+      const connect = {
+        type: 'backbone:connector_auth_request',
+        id: 'cauth_call_c1',
+        call_id: 'call_c1',
+        server_label: 'drive',
+        host: 'drive.example.com',
+        reason: 'connect',
+        status: 'in_progress',
+      };
+      const { ctx } = makeCtx(
+        { ...baseParams, options: { returnPausedRuns: true } },
+        { responses: [inputPause([approval, connect, question('erp', 1)])] },
+      );
+
+      const [item] = await executeAgent.call(ctx, 0, 'sendMessage');
+
+      expect(item.json.pendingInputs).toHaveLength(1);
+      expect(item.json.pendingApprovals).toEqual([]);
+      expect(item.json.pendingConnections).toEqual([]);
+    });
+
+    it('returns the raw response unchanged with Simplify Output off', async () => {
+      const response = inputPause([question('erp', 1)]);
+      const { ctx } = makeCtx(
+        { ...baseParams, options: { returnPausedRuns: true, simplify: false } },
+        { responses: [response] },
+      );
+
+      const [item] = await executeAgent.call(ctx, 0, 'sendMessage');
+
+      expect(item.json).toEqual(response);
+    });
+  });
+
   it('throws the unexpected-status error when requires_action has nothing pending', async () => {
     const response = completed({
       status: 'requires_action',

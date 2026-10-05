@@ -1,0 +1,158 @@
+{
+  "_source": "cli/tests/fixtures/input-pause-cases.json is the canonical copy (#1320, connectors spec §12). Copies in mcp/tests/fixtures, n8n/test/fixtures and surface/tests/fixtures are byte-identical: edit this file, then run `npm run sync:connect-pause` in mcp/ and surface/ and `npm run sync-connect-pause` in n8n/. Every message, schema and URL holds a `forbidden` marker: no client may publish one (D7).",
+  "chatOrigin": "https://chat.2kw.ai",
+  "forbidden": ["FORBIDDEN-", "forbidden.example"],
+  "cases": [
+    {
+      "name": "one form request",
+      "conversationId": "conv_1",
+      "output": [
+        { "type": "backbone:input_request", "id": "inreq_a1_1", "call_id": "call_a1", "server_label": "erp", "name": "create_invoice", "status": "in_progress", "round": 1, "expires_at": "2026-10-05T21:40:00Z", "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [ { "key": "customer", "mode": "form", "message": "FORBIDDEN-message: which customer?", "requested_schema": { "type": "object", "properties": { "customer": { "type": "string", "title": "FORBIDDEN-schema" } }, "required": ["customer"] } } ] }
+      ],
+      "pending": [ { "id": "inreq_a1_1", "callId": "call_a1", "serverLabel": "erp", "tool": "create_invoice", "mode": "form" } ],
+      "answerUrl": "https://chat.2kw.ai/c/conv_1"
+    },
+    {
+      "name": "one URL request",
+      "conversationId": "conv_2",
+      "output": [
+        { "type": "backbone:input_request", "id": "inreq_b1_1", "call_id": "call_b1", "server_label": "erp", "name": "accept_terms", "status": "in_progress", "round": 1, "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [ { "key": "terms", "mode": "url", "message": "FORBIDDEN-message: accept the terms", "url": "https://forbidden.example/terms?ref=1", "host": "forbidden.example", "host_display": "forbidden.example", "punycode": false } ] }
+      ],
+      "pending": [ { "id": "inreq_b1_1", "callId": "call_b1", "serverLabel": "erp", "tool": "accept_terms", "mode": "url" } ],
+      "answerUrl": "https://chat.2kw.ai/c/conv_2"
+    },
+    {
+      "name": "a form and a URL request in one item read as mixed",
+      "conversationId": "conv_3",
+      "output": [
+        { "type": "backbone:input_request", "id": "inreq_c1_1", "call_id": "call_c1", "server_label": "acme", "name": "create_order", "status": "in_progress", "round": 1, "requester": { "kind": "surface" },
+          "requests": [
+            { "key": "customer", "mode": "form", "message": "FORBIDDEN-message: which one?", "requested_schema": { "type": "object", "properties": { "customer": { "type": "string", "title": "FORBIDDEN-schema" } } } },
+            { "key": "terms", "mode": "url", "message": "FORBIDDEN-message: accept", "url": "https://forbidden.example/accept", "host": "forbidden.example", "host_display": "forbidden.example", "punycode": false }
+          ] }
+      ],
+      "pending": [ { "id": "inreq_c1_1", "callId": "call_c1", "serverLabel": "acme", "tool": "create_order", "mode": "mixed" } ],
+      "answerUrl": "https://chat.2kw.ai/c/conv_3"
+    },
+    {
+      "name": "entries of no known mode read as unknown",
+      "conversationId": "conv_4",
+      "output": [
+        { "type": "backbone:input_request", "id": "inreq_d1_1", "call_id": "call_d1", "server_label": "erp", "name": "lookup", "status": "in_progress", "round": 1, "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [ { "key": "x", "mode": "voice", "message": "FORBIDDEN-message: say it" } ] }
+      ],
+      "pending": [ { "id": "inreq_d1_1", "callId": "call_d1", "serverLabel": "erp", "tool": "lookup", "mode": "unknown" } ],
+      "answerUrl": "https://chat.2kw.ai/c/conv_4"
+    },
+    {
+      "name": "round 2 open after round 1 was answered",
+      "conversationId": "conv_5",
+      "output": [
+        { "type": "backbone:input_request", "id": "inreq_e1_1", "call_id": "call_e1", "server_label": "erp", "name": "create_invoice", "status": "completed", "round": 1, "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [ { "key": "customer", "mode": "form", "message": "FORBIDDEN-message: first", "requested_schema": { "type": "object", "properties": {} } } ] },
+        { "type": "backbone:input_request", "id": "inreq_e1_2", "call_id": "call_e1", "server_label": "erp", "name": "create_invoice", "status": "in_progress", "round": 2, "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [ { "key": "terms", "mode": "url", "message": "FORBIDDEN-message: second", "url": "https://forbidden.example/2", "host": "forbidden.example", "host_display": "forbidden.example", "punycode": false } ] }
+      ],
+      "pending": [ { "id": "inreq_e1_2", "callId": "call_e1", "serverLabel": "erp", "tool": "create_invoice", "mode": "url" } ],
+      "answerUrl": "https://chat.2kw.ai/c/conv_5"
+    },
+    {
+      "name": "two open rounds of one call: only the newest",
+      "conversationId": "conv_6",
+      "output": [
+        { "type": "backbone:input_request", "id": "inreq_f1_1", "call_id": "call_f1", "server_label": "erp", "name": "create_invoice", "status": "in_progress", "round": 1, "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [ { "key": "a", "mode": "form", "message": "FORBIDDEN-message: old", "requested_schema": { "type": "object", "properties": {} } } ] },
+        { "type": "backbone:input_request", "id": "inreq_f1_2", "call_id": "call_f1", "server_label": "erp", "name": "create_invoice", "status": "in_progress", "round": 2, "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [ { "key": "b", "mode": "form", "message": "FORBIDDEN-message: new", "requested_schema": { "type": "object", "properties": {} } } ] }
+      ],
+      "pending": [ { "id": "inreq_f1_2", "callId": "call_f1", "serverLabel": "erp", "tool": "create_invoice", "mode": "form" } ],
+      "answerUrl": "https://chat.2kw.ai/c/conv_6"
+    },
+    {
+      "name": "an open item later projected incomplete is closed",
+      "conversationId": "conv_7",
+      "output": [
+        { "type": "backbone:input_request", "id": "inreq_g1_1", "call_id": "call_g1", "server_label": "erp", "name": "create_invoice", "status": "in_progress", "round": 1, "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [ { "key": "a", "mode": "form", "message": "FORBIDDEN-message", "requested_schema": { "type": "object", "properties": {} } } ] },
+        { "type": "backbone:input_request", "id": "inreq_g1_1", "call_id": "call_g1", "server_label": "erp", "name": "create_invoice", "status": "incomplete", "round": 1, "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [ { "key": "a", "mode": "form", "message": "FORBIDDEN-message", "requested_schema": { "type": "object", "properties": {} } } ] }
+      ],
+      "pending": [],
+      "answerUrl": "https://chat.2kw.ai/c/conv_7"
+    },
+    {
+      "name": "an item answered by an input response is closed",
+      "conversationId": "conv_8",
+      "output": [
+        { "type": "backbone:input_request", "id": "inreq_h1_1", "call_id": "call_h1", "server_label": "erp", "name": "create_invoice", "status": "in_progress", "round": 1, "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [ { "key": "a", "mode": "form", "message": "FORBIDDEN-message", "requested_schema": { "type": "object", "properties": {} } } ] },
+        { "type": "backbone:input_response", "input_request_id": "inreq_h1_1", "responses": { "a": { "action": "accept", "content": { "a": "FORBIDDEN-answer" } } } }
+      ],
+      "pending": [],
+      "answerUrl": "https://chat.2kw.ai/c/conv_8"
+    },
+    {
+      "name": "an item without server_label and one without requests are skipped",
+      "conversationId": "conv_9",
+      "output": [
+        { "type": "backbone:input_request", "id": "inreq_i1_1", "call_id": "call_i1", "name": "create_invoice", "status": "in_progress", "round": 1, "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [ { "key": "a", "mode": "form", "message": "FORBIDDEN-message", "requested_schema": { "type": "object", "properties": {} } } ] },
+        { "type": "backbone:input_request", "id": "inreq_i2_1", "call_id": "call_i2", "server_label": "erp", "name": "create_invoice", "status": "in_progress", "round": 1, "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [] }
+      ],
+      "pending": [],
+      "answerUrl": "https://chat.2kw.ai/c/conv_9"
+    },
+    {
+      "name": "two connectors ask in one response, in output order",
+      "conversationId": "conv_10",
+      "output": [
+        { "type": "backbone:input_request", "id": "inreq_j1_1", "call_id": "call_j1", "server_label": "erp", "name": "create_invoice", "status": "in_progress", "round": 1, "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [ { "key": "a", "mode": "form", "message": "FORBIDDEN-message", "requested_schema": { "type": "object", "properties": {} } } ] },
+        { "type": "backbone:input_request", "id": "inreq_j2_1", "call_id": "call_j2", "server_label": "crm", "name": "find_contact", "status": "in_progress", "round": 1, "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [ { "key": "b", "mode": "url", "message": "FORBIDDEN-message", "url": "https://forbidden.example/b", "host": "forbidden.example", "host_display": "forbidden.example", "punycode": false } ] }
+      ],
+      "pending": [
+        { "id": "inreq_j1_1", "callId": "call_j1", "serverLabel": "erp", "tool": "create_invoice", "mode": "form" },
+        { "id": "inreq_j2_1", "callId": "call_j2", "serverLabel": "crm", "tool": "find_contact", "mode": "url" }
+      ],
+      "answerUrl": "https://chat.2kw.ai/c/conv_10"
+    },
+    {
+      "name": "an input beside an open approval and a connect request",
+      "conversationId": "conv_11",
+      "output": [
+        { "type": "backbone:approval_request", "id": "appr_1", "call_id": "call_k0", "tool": "send_mail", "arguments": "{}", "policy_class": "write", "status": "in_progress" },
+        { "type": "function_call", "id": "fc_call_k0", "call_id": "call_k0", "name": "send_mail", "arguments": "{}", "status": "in_progress" },
+        { "type": "backbone:connector_auth_request", "id": "cauth_call_k2", "call_id": "call_k2", "server_label": "drive", "host": "drive.example.com", "reason": "connect", "status": "in_progress" },
+        { "type": "function_call", "id": "fc_call_k2", "call_id": "call_k2", "name": "mcp__drive__connect", "arguments": "{}", "status": "in_progress" },
+        { "type": "backbone:input_request", "id": "inreq_k1_1", "call_id": "call_k1", "server_label": "erp", "name": "create_invoice", "status": "in_progress", "round": 1, "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [ { "key": "a", "mode": "form", "message": "FORBIDDEN-message", "requested_schema": { "type": "object", "properties": {} } } ] }
+      ],
+      "pending": [ { "id": "inreq_k1_1", "callId": "call_k1", "serverLabel": "erp", "tool": "create_invoice", "mode": "form" } ],
+      "answerUrl": "https://chat.2kw.ai/c/conv_11"
+    },
+    {
+      "name": "no conversation id links the chat's start page",
+      "conversationId": null,
+      "output": [
+        { "type": "backbone:input_request", "id": "inreq_l1_1", "call_id": "call_l1", "server_label": "erp", "name": "create_invoice", "status": "in_progress", "round": 1, "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [ { "key": "a", "mode": "form", "message": "FORBIDDEN-message", "requested_schema": { "type": "object", "properties": {} } } ] }
+      ],
+      "pending": [ { "id": "inreq_l1_1", "callId": "call_l1", "serverLabel": "erp", "tool": "create_invoice", "mode": "form" } ],
+      "answerUrl": "https://chat.2kw.ai/"
+    },
+    {
+      "name": "a conversation id with a slash and a space is encoded",
+      "conversationId": "conv a/b",
+      "output": [
+        { "type": "backbone:input_request", "id": "inreq_m1_1", "call_id": "call_m1", "server_label": "erp", "name": "create_invoice", "status": "in_progress", "round": 1, "requester": { "kind": "member", "user_id": "usr_1" },
+          "requests": [ { "key": "a", "mode": "form", "message": "FORBIDDEN-message", "requested_schema": { "type": "object", "properties": {} } } ] }
+      ],
+      "pending": [ { "id": "inreq_m1_1", "callId": "call_m1", "serverLabel": "erp", "tool": "create_invoice", "mode": "form" } ],
+      "answerUrl": "https://chat.2kw.ai/c/conv%20a%2Fb"
+    }
+  ]
+}

@@ -127,6 +127,7 @@ describe('Agent › Send Message › Return Paused Runs (#660)', () => {
         },
       ],
       pendingConnections: [],
+      pendingInputs: [],
     });
   });
 
@@ -383,6 +384,32 @@ describe('Agent › Decide Approval (#660)', () => {
     await expect(executeAgent.call(ctx, 0, 'decideApproval')).rejects.toThrow(
       'Response resp_p has pending approvals this decision did not cover',
     );
+  });
+
+  it("sends an open connector question to chat instead of another Decide Approval (#1320)", async () => {
+    const { ctx } = makeCtx(decideParams, [
+      pendingPage([{ id: 'apreq_1', responseId: 'resp_p', hmac: 'h1' }]),
+      refusal('incomplete_tool_outputs', 'continuation must answer every open input request; missing: inreq_q1_1'),
+    ]);
+
+    const error = await executeAgent.call(ctx, 0, 'decideApproval').catch((e: unknown) => e);
+
+    expect((error as Error).message).toBe("Response resp_p waits for the answer to a connector's question");
+    const description = (error as { description?: string }).description ?? '';
+    expect(description).toContain('in chat');
+    expect(description).not.toContain('Run Decide Approval again');
+  });
+
+  it("names the chat as the way on when another member's question holds the run (#1320)", async () => {
+    const { ctx } = makeCtx(decideParams, [
+      pendingPage([{ id: 'apreq_1', responseId: 'resp_p', hmac: 'h1' }]),
+      refusal('input_pending_for_requester', 'the response waits for its requester to answer an input request'),
+    ]);
+
+    const error = await executeAgent.call(ctx, 0, 'decideApproval').catch((e: unknown) => e);
+
+    expect((error as Error).message).toBe("Response resp_p waits for the answer to a connector's question");
+    expect((error as { description?: string }).description ?? '').toContain('only the user who started the run');
   });
 
   it('passes any other API error through as a NodeApiError', async () => {
