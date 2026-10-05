@@ -2240,7 +2240,7 @@ export interface paths {
         };
         /**
          * List knowledge bases
-         * @description Retrieve the organization's knowledge bases as a page, newest first by default.
+         * @description Retrieve the organization's knowledge bases as a page, newest first by default. The optional search filter keeps the knowledge bases whose name contains the text, ignoring case, and is applied in the query, so the page total counts only matching knowledge bases.
          */
         get: operations["list"];
         put?: never;
@@ -2312,7 +2312,7 @@ export interface paths {
         };
         /**
          * List documents
-         * @description List the knowledge base's documents as a page, newest first by default. The optional status filter matches on the document's newest revision (latestVersion) and is applied in the query, so the page total counts only matching documents; a filter that matches nothing yields an empty page.
+         * @description List the knowledge base's documents as a page, newest first by default. The optional status filter matches on the document's newest revision (latestVersion) and is applied in the query, so the page total counts only matching documents; a filter that matches nothing yields an empty page. The optional search filter keeps the documents whose name contains the text, ignoring case, and combines with status.
          */
         get: operations["list_1"];
         put?: never;
@@ -11654,6 +11654,7 @@ export interface operations {
     list: {
         parameters: {
             query: {
+                search?: string;
                 pageable: components["schemas"]["Pageable"];
             };
             header?: never;
@@ -11792,6 +11793,7 @@ export interface operations {
         parameters: {
             query: {
                 status?: "PENDING" | "PARSING" | "CHUNKING" | "EMBEDDING" | "READY" | "ERROR";
+                search?: string;
                 pageable: components["schemas"]["Pageable"];
             };
             header?: never;
