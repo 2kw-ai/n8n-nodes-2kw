@@ -5308,6 +5308,7 @@ export interface components {
             arguments: string;
             id: string;
             name: string;
+            policy_class?: string;
             server_label: string;
         });
         McpApprovalResponseItem: {
