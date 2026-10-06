@@ -2007,7 +2007,7 @@ export interface paths {
         post?: never;
         /**
          * Delete file
-         * @description Soft-delete an agent_input file. Knowledge files are not deletable through this API; their lifecycle belongs to the knowledge module (a file that backs no document version is not reclaimed yet — follow-up on epic &49).
+         * @description Soft-delete an agent_input file. Knowledge files are not deletable through this API; they live as long as the document versions they back. A knowledge file that backs no document version is removed automatically after a retention period.
          */
         delete: operations["delete_10"];
         options?: never;
@@ -5078,8 +5078,11 @@ export interface components {
         InputFileContent: {
             type: "InputFileContent";
         } & (Omit<components["schemas"]["ContentPart"], "type"> & {
+            /** @description Not supported: always refused with 400 `unsupported_file_source`. Upload with `POST /v1/files` and send `file_id`. */
             file_data?: string;
+            /** @description The id of a file uploaded via `POST /v1/files`. The only accepted file source. */
             file_id?: string;
+            /** @description Not supported: always refused with 400 `unsupported_file_source`. Upload with `POST /v1/files` and send `file_id`. */
             file_url?: string;
             filename?: string;
         });
