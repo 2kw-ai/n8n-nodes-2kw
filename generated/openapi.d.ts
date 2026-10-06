@@ -3850,6 +3850,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/web-search/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Whether the built-in web search is available
+         * @description Reports whether agents can use the built-in web search (`web_search` with `source: builtin`). While it is unavailable, a built-in search returns the tool error `search_unavailable`.
+         */
+        get: operations["getWebSearchStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -7229,6 +7249,11 @@ export interface components {
             sortOrder?: number;
             taskType: string;
             version?: string;
+        };
+        /** @description Availability of the built-in web search */
+        WebSearchStatusDTO: {
+            /** @description True when agents can use the built-in web search */
+            builtinAvailable: boolean;
         };
     };
     responses: never;
@@ -14802,6 +14827,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TracingSettingsView"];
+                };
+            };
+        };
+    };
+    getWebSearchStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["WebSearchStatusDTO"];
                 };
             };
         };
