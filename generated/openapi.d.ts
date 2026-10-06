@@ -3122,6 +3122,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/responses/{responseId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a background response
+         * @description Returns a response created with background: true: queued, in_progress, requires_action, completed, incomplete, failed or cancelled. Poll it until it leaves queued and in_progress. Only background responses can be read by id.
+         */
+        get: operations["getResponse"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/responses/{responseId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel a background response
+         * @description Cancels the background run whose newest response this is. A queued or paused run is cancelled at once and answers status cancelled; a running one stops at its next step and answers in_progress until it does. Only the caller that started the run may cancel it.
+         */
+        post: operations["cancelResponse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/schemas": {
         parameters: {
             query?: never;
@@ -4481,6 +4521,8 @@ export interface components {
             content: components["schemas"]["JsonNode"];
         };
         CreateResponseBody: {
+            /** @description Run the response in the background: the call answers at once with status queued, and GET /v1/responses/{id} reads the response until it finishes. Agent models only; cannot be combined with stream. Defaults to false: omitted, the response is synchronous. */
+            background?: boolean;
             conversation?: string;
             /** @description The turn's input: a string, or an array of items */
             input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["InputRequestItem"] | components["schemas"]["InputResponseItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"] | components["schemas"]["ToolImageItem"])[];
@@ -4758,6 +4800,7 @@ export interface components {
         };
         ErrorDetail: {
             code?: string;
+            head_response_id?: string;
             message?: string;
             param?: string;
             type?: string;
@@ -13332,7 +13375,43 @@ export interface operations {
                     "application/json": Record<string, never>;
                 };
             };
-            /** @description Surface turn rate exceeded for this installation and end-user */
+            /** @description background_stream_unsupported: background with stream; background_requires_agent: background on a provider/model */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description not_run_origin: only the background run's starter may continue it with anything but approval decisions */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description background: previous_response_id names no response visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description A background run refuses the continuation: run_active, stale_previous_response, run_terminal, run_deadline_exceeded, run_is_background, response_is_synchronous or conversation_has_active_run. The error carries head_response_id. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description Surface turn rate exceeded for this installation and end-user, or too_many_open_runs: the organization's open background runs are at their limit */
             429: {
                 headers: {
                     [name: string]: unknown;
@@ -13343,6 +13422,97 @@ export interface operations {
             };
             /** @description stream: true was sent; streaming is not available on this endpoint yet */
             501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    getResponse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The response id */
+                responseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The background response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description not_a_background_response: the response did not run in the background */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description No response with that id is visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    cancelResponse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The response id */
+                responseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The response after the cancel */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description not_a_background_response: the response did not run in the background */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description No response with that id is visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description not_run_head: a newer response of the run exists; run_terminal: the run already ended. The error carries head_response_id. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
