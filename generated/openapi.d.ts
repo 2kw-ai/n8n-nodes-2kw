@@ -13413,7 +13413,7 @@ export interface operations {
                     "application/json": Record<string, never>;
                 };
             };
-            /** @description not_run_origin: only the background run's starter may continue it with anything but approval decisions */
+            /** @description not_run_origin: only the background run's starter may continue it with anything but approval decisions, and only the starter may continue a run that waits for them to connect, allow or reconnect a connector */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13431,7 +13431,7 @@ export interface operations {
                     "application/json": Record<string, never>;
                 };
             };
-            /** @description A background run refuses the continuation: run_active, stale_previous_response, run_terminal, run_deadline_exceeded, run_is_background, response_is_synchronous or conversation_has_active_run. The error carries head_response_id. */
+            /** @description A background run refuses the continuation: run_active, stale_previous_response, run_terminal, run_deadline_exceeded, connector_auth_expired (the run waited for its starter to connect, allow or reconnect a connector and they did not in time), run_is_background, response_is_synchronous or conversation_has_active_run. The error carries head_response_id. */
             409: {
                 headers: {
                     [name: string]: unknown;
