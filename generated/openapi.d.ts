@@ -2191,6 +2191,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/installations/{id}/member-login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Allow or stop member sign-in
+         * @description Sets whether organisation members may sign in to this app as themselves. Turning it off signs everyone out of the app and removes pending sign-in requests.
+         */
+        put: operations["setInstallationMemberLogin"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/installations/{id}/origins": {
         parameters: {
             query?: never;
@@ -2526,6 +2546,86 @@ export interface paths {
          */
         post: operations["issueMcpRelayEnrolmentToken"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/member-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Where you are signed in
+         * @description Your own sign-ins in the active organisation.
+         */
+        get: operations["listMemberLinks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/member-links/requests/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read a sign-in request
+         * @description What the consent page shows for a pending sign-in request in your organisation. 404 for any request that is unknown, used, expired or not yours to see.
+         */
+        get: operations["getMemberLinkRequest"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/member-links/requests/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve a sign-in request
+         * @description Signs the requesting app in as you. Needs the secret the app generated. 403 when you are not an active member of the organisation; 409 when the app is already signed in; 503 when your membership cannot be checked right now (retry).
+         */
+        post: operations["approveMemberLinkRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/member-links/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Sign out of an app
+         * @description Ends one of your own sign-ins. 404 for any other id.
+         */
+        delete: operations["deleteMemberLink"];
         options?: never;
         head?: never;
         patch?: never;
@@ -3742,6 +3842,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/surface/member-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Member sign-in state
+         * @description Whether this app's caller is signed in as an organisation member. 503 when the membership check is temporarily unavailable; retry, do not treat it as signed out.
+         */
+        get: operations["getSurfaceMemberLink"];
+        put?: never;
+        post?: never;
+        /**
+         * Sign out
+         * @description Signs this app's caller out: removes the sign-in and any pending sign-in request.
+         */
+        delete: operations["deleteSurfaceMemberLink"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/surface/member-link/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Prepare a member sign-in
+         * @description Creates a pending sign-in request for this app's caller. The request lives for ten minutes. 404 when the installation does not allow member sign-in; 429 when requests come too fast.
+         */
+        post: operations["createSurfaceMemberLinkRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/traces": {
         parameters: {
             query?: never;
@@ -4054,6 +4198,10 @@ export interface components {
             reason?: string;
             remember?: string;
         });
+        ApproveMemberLinkRequest: {
+            /** @description The secret that proves possession of the request. */
+            secret: string;
+        };
         AvailableModelsResponse: {
             data?: components["schemas"]["ModelObject"][];
             object?: string;
@@ -4525,6 +4673,10 @@ export interface components {
         };
         CreateMcpRelayRequest: {
             name: string;
+        };
+        CreateMemberLinkRequest: {
+            /** @description Lowercase hex SHA-256 of a random secret the panel keeps in memory. */
+            secret_hash: string;
         };
         CreatePluginRequest: {
             gitUrl: string;
@@ -5164,6 +5316,9 @@ export interface components {
             id?: string;
             /** Format: date-time */
             readonly lastModifiedAt?: string;
+            /** Format: int64 */
+            readonly liveMemberSignIns?: number;
+            readonly memberLoginEnabled?: boolean;
             name: string;
             organizationId?: string;
             readonly origins?: string[];
@@ -5184,6 +5339,9 @@ export interface components {
             id?: string;
             /** Format: date-time */
             readonly lastModifiedAt?: string;
+            /** Format: int64 */
+            readonly liveMemberSignIns?: number;
+            readonly memberLoginEnabled?: boolean;
             name: string;
             organizationId?: string;
             readonly origins?: string[];
@@ -5373,6 +5531,64 @@ export interface components {
         McpToolExecutionError: {
             content?: string;
             type?: string;
+        };
+        MemberLinkConsent: {
+            /**
+             * Format: date-time
+             * @description When the request stops being usable.
+             */
+            expires_at?: string;
+            /** @description Display name of the app that asks to sign in. */
+            installation_name?: string;
+            /** @description The organisation the app belongs to. */
+            organization_id?: string;
+            /** @description Origins the app is registered to run on. */
+            origins?: string[];
+            /** @description The request being confirmed. */
+            request_id?: string;
+        };
+        MemberLinkDTO: {
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            expires_at?: string;
+            /** @description Identifier of the sign-in; use it to sign out. */
+            id?: string;
+            installation_id?: string;
+            installation_name?: string;
+            /** @description Origins the app is registered to run on. */
+            origins?: string[];
+        };
+        MemberLinkRequestCreated: {
+            /**
+             * Format: date-time
+             * @description When the request stops being usable.
+             */
+            expires_at?: string;
+            /** @description Identifier to hand to the sign-in page together with the secret. */
+            id?: string;
+        };
+        MemberLinkState: {
+            /**
+             * Format: date-time
+             * @description When the sign-in ends. Omitted when not signed in.
+             */
+            expires_at?: string;
+            /** @description True when a member is signed in and still an active member of the organisation. */
+            signed_in?: boolean;
+        };
+        MemberLoginPolicyDTO: {
+            /** @description Whether members may sign in to this app. */
+            enabled?: boolean;
+            /**
+             * Format: int64
+             * @description Members currently signed in to this app.
+             */
+            live_sign_ins?: number;
+        };
+        MemberLoginPolicyRequest: {
+            /** @description Whether members may sign in to this app. */
+            enabled: boolean;
         };
         MemberMemoryUsage: {
             /** Format: int32 */
@@ -11649,6 +11865,32 @@ export interface operations {
             };
         };
     };
+    setInstallationMemberLogin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberLoginPolicyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemberLoginPolicyDTO"];
+                };
+            };
+        };
+    };
     replaceOrigins: {
         parameters: {
             query?: never;
@@ -12279,6 +12521,94 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["EnrolmentTokenDTO"];
                 };
+            };
+        };
+    };
+    listMemberLinks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemberLinkDTO"][];
+                };
+            };
+        };
+    };
+    getMemberLinkRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemberLinkConsent"];
+                };
+            };
+        };
+    };
+    approveMemberLinkRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApproveMemberLinkRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemberLinkDTO"];
+                };
+            };
+        };
+    };
+    deleteMemberLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -14636,6 +14966,68 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["EnrolResponse"];
+                };
+            };
+        };
+    };
+    getSurfaceMemberLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemberLinkState"];
+                };
+            };
+        };
+    };
+    deleteSurfaceMemberLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    createSurfaceMemberLinkRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMemberLinkRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemberLinkRequestCreated"];
                 };
             };
         };
