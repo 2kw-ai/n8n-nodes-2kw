@@ -3994,6 +3994,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/usage/external": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get usage on your own provider keys
+         * @description Requests and usage per provider, model and resource on the organisation's own keys, with an estimated cost in euros at the provider's list price. The provider bills it; contract discounts are not reflected. Days are UTC, both ends included, at most 90 days; the last 30 days when omitted. Needs a member login: API keys and surface tokens are refused.
+         */
+        get: operations["getExternalUsage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/usage/period": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get platform usage of a period
+         * @description How much of the period's included usage is used, per meter with its quantity and per credential kind, plus extra usage and the prepaid balance in euros, net of VAT. Percentages are exact to two places, rounded down. accounting UNAVAILABLE carries no figures. Needs a member login: API keys and surface tokens are refused.
+         */
+        get: operations["getUsagePeriod"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/usage/periods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List usage periods
+         * @description The organisation's billing periods, newest first, each keyed by its start. A trial that converts to a paid plan ends its period, so two periods can share a month. Empty while usage is not accounted. Needs a member login: API keys and surface tokens are refused.
+         */
+        get: operations["listUsagePeriods"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/web-search/status": {
         parameters: {
             query?: never;
@@ -4521,6 +4581,12 @@ export interface components {
             description?: string;
             name?: string;
             toolClass?: string;
+        };
+        ConsumerUsage: {
+            /** @enum {string} */
+            kind?: "MEMBER" | "API_KEY" | "SURFACE" | "OTHER";
+            /** @example 38.00 */
+            percent?: string | null;
         };
         ContentPart: {
             type: string;
@@ -5084,6 +5150,65 @@ export interface components {
             mdContent?: string;
             textContent?: string;
         };
+        ExternalDay: {
+            /** Format: date */
+            date?: string;
+            /** @example 0.40 */
+            estimatedCostEur?: string;
+        };
+        ExternalRow: {
+            /** Format: int64 */
+            cacheWriteTokens?: number | null;
+            /** Format: int64 */
+            cachedInputTokens?: number | null;
+            /** @example 15.60 */
+            estimatedCostEur?: string | null;
+            model?: string;
+            /** Format: int64 */
+            outputTokens?: number | null;
+            /** @example ANTHROPIC */
+            provider?: string | null;
+            /** Format: int64 */
+            requests?: number;
+            /** @enum {string} */
+            resource?: "MODEL_TOKENS" | "EMBEDDING_TOKENS" | "DOCUMENT_PAGES" | "AUDIO_SECONDS" | "WEB_SEARCH" | "WEB_FETCH";
+            /** Format: int64 */
+            uncachedInputTokens?: number | null;
+            unit?: string;
+            /** Format: int64 */
+            units?: number | null;
+            /** Format: int64 */
+            unpricedRequests?: number;
+            /** Format: int64 */
+            usageMissingRequests?: number;
+        };
+        ExternalTotals: {
+            /** @example 22.60 */
+            estimatedCostEur?: string | null;
+            /** Format: int64 */
+            requests?: number;
+            /** Format: int64 */
+            unpricedRequests?: number;
+            /** Format: int64 */
+            usageMissingRequests?: number;
+        };
+        ExternalUsageDTO: {
+            available?: boolean;
+            daily?: components["schemas"]["ExternalDay"][];
+            /** Format: date */
+            endDate?: string;
+            rows?: components["schemas"]["ExternalRow"][];
+            /** Format: date */
+            startDate?: string;
+            totals?: components["schemas"]["ExternalTotals"];
+        };
+        ExtraUsage: {
+            /** @example 100.00 */
+            capEur?: string;
+            enabled?: boolean;
+            /** @example 37.20 */
+            spentEur?: string;
+        };
         ExtractionDTO: {
             /** Format: date-time */
             completedAt?: string;
@@ -5636,6 +5761,15 @@ export interface components {
             role?: string;
             status?: string;
         });
+        MeterUsage: {
+            /** @enum {string} */
+            meter?: "MODEL_TOKENS" | "EMBEDDING_TOKENS" | "DOCUMENT_PAGES" | "AUDIO_SECONDS" | "WEB_SEARCH" | "WEB_FETCH";
+            /** @example 41.30 */
+            percent?: string | null;
+            /** Format: int64 */
+            quantity?: number;
+            unit?: string;
+        };
         ModeItem: {
             type: "ModeItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
@@ -6317,6 +6451,12 @@ export interface components {
             /** Format: int32 */
             requiredFieldsRestored?: number;
             restoredFieldPaths?: string[];
+        };
+        PrepaidBalance: {
+            /** Format: date */
+            nextExpiry?: string | null;
+            /** @example 50.00 */
+            remainingEur?: string;
         };
         ProblemDetail: {
             detail?: string;
@@ -7412,6 +7552,37 @@ export interface components {
             schemasAtLimit?: boolean;
             /** @description Subscription tier name, or null when the organisation has no plan */
             tier?: string | null;
+        };
+        UsagePeriodDTO: {
+            /** @enum {string} */
+            accounting?: "ENFORCE" | "SHADOW" | "UNAVAILABLE";
+            consumers?: components["schemas"]["ConsumerUsage"][];
+            extraUsage?: components["schemas"]["ExtraUsage"];
+            /** @enum {string|null} */
+            kind?: "TRIAL" | "PAID" | null;
+            meters?: components["schemas"]["MeterUsage"][];
+            /** Format: date-time */
+            periodEnd?: string | null;
+            /** Format: date-time */
+            periodStart?: string | null;
+            /** @description The current period's plan, e.g. TEAM */
+            plan?: string | null;
+            prepaid?: components["schemas"]["PrepaidBalance"];
+            /** @description The plan's usage level, e.g. 5x */
+            usageLevel?: string | null;
+            /**
+             * @description Exact percentage, two places
+             * @example 64.12
+             */
+            usedPercent?: string | null;
+        };
+        UsagePeriodSummaryDTO: {
+            /** @enum {string} */
+            kind?: "TRIAL" | "PAID";
+            /** Format: date-time */
+            periodEnd?: string;
+            /** Format: date-time */
+            periodStart?: string;
         };
         ValidateSchemaRequest: {
             jsonSchema: components["schemas"]["JsonNode"];
@@ -15220,6 +15391,128 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TracingSettingsView"];
+                };
+            };
+        };
+    };
+    getExternalUsage: {
+        parameters: {
+            query?: {
+                /** @description First day, ISO date (UTC) */
+                startDate?: string;
+                /** @description Last day, ISO date (UTC), included */
+                endDate?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The range's usage on the organisation's own keys */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExternalUsageDTO"];
+                };
+            };
+            /** @description The range ends before it starts or spans over 90 days */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExternalUsageDTO"];
+                };
+            };
+            /** @description Not a member login */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExternalUsageDTO"];
+                };
+            };
+        };
+    };
+    getUsagePeriod: {
+        parameters: {
+            query?: {
+                /** @description A period's start from listUsagePeriods; the current period when omitted */
+                periodStart?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The period's platform usage */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UsagePeriodDTO"];
+                };
+            };
+            /** @description periodStart is not an ISO-8601 instant */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UsagePeriodDTO"];
+                };
+            };
+            /** @description Not a member login */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UsagePeriodDTO"];
+                };
+            };
+            /** @description No period of the organisation starts at periodStart */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UsagePeriodDTO"];
+                };
+            };
+        };
+    };
+    listUsagePeriods: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The periods, newest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UsagePeriodSummaryDTO"][];
+                };
+            };
+            /** @description Not a member login */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UsagePeriodSummaryDTO"][];
                 };
             };
         };
