@@ -70,7 +70,7 @@ export interface paths {
         put?: never;
         /**
          * Create agent
-         * @description Create a new agent for the current organization.
+         * @description Create a new agent for the current organization. The configuration is published as version 1 with the latest label on it, so the agent is runnable and listed in the catalog at once; the response carries latestVersionId and latestVersionNumber. A name that is already taken answers 409.
          */
         post: operations["create_10"];
         delete?: never;
