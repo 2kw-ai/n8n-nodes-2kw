@@ -6649,6 +6649,8 @@ export interface components {
             /** Format: double */
             currentMean?: number;
             /** Format: int32 */
+            excludedItems?: number;
+            /** Format: int32 */
             gtChanged?: number;
             /** Format: int32 */
             improved?: number;
