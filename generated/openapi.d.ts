@@ -4962,6 +4962,8 @@ export interface components {
             agentName?: string | null;
             /** @description The conversation modes the operator offers this agent's users and the default one; present exactly when agentName is */
             conversationModes: components["schemas"]["ConversationModes"] | null;
+            /** @description Whether members of the installation's organisation may sign in to the panel; the panel shows its sign-in control only when true */
+            memberLogin?: boolean;
             origins?: string[];
             /** @enum {string} */
             status?: "PENDING" | "ACTIVE" | "DISABLED";
