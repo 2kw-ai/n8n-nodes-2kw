@@ -4775,11 +4775,8 @@ export interface components {
             prompt_cache_key?: string;
             reasoning?: components["schemas"]["Reasoning"];
             store?: boolean;
-            /**
-             * @description Streaming is not available on this endpoint yet (#465); true is refused with a 501. Omit it or send false.
-             * @enum {boolean}
-             */
-            stream?: false;
+            /** @description Answer as a stream of Server-Sent Events instead of one JSON response. A model whose provider cannot stream is refused with a 501. Cannot be combined with background. Defaults to false: omitted, the response is one JSON document. */
+            stream?: boolean;
             /** Format: double */
             temperature?: number;
             tool_choice?: unknown;
@@ -13896,7 +13893,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description The completed response */
+            /** @description The completed response, or with stream: true the response as a stream of Server-Sent Events: each event's data is a JSON object whose type names it (response.created, response.output_text.delta, response.completed, ...), and the stream ends with data: [DONE] */
             200: {
                 headers: {
                     /** @description Present when the gateway changed the request to fit the model: ;-separated entries such as effort=minimal->low or temperature=dropped. */
@@ -13905,6 +13902,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": Record<string, never>;
+                    "text/event-stream": string;
                 };
             };
             /** @description background_stream_unsupported: background with stream; background_requires_agent: background on a provider/model */
@@ -13952,7 +13950,7 @@ export interface operations {
                     "application/json": Record<string, never>;
                 };
             };
-            /** @description stream: true was sent; streaming is not available on this endpoint yet */
+            /** @description stream: true was sent for a model whose provider cannot stream; retry without it */
             501: {
                 headers: {
                     [name: string]: unknown;
