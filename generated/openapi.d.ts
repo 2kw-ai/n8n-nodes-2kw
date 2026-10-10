@@ -4779,6 +4779,11 @@ export interface components {
             stream?: boolean;
             /** Format: double */
             temperature?: number;
+            /**
+             * @description The caller's IANA time zone, for example Europe/Berlin. The model is told the current date and hour in it. UTC when absent or unknown; an unknown zone is reported in the X-Backbone-Adjustments response header as timezone=utc.
+             * @example Europe/Berlin
+             */
+            timezone?: string;
             tool_choice?: unknown;
             tools?: unknown[];
             /** Format: double */
