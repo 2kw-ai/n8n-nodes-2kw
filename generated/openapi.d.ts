@@ -1923,6 +1923,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/extractions/rerun": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Re-run extractions in bulk
+         * @description Re-run up to 100 extractions, selected either by `ids` or by the filter parameters of the list endpoint (`status`, `schemaVersionId`, `search`). Each eligible extraction is queued as a new extraction with status PENDING; poll each `rerunId` until it is COMPLETED or FAILED. An extraction that is still running, was vision-only, or whose schema version was deleted is reported as SKIPPED with a reason; an unknown id as NOT_FOUND. The others are queued all the same.
+         */
+        post: operations["bulkRerun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/extractions/{id}": {
         parameters: {
             query?: never;
@@ -4360,6 +4380,33 @@ export interface components {
         BooleanResultDTO: {
             result?: boolean;
         };
+        BulkRerunRequest: {
+            /** @description Extraction IDs to re-run. Mutually exclusive with the filter fields. */
+            ids?: string[];
+            /** @description Re-run the extractions that ran against this schema version. */
+            schemaVersionId?: string;
+            /** @description Re-run the extractions whose model contains this text. */
+            search?: string;
+            /**
+             * @description Re-run the extractions with this status, e.g. FAILED.
+             * @enum {string}
+             */
+            status?: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+        };
+        BulkRerunResponse: {
+            /** Format: int32 */
+            queued?: number;
+            results?: components["schemas"]["BulkRerunResult"][];
+            /** Format: int32 */
+            skipped?: number;
+        };
+        BulkRerunResult: {
+            extractionId?: string;
+            /** @enum {string} */
+            outcome?: "QUEUED" | "SKIPPED" | "NOT_FOUND";
+            reason?: string | null;
+            rerunId?: string | null;
+        };
         CancelTurnRequest: {
             /** @description The turn to stop: the value the client sent as the Backbone-Turn-Id header on POST /v1/responses. 1-64 characters of A-Z, a-z, 0-9, '_' or '-'. */
             turn_id: string;
@@ -5623,6 +5670,8 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
             description?: string;
+            /** Format: int64 */
+            documentCount?: number;
             /** Format: int32 */
             embeddingDim?: number;
             embeddingModel?: string;
@@ -11574,6 +11623,48 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TokenEstimate"];
+                };
+            };
+        };
+    };
+    bulkRerun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkRerunRequest"];
+            };
+        };
+        responses: {
+            /** @description The eligible re-runs are queued; the body has one outcome per extraction */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BulkRerunResponse"];
+                };
+            };
+            /** @description Neither or both of ids and a filter were given, or the filter matches more than 100 extractions */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The batch needs more extraction credits than remain; nothing was queued */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
