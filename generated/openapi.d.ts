@@ -88,7 +88,7 @@ export interface paths {
         };
         /**
          * List the agent catalog
-         * @description Published agents of the current organization as {id, name, description, conversationModes}, name-ascending. Readable by every organization member including the chat-only USER role, and the only agent read that role has: the response never carries instructions, tools, options, skills or model configuration, and of the HITL policy only the conversation modes the operator offers end users. An agent with no published version is omitted. The sort parameter is ignored.
+         * @description Published agents of the current organization as {id, name, description, conversationModes, models}, name-ascending. Readable by every organization member including the chat-only USER role, and the only agent read that role has: the response never carries instructions, tools, options, skills or credentials, and of the HITL policy only the conversation modes the operator offers end users. `models` names the models the latest version lists, in order and the first being the default, each with its display name, reasoning control, the reasoning effort levels it accepts and the default level already adjusted to them. An agent with no published version is omitted. The sort parameter is ignored.
          */
         get: operations["listAgentCatalog"];
         put?: never;
@@ -4157,7 +4157,15 @@ export interface components {
             conversationModes?: components["schemas"]["ConversationModes"];
             description?: string;
             id?: string;
+            models?: components["schemas"]["AgentCatalogModelDTO"][];
             name?: string;
+        };
+        AgentCatalogModelDTO: {
+            control?: string;
+            defaultEffort?: string;
+            displayName?: string;
+            efforts?: string[];
+            id?: string;
         };
         AgentDTO: {
             /** @description Whether this deployment runs the Bash tool. Where it is false, a backbone.bash entry is stored but never offered to the model. */
@@ -4670,6 +4678,8 @@ export interface components {
             head_response_id?: string;
             /** Format: int64 */
             last_activity_at?: number;
+            last_model?: string;
+            last_reasoning_effort?: string;
             mode?: string;
             pause_reason?: string;
             status?: string;
