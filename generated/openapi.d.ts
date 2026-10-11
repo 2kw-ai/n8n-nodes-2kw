@@ -3511,6 +3511,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/search-providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List search providers
+         * @description List the organization's search providers, sorted by name. The API key is never returned.
+         */
+        get: operations["listSearchProviders"];
+        put?: never;
+        /**
+         * Create search provider
+         * @description Register a Perplexity or Brave API key of the organization for agents' web search (`web_search` with `source: external`). Names are unique within the organization. Requires a plan that includes your own provider keys.
+         */
+        post: operations["createSearchProvider"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/search-providers/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test search provider connection
+         * @description Run one minimal search on the given key, or on the stored key of `searchProviderId`. Answers 200 whether or not the vendor accepted the key; `success` says which. An unknown `searchProviderId` is 404. The vendor may bill the search to your account; Backbone does not charge for it. Limited to 10 tests per minute per organization (429 with `Retry-After`).
+         */
+        post: operations["testSearchProvider"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/search-providers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get search provider
+         * @description Get one search provider. The API key is never returned.
+         */
+        get: operations["getSearchProvider"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete search provider
+         * @description Delete a search provider. Agents bound to it get the tool error `provider_unavailable` until they are bound to another one. Requires admin role.
+         */
+        delete: operations["deleteSearchProvider"];
+        options?: never;
+        head?: never;
+        /**
+         * Update search provider
+         * @description Update a search provider. A field left out is unchanged; a blank `apiKey` keeps the stored key; a `config` replaces the stored options whole. The vendor cannot be changed.
+         */
+        patch: operations["updateSearchProvider"];
+        trace?: never;
+    };
     "/v1/settings/{key}": {
         parameters: {
             query?: never;
@@ -6264,6 +6336,24 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
+        PageSearchProviderDTO: {
+            content?: components["schemas"]["SearchProviderDTO"][];
+            empty?: boolean;
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            number?: number;
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            /** Format: int32 */
+            size?: number;
+            sort?: components["schemas"]["SortObject"];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
         PageSessionListDto: {
             content?: components["schemas"]["SessionListDto"][];
             empty?: boolean;
@@ -6893,6 +6983,37 @@ export interface components {
                 [key: string]: number;
             };
         };
+        /** @description An organization's own web search provider. The API key is write-only and never returned. */
+        SearchProviderDTO: {
+            /** @description Vendor options; PERPLEXITY takes `country`, BRAVE takes `country` and `safesearch` */
+            config?: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            readonly createdAt?: string;
+            id?: string;
+            /** Format: date-time */
+            readonly lastModifiedAt?: string;
+            name?: string;
+            organizationId?: string;
+            /** @enum {string} */
+            provider?: "PERPLEXITY" | "BRAVE";
+            version?: string;
+        };
+        SearchProviderRequest: {
+            /** @description The vendor API key; write-only. On update, leave it out or blank to keep it */
+            apiKey: string;
+            /** @description Vendor options, all optional: PERPLEXITY `country` (two capital letters); BRAVE `country` (two capital letters or ALL) and `safesearch` (off, moderate, strict). On update it replaces the stored options whole */
+            config?: {
+                [key: string]: unknown;
+            };
+            name: string;
+            /**
+             * @description The vendor; cannot be changed on update
+             * @enum {string}
+             */
+            provider: "PERPLEXITY" | "BRAVE";
+        };
         SearchResponse: {
             degraded?: string;
             hits?: components["schemas"]["RetrievalHit"][];
@@ -7278,6 +7399,21 @@ export interface components {
             /** Format: int64 */
             processingDurationMs?: number;
             success?: boolean;
+        };
+        TestSearchProviderRequest: {
+            /** @description The key to test; leave it out to test the stored key of `searchProviderId` */
+            apiKey?: string;
+            config?: {
+                [key: string]: unknown;
+            };
+            /** @enum {string} */
+            provider: "PERPLEXITY" | "BRAVE";
+            /** @description A search provider of this organization whose stored key is tested */
+            searchProviderId?: string;
+        };
+        TestSearchProviderResponse: {
+            message: string;
+            success: boolean;
         };
         TierInfoDTO: {
             byokEnabled?: boolean;
@@ -14480,6 +14616,144 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SchemaVersionDTO"];
+                };
+            };
+        };
+    };
+    listSearchProviders: {
+        parameters: {
+            query: {
+                pageable: components["schemas"]["Pageable"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageSearchProviderDTO"];
+                };
+            };
+        };
+    };
+    createSearchProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchProviderRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SearchProviderDTO"];
+                };
+            };
+        };
+    };
+    testSearchProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TestSearchProviderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TestSearchProviderResponse"];
+                };
+            };
+        };
+    };
+    getSearchProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SearchProviderDTO"];
+                };
+            };
+        };
+    };
+    deleteSearchProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateSearchProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchProviderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SearchProviderDTO"];
                 };
             };
         };
