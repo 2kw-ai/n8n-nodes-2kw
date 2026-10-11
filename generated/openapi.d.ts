@@ -4509,6 +4509,7 @@ export interface components {
             /** Format: date-time */
             registeredAt?: string;
             relayId?: string;
+            scopes?: string[];
             tokenEndpointAuthMethod?: string;
         };
         ConnectorPublicHostDTO: {
@@ -6614,6 +6615,7 @@ export interface components {
             clientSecret?: string;
             issuer: string;
             relayId?: string;
+            scopes?: string[];
             tokenEndpointAuthMethod: string;
         };
         RegisterInstallationKeyRequest: {
@@ -9444,7 +9446,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
                 };
             };
-            /** @description The issuer is not an https URL on an approved host (with relayId: not reached through the relay), or the method and secret do not match */
+            /** @description The issuer is not an https URL on an approved host (with relayId: not reached through the relay), the method and secret do not match, or the permissions are wrong: for a Microsoft Entra tenant issuer scopes is required and must be a permission set the Add Microsoft 365 dialog can make, and for any other issuer it is refused */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -9497,7 +9499,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
                 };
             };
-            /** @description Not a usable registration, another issuer or relay, or an automatic registration */
+            /** @description Not a usable registration, another issuer or relay, an automatic registration, or the wrong permissions: a Microsoft Entra tenant registration needs scopes, any other refuses it */
             400: {
                 headers: {
                     [name: string]: unknown;
