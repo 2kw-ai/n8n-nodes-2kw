@@ -7920,6 +7920,7 @@ export interface components {
             /** Format: int32 */
             tool_count?: number;
         };
+        /** @description An image a ViewImage call or a connector tool attached for the model. A ViewImage item's id is timg_<call id>; a connector item's id is timgc<n>_<call id>, n counting the call's images from 1. */
         ToolImageItem: {
             type: "ToolImageItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
