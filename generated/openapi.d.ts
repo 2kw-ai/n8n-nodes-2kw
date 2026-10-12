@@ -72,7 +72,7 @@ export interface paths {
          * Create agent
          * @description Create a new agent for the current organization. The configuration is published as version 1 with the latest label on it, so the agent is runnable and listed in the catalog at once; the response carries latestVersionId and latestVersionNumber. A name that is already taken answers 409.
          */
-        post: operations["create_10"];
+        post: operations["create_11"];
         delete?: never;
         options?: never;
         head?: never;
@@ -326,18 +326,18 @@ export interface paths {
          * Get agent
          * @description Retrieve an agent by its ID, including its instructions, tools, options, HITL policy and skills. VIEWER+; a chat-only USER reads GET /v1/agents/catalog instead.
          */
-        get: operations["get_6"];
+        get: operations["get_7"];
         /**
          * Update agent
          * @description Update an agent's metadata and configuration.
          */
-        put: operations["update_6"];
+        put: operations["update_7"];
         post?: never;
         /**
          * Delete agent
          * @description Delete an agent and cascade-delete its versions and labels.
          */
-        delete: operations["delete_5"];
+        delete: operations["delete_6"];
         options?: never;
         head?: never;
         patch?: never;
@@ -463,10 +463,10 @@ export interface paths {
             cookie?: never;
         };
         /** List annotation queues */
-        get: operations["list_4"];
+        get: operations["list_5"];
         put?: never;
         /** Create an annotation queue */
-        post: operations["create_9"];
+        post: operations["create_10"];
         delete?: never;
         options?: never;
         head?: never;
@@ -501,14 +501,14 @@ export interface paths {
             cookie?: never;
         };
         /** Get a single annotation queue */
-        get: operations["get_9"];
+        get: operations["get_10"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         /** Update a queue's name or description */
-        patch: operations["update_10"];
+        patch: operations["update_11"];
         trace?: never;
     };
     "/v1/annotation-queues/{id}/archive": {
@@ -1095,7 +1095,7 @@ export interface paths {
          * Create conversation
          * @description Create a conversation whose id can be passed as the 'conversation' parameter on POST /v1/responses.
          */
-        post: operations["create_8"];
+        post: operations["create_9"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1139,12 +1139,12 @@ export interface paths {
          * Update conversation
          * @description Replace a conversation's metadata.
          */
-        post: operations["update_7"];
+        post: operations["update_8"];
         /**
          * Delete conversation
          * @description Delete a conversation and the responses recorded against it.
          */
-        delete: operations["delete_6"];
+        delete: operations["delete_7"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1327,7 +1327,7 @@ export interface paths {
          * Create dataset
          * @description Create a new dataset.
          */
-        post: operations["create_7"];
+        post: operations["create_8"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1345,18 +1345,18 @@ export interface paths {
          * Get dataset
          * @description Retrieve a single dataset by ID.
          */
-        get: operations["get_5"];
+        get: operations["get_6"];
         /**
          * Update dataset
          * @description Update an existing dataset.
          */
-        put: operations["update_5"];
+        put: operations["update_6"];
         post?: never;
         /**
          * Delete dataset
          * @description Delete a dataset and all its versions and items. Requires admin role.
          */
-        delete: operations["delete_4"];
+        delete: operations["delete_5"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1582,10 +1582,10 @@ export interface paths {
             cookie?: never;
         };
         /** List evaluator templates */
-        get: operations["list_3"];
+        get: operations["list_4"];
         put?: never;
         /** Create an evaluator template */
-        post: operations["create_6"];
+        post: operations["create_7"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1600,12 +1600,12 @@ export interface paths {
             cookie?: never;
         };
         /** Get a single evaluator template */
-        get: operations["get_4"];
+        get: operations["get_5"];
         /** Update an evaluator template */
-        put: operations["update_4"];
+        put: operations["update_5"];
         post?: never;
         /** Delete an evaluator template */
-        delete: operations["delete_3"];
+        delete: operations["delete_4"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1622,7 +1622,7 @@ export interface paths {
          * List evaluators
          * @description Retrieve all available evaluator types.
          */
-        get: operations["list_5"];
+        get: operations["list_6"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1648,7 +1648,7 @@ export interface paths {
          * Create experiment
          * @description Create a new experiment.
          */
-        post: operations["create_5"];
+        post: operations["create_6"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1666,18 +1666,18 @@ export interface paths {
          * Get experiment
          * @description Retrieve a single experiment by ID.
          */
-        get: operations["get_3"];
+        get: operations["get_4"];
         /**
          * Update experiment
          * @description Update an existing experiment's details.
          */
-        put: operations["update_3"];
+        put: operations["update_4"];
         post?: never;
         /**
          * Delete experiment
          * @description Delete an experiment and all associated data. Requires admin role.
          */
-        delete: operations["delete_2"];
+        delete: operations["delete_3"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1998,13 +1998,13 @@ export interface paths {
          * List files
          * @description List the organization's files as a page, newest first by default, optionally narrowed by purpose.
          */
-        get: operations["list_2"];
+        get: operations["list_3"];
         put?: never;
         /**
          * Upload file
          * @description Store one file and return its id. purpose=agent_input files expire after the configured TTL unless referenced by a turn; purpose=knowledge is for organization members only. Size and per-end-user quotas apply.
          */
-        post: operations["create_4"];
+        post: operations["create_5"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2029,7 +2029,7 @@ export interface paths {
          * Delete file
          * @description Soft-delete an agent_input file. Knowledge files are not deletable through this API; they live as long as the document versions they back. A knowledge file that backs no document version is removed automatically after a retention period.
          */
-        delete: operations["delete_10"];
+        delete: operations["delete_11"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2110,12 +2110,12 @@ export interface paths {
          * Get installation
          * @description Single installation by id.
          */
-        get: operations["get_2"];
+        get: operations["get_3"];
         /**
          * Update installation
          * @description Updates name, description, or status. Every field is optional; one left out keeps its stored value. DISABLED refuses catalog sync and skips catalog resolution.
          */
-        put: operations["update_2"];
+        put: operations["update_3"];
         post?: never;
         delete?: never;
         options?: never;
@@ -2282,13 +2282,13 @@ export interface paths {
          * List knowledge bases
          * @description Retrieve the organization's knowledge bases as a page, newest first by default. The optional search filter keeps the knowledge bases whose name contains the text, ignoring case, and is applied in the query, so the page total counts only matching knowledge bases.
          */
-        get: operations["list"];
+        get: operations["list_1"];
         put?: never;
         /**
          * Create knowledge base
          * @description Create a knowledge base and its first configuration version. The embedding dimension is fixed at creation.
          */
-        post: operations["create_3"];
+        post: operations["create_4"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2306,21 +2306,21 @@ export interface paths {
          * Get knowledge base
          * @description Retrieve a single knowledge base by id.
          */
-        get: operations["get_8"];
+        get: operations["get_9"];
         put?: never;
         post?: never;
         /**
          * Delete knowledge base
          * @description Soft-delete a knowledge base, releasing its slug. Version history is retained. Requires admin role.
          */
-        delete: operations["delete_8"];
+        delete: operations["delete_9"];
         options?: never;
         head?: never;
         /**
          * Update knowledge base
          * @description Apply the request's mutable fields and snapshot the result as the next configuration version. The embedding dimension cannot change.
          */
-        patch: operations["update_9"];
+        patch: operations["update_10"];
         trace?: never;
     };
     "/v1/knowledge-bases/{knowledgeBaseId}/citations/{chunkId}": {
@@ -2354,7 +2354,7 @@ export interface paths {
          * List documents
          * @description List the knowledge base's documents as a page, newest first by default. The optional status filter matches on the document's newest revision (latestVersion) and is applied in the query, so the page total counts only matching documents; a filter that matches nothing yields an empty page. The optional search filter keeps the documents whose name contains the text, ignoring case, and combines with status.
          */
-        get: operations["list_1"];
+        get: operations["list_2"];
         put?: never;
         /**
          * Upload documents
@@ -2398,14 +2398,14 @@ export interface paths {
          * Get document
          * @description Retrieve a document together with the revision retrieval is serving and its newest revision, which carries the error when ingestion failed.
          */
-        get: operations["get_10"];
+        get: operations["get_11"];
         put?: never;
         post?: never;
         /**
          * Delete document
          * @description Soft-delete a document and take every revision out of retrieval. Previously issued citations still resolve. Requires admin role.
          */
-        delete: operations["delete_9"];
+        delete: operations["delete_10"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2939,6 +2939,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/model-capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List model capabilities
+         * @description Platform rows (read-only) and your organization's rows, optionally of one provider family.
+         */
+        get: operations["list"];
+        put?: never;
+        /**
+         * Add a model capability row
+         * @description Describes a model for your organization. A row for the same provider family and model as a platform row overrides it for your organization only.
+         */
+        post: operations["create_3"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/model-capabilities/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a model capability row */
+        get: operations["get_2"];
+        /**
+         * Replace a model capability row
+         * @description Replaces every describable field of one of your organization's rows. Platform rows are read-only.
+         */
+        put: operations["update_2"];
+        post?: never;
+        /**
+         * Delete a model capability row
+         * @description Platform rows cannot be deleted.
+         */
+        delete: operations["delete_2"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/models": {
         parameters: {
             query?: never;
@@ -3365,21 +3414,21 @@ export interface paths {
          * Get provider
          * @description Get a single AI provider configuration by ID.
          */
-        get: operations["get_7"];
+        get: operations["get_8"];
         put?: never;
         post?: never;
         /**
          * Delete provider
          * @description Delete an AI provider configuration. Requires admin role.
          */
-        delete: operations["delete_7"];
+        delete: operations["delete_8"];
         options?: never;
         head?: never;
         /**
          * Update provider
          * @description Update an AI provider configuration (PATCH semantics). Use alias management endpoints for aliases.
          */
-        patch: operations["update_8"];
+        patch: operations["update_9"];
         trace?: never;
     };
     "/v1/providers/{providerId}/embedding-models": {
@@ -6244,6 +6293,58 @@ export interface components {
             id?: string;
             mode?: string;
         });
+        ModelCapabilityDTO: {
+            aliases?: string[];
+            /** Format: date-time */
+            createdAt?: string;
+            /** @enum {string} */
+            defaultEffort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+            displayName?: string;
+            extendedPromptCacheRetention?: boolean;
+            id?: string;
+            /** Format: date-time */
+            lastModifiedAt?: string;
+            model?: string;
+            /** @description Owning organization; null for a platform row. */
+            organizationId?: string;
+            /** @description True for a read-only platform row. */
+            platform?: boolean;
+            /** @enum {string} */
+            providerFamily?: "openai" | "anthropic" | "xai" | "mistral" | "ollama";
+            /** @enum {string} */
+            reasoningControl?: "effort" | "budget" | "toggle";
+            reasoningEfforts?: ("none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max")[];
+            rejectedParams?: string[];
+        };
+        ModelCapabilityRequest: {
+            /** @description Other names the same model answers to. */
+            aliases?: string[];
+            /**
+             * @description The provider's default level; one of reasoningEfforts.
+             * @enum {string}
+             */
+            defaultEffort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+            /** @description Name shown in pickers. */
+            displayName?: string;
+            /** @description Whether the model accepts a 24h prompt cache retention. Defaults to false. */
+            extendedPromptCacheRetention?: boolean;
+            /** @description Model name as the provider receives it. */
+            model?: string;
+            /**
+             * @description Provider family the model belongs to.
+             * @enum {string}
+             */
+            providerFamily?: "openai" | "anthropic" | "xai" | "mistral" | "ollama";
+            /**
+             * @description How reasoning is steered; omit when the model does not reason.
+             * @enum {string}
+             */
+            reasoningControl?: "effort" | "budget" | "toggle";
+            /** @description Supported levels. Empty exactly when reasoningControl is omitted. */
+            reasoningEfforts?: ("none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max")[];
+            /** @description Request parameters the model refuses. */
+            rejectedParams?: ("temperature" | "top_p" | "top_k" | "presence_penalty" | "frequency_penalty" | "stop")[];
+        };
         ModelInfo: {
             /** Format: int64 */
             created?: number;
@@ -8277,7 +8378,7 @@ export interface operations {
             };
         };
     };
-    create_10: {
+    create_11: {
         parameters: {
             query?: never;
             header?: never;
@@ -8659,7 +8760,7 @@ export interface operations {
             };
         };
     };
-    get_6: {
+    get_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -8681,7 +8782,7 @@ export interface operations {
             };
         };
     };
-    update_6: {
+    update_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -8707,7 +8808,7 @@ export interface operations {
             };
         };
     };
-    delete_5: {
+    delete_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -8892,7 +8993,7 @@ export interface operations {
             };
         };
     };
-    list_4: {
+    list_5: {
         parameters: {
             query?: {
                 archived?: boolean;
@@ -8914,7 +9015,7 @@ export interface operations {
             };
         };
     };
-    create_9: {
+    create_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -8961,7 +9062,7 @@ export interface operations {
             };
         };
     };
-    get_9: {
+    get_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -8983,7 +9084,7 @@ export interface operations {
             };
         };
     };
-    update_10: {
+    update_11: {
         parameters: {
             query?: never;
             header?: never;
@@ -10335,7 +10436,7 @@ export interface operations {
             };
         };
     };
-    create_8: {
+    create_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -10410,7 +10511,7 @@ export interface operations {
             };
         };
     };
-    update_7: {
+    update_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -10436,7 +10537,7 @@ export interface operations {
             };
         };
     };
-    delete_6: {
+    delete_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -10748,7 +10849,7 @@ export interface operations {
             };
         };
     };
-    create_7: {
+    create_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -10772,7 +10873,7 @@ export interface operations {
             };
         };
     };
-    get_5: {
+    get_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -10794,7 +10895,7 @@ export interface operations {
             };
         };
     };
-    update_5: {
+    update_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -10820,7 +10921,7 @@ export interface operations {
             };
         };
     };
-    delete_4: {
+    delete_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -11247,7 +11348,7 @@ export interface operations {
             };
         };
     };
-    list_3: {
+    list_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -11267,7 +11368,7 @@ export interface operations {
             };
         };
     };
-    create_6: {
+    create_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -11291,7 +11392,7 @@ export interface operations {
             };
         };
     };
-    get_4: {
+    get_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -11313,7 +11414,7 @@ export interface operations {
             };
         };
     };
-    update_4: {
+    update_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -11339,7 +11440,7 @@ export interface operations {
             };
         };
     };
-    delete_3: {
+    delete_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -11359,7 +11460,7 @@ export interface operations {
             };
         };
     };
-    list_5: {
+    list_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -11403,7 +11504,7 @@ export interface operations {
             };
         };
     };
-    create_5: {
+    create_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -11427,7 +11528,7 @@ export interface operations {
             };
         };
     };
-    get_3: {
+    get_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -11449,7 +11550,7 @@ export interface operations {
             };
         };
     };
-    update_3: {
+    update_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -11475,7 +11576,7 @@ export interface operations {
             };
         };
     };
-    delete_2: {
+    delete_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -12079,7 +12180,7 @@ export interface operations {
             };
         };
     };
-    list_2: {
+    list_3: {
         parameters: {
             query: {
                 purpose?: string;
@@ -12111,7 +12212,7 @@ export interface operations {
             };
         };
     };
-    create_4: {
+    create_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -12202,7 +12303,7 @@ export interface operations {
             };
         };
     };
-    delete_10: {
+    delete_11: {
         parameters: {
             query?: never;
             header?: never;
@@ -12371,7 +12472,7 @@ export interface operations {
             };
         };
     };
-    get_2: {
+    get_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -12393,7 +12494,7 @@ export interface operations {
             };
         };
     };
-    update_2: {
+    update_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -12715,7 +12816,7 @@ export interface operations {
             };
         };
     };
-    list: {
+    list_1: {
         parameters: {
             query: {
                 search?: string;
@@ -12738,7 +12839,7 @@ export interface operations {
             };
         };
     };
-    create_3: {
+    create_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -12762,7 +12863,7 @@ export interface operations {
             };
         };
     };
-    get_8: {
+    get_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -12784,7 +12885,7 @@ export interface operations {
             };
         };
     };
-    delete_8: {
+    delete_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -12804,7 +12905,7 @@ export interface operations {
             };
         };
     };
-    update_9: {
+    update_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -12853,7 +12954,7 @@ export interface operations {
             };
         };
     };
-    list_1: {
+    list_2: {
         parameters: {
             query: {
                 status?: "PENDING" | "PARSING" | "CHUNKING" | "EMBEDDING" | "READY" | "ERROR";
@@ -12933,7 +13034,7 @@ export interface operations {
             };
         };
     };
-    get_10: {
+    get_11: {
         parameters: {
             query?: never;
             header?: never;
@@ -12956,7 +13057,7 @@ export interface operations {
             };
         };
     };
-    delete_9: {
+    delete_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -13966,6 +14067,120 @@ export interface operations {
             };
         };
     };
+    list: {
+        parameters: {
+            query?: {
+                family?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ModelCapabilityDTO"][];
+                };
+            };
+        };
+    };
+    create_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModelCapabilityRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ModelCapabilityDTO"];
+                };
+            };
+        };
+    };
+    get_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ModelCapabilityDTO"];
+                };
+            };
+        };
+    };
+    update_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModelCapabilityRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ModelCapabilityDTO"];
+                };
+            };
+        };
+    };
+    delete_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     listModels_1: {
         parameters: {
             query?: never;
@@ -14676,7 +14891,7 @@ export interface operations {
             };
         };
     };
-    get_7: {
+    get_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -14698,7 +14913,7 @@ export interface operations {
             };
         };
     };
-    delete_7: {
+    delete_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -14718,7 +14933,7 @@ export interface operations {
             };
         };
     };
-    update_8: {
+    update_9: {
         parameters: {
             query?: never;
             header?: never;
