@@ -2471,6 +2471,186 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/local-bridge/device/disconnect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Disconnect this computer
+         * @description Called by `2kw bridge disconnect` with the computer's own token; the computer can no longer be reached until it is connected anew.
+         */
+        post: operations["disconnectLocalBridgeDevice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List connected computers
+         * @description Your own connected computers with their shell and the folders they offer. With all=true, admins get every member's connected computers in the organization, with owner, operating system, status and when each last reported in, but never the folders a computer offers.
+         */
+        get: operations["listLocalBridgeDevices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/devices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Disconnect a computer
+         * @description Disconnects the computer at once. Its owner or an admin may do this; to use it again, connect it anew.
+         */
+        delete: operations["revokeLocalBridgeDevice"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Report what a computer offers
+         * @description Called by `2kw bridge` with the computer's own token: its shell, its folders and a hash over both. 426 with errorCode BRIDGE_OUTDATED means update the bridge.
+         */
+        put: operations["reportLocalBridgeInventory"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/pairings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start connecting a computer
+         * @description Creates a single-use code to run as `2kw bridge connect <code>` on the computer. Valid for 10 minutes; starting another pairing ends your earlier one. Needs a recent sign-in: 403 with errorCode REAUTHENTICATION_REQUIRED means sign in again.
+         */
+        post: operations["createLocalBridgePairing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/pairings/redeem": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Use a pairing code
+         * @description Unauthenticated. Called by `2kw bridge connect` with the code and the computer's new key. Answers the six words the member must see in chat before confirming.
+         */
+        post: operations["redeemLocalBridgePairing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/pairings/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Poll a pairing from the computer
+         * @description Called by `2kw bridge connect` with a short-lived token signed by the computer's own key. Answers the status, and once the member confirmed, the computer's device id, organization, owner, API base URL and signing keys.
+         */
+        get: operations["pollLocalBridgePairing"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/pairings/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm a computer
+         * @description Connects the computer that used the code. Send the key id you were shown. 409 with errorCode PAIRING_KEY_MISMATCH, PAIRING_EXPIRED or PAIRING_NOT_AWAITING when the pairing cannot be confirmed; start a new one.
+         */
+        post: operations["confirmLocalBridgePairing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/pairings/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read a pairing
+         * @description The state of your pairing and, once the computer has used the code, its name, operating system, key id and six-word fingerprint. Confirm only if the words match the ones the computer shows. 404 for a pairing that is not yours.
+         */
+        get: operations["getLocalBridgePairingStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/mcp-relay/enrol": {
         parameters: {
             query?: never;
@@ -5009,6 +5189,32 @@ export interface components {
             files?: components["schemas"]["DeliverFile"][];
             note?: string;
         };
+        /** @description What a connected computer offers: its shell and its workspaces */
+        DeviceInventoryRecord: {
+            /** @description Version of the 2kw bridge */
+            bridgeVersion: string;
+            /** @description Hash of the shell path and the workspaces, as the bridge computes it */
+            configHash: string;
+            /** @description The computer's operating system */
+            os: string;
+            /**
+             * Format: int32
+             * @description Protocol version the bridge speaks
+             */
+            protocolVersion: number;
+            /** @description The bash the computer runs commands with; null when none was found */
+            shell?: components["schemas"]["DeviceShell"];
+            /** @description The folders the computer offers */
+            workspaces: components["schemas"]["DeviceWorkspace"][];
+        };
+        DeviceShell: {
+            path: string;
+            version?: string;
+        };
+        DeviceWorkspace: {
+            name: string;
+            path: string;
+        };
         /** @description Text transcribed from one dictation slice */
         DictationResponse: {
             /** @description Transcribed text; may be empty */
@@ -5720,6 +5926,132 @@ export interface components {
             query: string;
             /** Format: int32 */
             topK?: number;
+        };
+        LocalBridgeConfirmRequest: {
+            /** @description The kid the member was shown */
+            kid: string;
+        };
+        LocalBridgeConfirmResponse: {
+            /** @description Id of the connected computer */
+            deviceId?: string;
+        };
+        /** @description One of your connected computers */
+        LocalBridgeDevice: {
+            /** Format: date-time */
+            createdAt?: string;
+            /** @description Device id */
+            id?: string;
+            /**
+             * Format: date-time
+             * @description When the computer last reported in
+             */
+            lastSeenAt?: string;
+            /** @description The computer's name */
+            name?: string;
+            /** @description The computer's operating system */
+            os?: string;
+            /** @description The bash it runs commands with; null when none was found or it has not reported yet */
+            shell?: components["schemas"]["DeviceShell"];
+            /** @enum {string} */
+            status?: "PENDING" | "ACTIVE" | "DISABLED" | "REVOKED";
+            /** @description The folders it offers */
+            workspaces?: components["schemas"]["DeviceWorkspace"][];
+        };
+        /** @description A member's connected computer as an admin sees it: no folders and no paths */
+        LocalBridgeDeviceSummary: {
+            /** Format: date-time */
+            createdAt?: string;
+            /** @description Device id */
+            id?: string;
+            /**
+             * Format: date-time
+             * @description When the computer last reported in
+             */
+            lastSeenAt?: string;
+            /** @description The computer's name */
+            name?: string;
+            /** @description The computer's operating system */
+            os?: string;
+            /** @description The member who connected it */
+            ownerMemberId?: string;
+            /** @enum {string} */
+            status?: "PENDING" | "ACTIVE" | "DISABLED" | "REVOKED";
+        };
+        /** @description A new pairing and the single-use code that connects a computer to it */
+        LocalBridgePairingCreated: {
+            /**
+             * @description Single-use code for `2kw bridge connect`; shown once
+             * @example bbp_3q2-7wQ1nZ0aTqH8bV9cXw
+             */
+            code?: string;
+            /**
+             * Format: date-time
+             * @description When the code and the pairing expire
+             */
+            expiresAt?: string;
+            /** @description Pairing id */
+            id?: string;
+        };
+        /** @description A pairing as the computer sees it; the device identity only once the member confirmed it */
+        LocalBridgePairingPoll: {
+            /** @description Base URL of the API the computer talks to */
+            issuer?: string;
+            /** @description The keys requests to the computer are signed with, as a JWKS */
+            jwks?: {
+                [key: string]: unknown;
+            };
+            /** @description The organization the computer belongs to */
+            organizationId?: string;
+            /** @description The member who connected the computer */
+            ownerMemberId?: string;
+            /** @description The computer's device id */
+            relayId?: string;
+            /** @enum {string} */
+            status?: "OPEN" | "AWAITING_CONFIRMATION" | "CONFIRMED" | "EXPIRED";
+        };
+        /** @description A pairing as its member sees it; name, os, kid and fingerprint once a computer redeemed it */
+        LocalBridgePairingStatus: {
+            /** Format: date-time */
+            expiresAt?: string;
+            /** @description Six words derived from the computer's key */
+            fingerprint?: string[];
+            /** @description Id of the computer's key; send it back to confirm */
+            kid?: string;
+            /** @description The computer's name */
+            name?: string;
+            /** @description The computer's operating system */
+            os?: string;
+            /** @enum {string} */
+            status?: "OPEN" | "AWAITING_CONFIRMATION" | "CONFIRMED" | "EXPIRED";
+        };
+        /** @description A computer's redemption of a pairing code, signed with its new key */
+        LocalBridgeRedeemRequest: {
+            /** @description The pairing code */
+            code: string;
+            /** @description Key id: first 16 characters of base64url(SHA-256(key)) */
+            kid: string;
+            /** @description Computer name, 1-64 printable characters */
+            name: string;
+            /** @description Operating system, 1-64 printable characters */
+            os: string;
+            /** @description Ed25519 signature, base64url, over "localbridge-pair-v1", code, kid, publicKey, name and os joined by line feeds */
+            proof: string;
+            /** @description Ed25519 public key, raw 32 bytes, base64url */
+            publicKey: string;
+        };
+        /** @description A redeemed pairing, waiting for the member to confirm it */
+        LocalBridgeRedeemResponse: {
+            /**
+             * Format: date-time
+             * @description When the pairing expires unconfirmed
+             */
+            expiresAt?: string;
+            /** @description Six words derived from the key; the member confirms only if they match */
+            fingerprint?: string[];
+            /** @description Base URL of the API the computer talks to */
+            issuer?: string;
+            /** @description Pairing id */
+            pairingId?: string;
         };
         McpApprovalRequestItem: {
             type: "McpApprovalRequestItem";
@@ -12713,6 +13045,319 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SearchResponse"];
+                };
+            };
+        };
+    };
+    disconnectLocalBridgeDevice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Disconnected */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The computer's token is missing, expired or revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listLocalBridgeDevices: {
+        parameters: {
+            query?: {
+                /** @description true lists every member's computers, without folders (admins only) */
+                all?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Your computers; with all=true, every member's computers */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeDevice"][] | components["schemas"]["LocalBridgeDeviceSummary"][];
+                };
+            };
+            /** @description all=true without the admin role */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeDevice"][];
+                };
+            };
+        };
+    };
+    revokeLocalBridgeDevice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Disconnected */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such computer, or not yours */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    reportLocalBridgeInventory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceInventoryRecord"];
+            };
+        };
+        responses: {
+            /** @description Stored */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The hash does not match, or a folder name repeats */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The computer's token is missing, expired or revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The bridge is too old */
+            426: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    createLocalBridgePairing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pairing created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgePairingCreated"];
+                };
+            };
+            /** @description Not a signed-in member, or the sign-in is too old */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgePairingCreated"];
+                };
+            };
+        };
+    };
+    redeemLocalBridgePairing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocalBridgeRedeemRequest"];
+            };
+        };
+        responses: {
+            /** @description Redeemed; waiting for the member to confirm */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeRedeemResponse"];
+                };
+            };
+            /** @description Invalid key, kid, proof, name or os */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeRedeemResponse"];
+                };
+            };
+            /** @description Code invalid, expired or already used */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeRedeemResponse"];
+                };
+            };
+            /** @description Too many attempts from this address */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeRedeemResponse"];
+                };
+            };
+        };
+    };
+    pollLocalBridgePairing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The pairing's status, and the device identity once confirmed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgePairingPoll"];
+                };
+            };
+            /** @description The token is missing, expired or not the pairing's key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgePairingPoll"];
+                };
+            };
+            /** @description The token is for another pairing */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgePairingPoll"];
+                };
+            };
+        };
+    };
+    confirmLocalBridgePairing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocalBridgeConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Computer connected */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeConfirmResponse"];
+                };
+            };
+            /** @description Pairing not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeConfirmResponse"];
+                };
+            };
+            /** @description Key mismatch, expired, or not waiting for confirmation */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeConfirmResponse"];
+                };
+            };
+        };
+    };
+    getLocalBridgePairingStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgePairingStatus"];
                 };
             };
         };
