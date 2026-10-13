@@ -72,7 +72,7 @@ export interface paths {
          * Create agent
          * @description Create a new agent for the current organization. The configuration is published as version 1 with the latest label on it, so the agent is runnable and listed in the catalog at once; the response carries latestVersionId and latestVersionNumber. A name that is already taken answers 409.
          */
-        post: operations["create_10"];
+        post: operations["create_11"];
         delete?: never;
         options?: never;
         head?: never;
@@ -88,7 +88,7 @@ export interface paths {
         };
         /**
          * List the agent catalog
-         * @description Published agents of the current organization as {id, name, description, conversationModes}, name-ascending. Readable by every organization member including the chat-only USER role, and the only agent read that role has: the response never carries instructions, tools, options, skills or model configuration, and of the HITL policy only the conversation modes the operator offers end users. An agent with no published version is omitted. The sort parameter is ignored.
+         * @description Published agents of the current organization as {id, name, description, conversationModes, models}, name-ascending. Readable by every organization member including the chat-only USER role, and the only agent read that role has: the response never carries instructions, tools, options, skills or credentials, and of the HITL policy only the conversation modes the operator offers end users. `models` names the models the latest version lists, in order and the first being the default, each with its display name, reasoning control, the reasoning effort levels it accepts and the default level already adjusted to them. An agent with no published version is omitted. The sort parameter is ignored.
          */
         get: operations["listAgentCatalog"];
         put?: never;
@@ -326,18 +326,18 @@ export interface paths {
          * Get agent
          * @description Retrieve an agent by its ID, including its instructions, tools, options, HITL policy and skills. VIEWER+; a chat-only USER reads GET /v1/agents/catalog instead.
          */
-        get: operations["get_6"];
+        get: operations["get_7"];
         /**
          * Update agent
          * @description Update an agent's metadata and configuration.
          */
-        put: operations["update_6"];
+        put: operations["update_7"];
         post?: never;
         /**
          * Delete agent
          * @description Delete an agent and cascade-delete its versions and labels.
          */
-        delete: operations["delete_5"];
+        delete: operations["delete_6"];
         options?: never;
         head?: never;
         patch?: never;
@@ -463,10 +463,10 @@ export interface paths {
             cookie?: never;
         };
         /** List annotation queues */
-        get: operations["list_4"];
+        get: operations["list_5"];
         put?: never;
         /** Create an annotation queue */
-        post: operations["create_9"];
+        post: operations["create_10"];
         delete?: never;
         options?: never;
         head?: never;
@@ -501,14 +501,14 @@ export interface paths {
             cookie?: never;
         };
         /** Get a single annotation queue */
-        get: operations["get_9"];
+        get: operations["get_10"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         /** Update a queue's name or description */
-        patch: operations["update_10"];
+        patch: operations["update_11"];
         trace?: never;
     };
     "/v1/annotation-queues/{id}/archive": {
@@ -1095,7 +1095,7 @@ export interface paths {
          * Create conversation
          * @description Create a conversation whose id can be passed as the 'conversation' parameter on POST /v1/responses.
          */
-        post: operations["create_8"];
+        post: operations["create_9"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1139,12 +1139,12 @@ export interface paths {
          * Update conversation
          * @description Replace a conversation's metadata.
          */
-        post: operations["update_7"];
+        post: operations["update_8"];
         /**
          * Delete conversation
          * @description Delete a conversation and the responses recorded against it.
          */
-        delete: operations["delete_6"];
+        delete: operations["delete_7"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1327,7 +1327,7 @@ export interface paths {
          * Create dataset
          * @description Create a new dataset.
          */
-        post: operations["create_7"];
+        post: operations["create_8"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1345,18 +1345,18 @@ export interface paths {
          * Get dataset
          * @description Retrieve a single dataset by ID.
          */
-        get: operations["get_5"];
+        get: operations["get_6"];
         /**
          * Update dataset
          * @description Update an existing dataset.
          */
-        put: operations["update_5"];
+        put: operations["update_6"];
         post?: never;
         /**
          * Delete dataset
          * @description Delete a dataset and all its versions and items. Requires admin role.
          */
-        delete: operations["delete_4"];
+        delete: operations["delete_5"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1582,10 +1582,10 @@ export interface paths {
             cookie?: never;
         };
         /** List evaluator templates */
-        get: operations["list_3"];
+        get: operations["list_4"];
         put?: never;
         /** Create an evaluator template */
-        post: operations["create_6"];
+        post: operations["create_7"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1600,12 +1600,12 @@ export interface paths {
             cookie?: never;
         };
         /** Get a single evaluator template */
-        get: operations["get_4"];
+        get: operations["get_5"];
         /** Update an evaluator template */
-        put: operations["update_4"];
+        put: operations["update_5"];
         post?: never;
         /** Delete an evaluator template */
-        delete: operations["delete_3"];
+        delete: operations["delete_4"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1622,7 +1622,7 @@ export interface paths {
          * List evaluators
          * @description Retrieve all available evaluator types.
          */
-        get: operations["list_5"];
+        get: operations["list_6"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1648,7 +1648,7 @@ export interface paths {
          * Create experiment
          * @description Create a new experiment.
          */
-        post: operations["create_5"];
+        post: operations["create_6"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1666,18 +1666,18 @@ export interface paths {
          * Get experiment
          * @description Retrieve a single experiment by ID.
          */
-        get: operations["get_3"];
+        get: operations["get_4"];
         /**
          * Update experiment
          * @description Update an existing experiment's details.
          */
-        put: operations["update_3"];
+        put: operations["update_4"];
         post?: never;
         /**
          * Delete experiment
          * @description Delete an experiment and all associated data. Requires admin role.
          */
-        delete: operations["delete_2"];
+        delete: operations["delete_3"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1923,6 +1923,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/extractions/rerun": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Re-run extractions in bulk
+         * @description Re-run up to 100 extractions, selected either by `ids` or by the filter parameters of the list endpoint (`status`, `schemaVersionId`, `search`). Each eligible extraction is queued as a new extraction with status PENDING; poll each `rerunId` until it is COMPLETED or FAILED. An extraction that is still running, was vision-only, or whose schema version was deleted is reported as SKIPPED with a reason; an unknown id as NOT_FOUND. The others are queued all the same.
+         */
+        post: operations["bulkRerun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/extractions/{id}": {
         parameters: {
             query?: never;
@@ -1978,13 +1998,13 @@ export interface paths {
          * List files
          * @description List the organization's files as a page, newest first by default, optionally narrowed by purpose.
          */
-        get: operations["list_2"];
+        get: operations["list_3"];
         put?: never;
         /**
          * Upload file
          * @description Store one file and return its id. purpose=agent_input files expire after the configured TTL unless referenced by a turn; purpose=knowledge is for organization members only. Size and per-end-user quotas apply.
          */
-        post: operations["create_4"];
+        post: operations["create_5"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2009,7 +2029,7 @@ export interface paths {
          * Delete file
          * @description Soft-delete an agent_input file. Knowledge files are not deletable through this API; they live as long as the document versions they back. A knowledge file that backs no document version is removed automatically after a retention period.
          */
-        delete: operations["delete_10"];
+        delete: operations["delete_11"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2090,12 +2110,12 @@ export interface paths {
          * Get installation
          * @description Single installation by id.
          */
-        get: operations["get_2"];
+        get: operations["get_3"];
         /**
          * Update installation
          * @description Updates name, description, or status. Every field is optional; one left out keeps its stored value. DISABLED refuses catalog sync and skips catalog resolution.
          */
-        put: operations["update_2"];
+        put: operations["update_3"];
         post?: never;
         delete?: never;
         options?: never;
@@ -2262,13 +2282,13 @@ export interface paths {
          * List knowledge bases
          * @description Retrieve the organization's knowledge bases as a page, newest first by default. The optional search filter keeps the knowledge bases whose name contains the text, ignoring case, and is applied in the query, so the page total counts only matching knowledge bases.
          */
-        get: operations["list"];
+        get: operations["list_1"];
         put?: never;
         /**
          * Create knowledge base
          * @description Create a knowledge base and its first configuration version. The embedding dimension is fixed at creation.
          */
-        post: operations["create_3"];
+        post: operations["create_4"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2286,21 +2306,21 @@ export interface paths {
          * Get knowledge base
          * @description Retrieve a single knowledge base by id.
          */
-        get: operations["get_8"];
+        get: operations["get_9"];
         put?: never;
         post?: never;
         /**
          * Delete knowledge base
          * @description Soft-delete a knowledge base, releasing its slug. Version history is retained. Requires admin role.
          */
-        delete: operations["delete_8"];
+        delete: operations["delete_9"];
         options?: never;
         head?: never;
         /**
          * Update knowledge base
          * @description Apply the request's mutable fields and snapshot the result as the next configuration version. The embedding dimension cannot change.
          */
-        patch: operations["update_9"];
+        patch: operations["update_10"];
         trace?: never;
     };
     "/v1/knowledge-bases/{knowledgeBaseId}/citations/{chunkId}": {
@@ -2334,7 +2354,7 @@ export interface paths {
          * List documents
          * @description List the knowledge base's documents as a page, newest first by default. The optional status filter matches on the document's newest revision (latestVersion) and is applied in the query, so the page total counts only matching documents; a filter that matches nothing yields an empty page. The optional search filter keeps the documents whose name contains the text, ignoring case, and combines with status.
          */
-        get: operations["list_1"];
+        get: operations["list_2"];
         put?: never;
         /**
          * Upload documents
@@ -2378,14 +2398,14 @@ export interface paths {
          * Get document
          * @description Retrieve a document together with the revision retrieval is serving and its newest revision, which carries the error when ingestion failed.
          */
-        get: operations["get_10"];
+        get: operations["get_11"];
         put?: never;
         post?: never;
         /**
          * Delete document
          * @description Soft-delete a document and take every revision out of retrieval. Previously issued citations still resolve. Requires admin role.
          */
-        delete: operations["delete_9"];
+        delete: operations["delete_10"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2445,6 +2465,186 @@ export interface paths {
          * @description Hybrid dense + lexical retrieval with Reciprocal Rank Fusion. topK is clamped to 1..100. Results are visible to the caller's own principals only; an empty result is not an error. Search is top-k and deliberately not paginated: every request re-embeds the query, re-runs both retrievers under a bounded per-retriever fetch, and re-fuses their rankings, so there is no stable global ordering to offset into. Raise topK instead of asking for a later page. The knowledge-base and document list endpoints do paginate.
          */
         post: operations["search"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/device/disconnect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Disconnect this computer
+         * @description Called by `2kw bridge disconnect` with the computer's own token; the computer can no longer be reached until it is connected anew.
+         */
+        post: operations["disconnectLocalBridgeDevice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List connected computers
+         * @description Your own connected computers with their shell and the folders they offer. With all=true, admins get every member's connected computers in the organization, with owner, operating system, status and when each last reported in, but never the folders a computer offers.
+         */
+        get: operations["listLocalBridgeDevices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/devices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Disconnect a computer
+         * @description Disconnects the computer at once. Its owner or an admin may do this; to use it again, connect it anew.
+         */
+        delete: operations["revokeLocalBridgeDevice"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Report what a computer offers
+         * @description Called by `2kw bridge` with the computer's own token: its shell, its folders and a hash over both. 426 with errorCode BRIDGE_OUTDATED means update the bridge.
+         */
+        put: operations["reportLocalBridgeInventory"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/pairings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start connecting a computer
+         * @description Creates a single-use code to run as `2kw bridge connect <code>` on the computer. Valid for 10 minutes; starting another pairing ends your earlier one. Needs a recent sign-in: 403 with errorCode REAUTHENTICATION_REQUIRED means sign in again.
+         */
+        post: operations["createLocalBridgePairing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/pairings/redeem": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Use a pairing code
+         * @description Unauthenticated. Called by `2kw bridge connect` with the code and the computer's new key. Answers the six words the member must see in chat before confirming.
+         */
+        post: operations["redeemLocalBridgePairing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/pairings/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Poll a pairing from the computer
+         * @description Called by `2kw bridge connect` with a short-lived token signed by the computer's own key. Answers the status, and once the member confirmed, the computer's device id, organization, owner, API base URL and signing keys.
+         */
+        get: operations["pollLocalBridgePairing"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/pairings/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm a computer
+         * @description Connects the computer that used the code. Send the key id you were shown. 409 with errorCode PAIRING_KEY_MISMATCH, PAIRING_EXPIRED or PAIRING_NOT_AWAITING when the pairing cannot be confirmed; start a new one.
+         */
+        post: operations["confirmLocalBridgePairing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/pairings/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read a pairing
+         * @description The state of your pairing and, once the computer has used the code, its name, operating system, key id and six-word fingerprint. Confirm only if the words match the ones the computer shows. 404 for a pairing that is not yours.
+         */
+        get: operations["getLocalBridgePairingStatus"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2734,6 +2934,55 @@ export interface paths {
          * @description Deletes the member's whole memory space in this organization. An agent run that started before this call can no longer write to it. Cannot be undone. ADMIN or OWNER.
          */
         delete: operations["eraseMemberMemory"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/model-capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List model capabilities
+         * @description Platform rows (read-only) and your organization's rows, optionally of one provider family.
+         */
+        get: operations["list"];
+        put?: never;
+        /**
+         * Add a model capability row
+         * @description Describes a model for your organization. A row for the same provider family and model as a platform row overrides it for your organization only.
+         */
+        post: operations["create_3"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/model-capabilities/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a model capability row */
+        get: operations["get_2"];
+        /**
+         * Replace a model capability row
+         * @description Replaces every describable field of one of your organization's rows. Platform rows are read-only.
+         */
+        put: operations["update_2"];
+        post?: never;
+        /**
+         * Delete a model capability row
+         * @description Platform rows cannot be deleted.
+         */
+        delete: operations["delete_2"];
         options?: never;
         head?: never;
         patch?: never;
@@ -3165,21 +3414,21 @@ export interface paths {
          * Get provider
          * @description Get a single AI provider configuration by ID.
          */
-        get: operations["get_7"];
+        get: operations["get_8"];
         put?: never;
         post?: never;
         /**
          * Delete provider
          * @description Delete an AI provider configuration. Requires admin role.
          */
-        delete: operations["delete_7"];
+        delete: operations["delete_8"];
         options?: never;
         head?: never;
         /**
          * Update provider
          * @description Update an AI provider configuration (PATCH semantics). Use alias management endpoints for aliases.
          */
-        patch: operations["update_8"];
+        patch: operations["update_9"];
         trace?: never;
     };
     "/v1/providers/{providerId}/embedding-models": {
@@ -3509,6 +3758,78 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/v1/search-providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List search providers
+         * @description List the organization's search providers, sorted by name. The API key is never returned.
+         */
+        get: operations["listSearchProviders"];
+        put?: never;
+        /**
+         * Create search provider
+         * @description Register a Perplexity or Brave API key of the organization for agents' web search (`web_search` with `source: external`). Names are unique within the organization. Requires a plan that includes your own provider keys.
+         */
+        post: operations["createSearchProvider"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/search-providers/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test search provider connection
+         * @description Run one minimal search on the given key, or on the stored key of `searchProviderId`. Answers 200 whether or not the vendor accepted the key; `success` says which. An unknown `searchProviderId` is 404. The vendor may bill the search to your account; Backbone does not charge for it. Limited to 10 tests per minute per organization (429 with `Retry-After`).
+         */
+        post: operations["testSearchProvider"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/search-providers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get search provider
+         * @description Get one search provider. The API key is never returned.
+         */
+        get: operations["getSearchProvider"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete search provider
+         * @description Delete a search provider. Agents bound to it get the tool error `provider_unavailable` until they are bound to another one. Requires admin role.
+         */
+        delete: operations["deleteSearchProvider"];
+        options?: never;
+        head?: never;
+        /**
+         * Update search provider
+         * @description Update a search provider. A field left out is unchanged; a blank `apiKey` keeps the stored key; a `config` replaces the stored options whole. The vendor cannot be changed.
+         */
+        patch: operations["updateSearchProvider"];
         trace?: never;
     };
     "/v1/settings/{key}": {
@@ -4085,7 +4406,15 @@ export interface components {
             conversationModes?: components["schemas"]["ConversationModes"];
             description?: string;
             id?: string;
+            models?: components["schemas"]["AgentCatalogModelDTO"][];
             name?: string;
+        };
+        AgentCatalogModelDTO: {
+            control?: string;
+            defaultEffort?: string;
+            displayName?: string;
+            efforts?: string[];
+            id?: string;
         };
         AgentDTO: {
             /** @description Whether this deployment runs the Bash tool. Where it is false, a backbone.bash entry is stored but never offered to the model. */
@@ -4279,6 +4608,33 @@ export interface components {
         };
         BooleanResultDTO: {
             result?: boolean;
+        };
+        BulkRerunRequest: {
+            /** @description Extraction IDs to re-run. Mutually exclusive with the filter fields. */
+            ids?: string[];
+            /** @description Re-run the extractions that ran against this schema version. */
+            schemaVersionId?: string;
+            /** @description Re-run the extractions whose model contains this text. */
+            search?: string;
+            /**
+             * @description Re-run the extractions with this status, e.g. FAILED.
+             * @enum {string}
+             */
+            status?: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+        };
+        BulkRerunResponse: {
+            /** Format: int32 */
+            queued?: number;
+            results?: components["schemas"]["BulkRerunResult"][];
+            /** Format: int32 */
+            skipped?: number;
+        };
+        BulkRerunResult: {
+            extractionId?: string;
+            /** @enum {string} */
+            outcome?: "QUEUED" | "SKIPPED" | "NOT_FOUND";
+            reason?: string | null;
+            rerunId?: string | null;
         };
         CancelTurnRequest: {
             /** @description The turn to stop: the value the client sent as the Backbone-Turn-Id header on POST /v1/responses. 1-64 characters of A-Z, a-z, 0-9, '_' or '-'. */
@@ -4509,6 +4865,7 @@ export interface components {
             /** Format: date-time */
             registeredAt?: string;
             relayId?: string;
+            scopes?: string[];
             tokenEndpointAuthMethod?: string;
         };
         ConnectorPublicHostDTO: {
@@ -4597,6 +4954,8 @@ export interface components {
             head_response_id?: string;
             /** Format: int64 */
             last_activity_at?: number;
+            last_model?: string;
+            last_reasoning_effort?: string;
             mode?: string;
             pause_reason?: string;
             status?: string;
@@ -4878,6 +5237,32 @@ export interface components {
         DeliverPreview: {
             files?: components["schemas"]["DeliverFile"][];
             note?: string;
+        };
+        /** @description What a connected computer offers: its shell and its workspaces */
+        DeviceInventoryRecord: {
+            /** @description Version of the 2kw bridge */
+            bridgeVersion: string;
+            /** @description Hash of the shell path and the workspaces, as the bridge computes it */
+            configHash: string;
+            /** @description The computer's operating system */
+            os: string;
+            /**
+             * Format: int32
+             * @description Protocol version the bridge speaks
+             */
+            protocolVersion: number;
+            /** @description The bash the computer runs commands with; null when none was found */
+            shell?: components["schemas"]["DeviceShell"];
+            /** @description The folders the computer offers */
+            workspaces: components["schemas"]["DeviceWorkspace"][];
+        };
+        DeviceShell: {
+            path: string;
+            version?: string;
+        };
+        DeviceWorkspace: {
+            name: string;
+            path: string;
         };
         /** @description Text transcribed from one dictation slice */
         DictationResponse: {
@@ -5540,6 +5925,8 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
             description?: string;
+            /** Format: int64 */
+            documentCount?: number;
             /** Format: int32 */
             embeddingDim?: number;
             embeddingModel?: string;
@@ -5588,6 +5975,132 @@ export interface components {
             query: string;
             /** Format: int32 */
             topK?: number;
+        };
+        LocalBridgeConfirmRequest: {
+            /** @description The kid the member was shown */
+            kid: string;
+        };
+        LocalBridgeConfirmResponse: {
+            /** @description Id of the connected computer */
+            deviceId?: string;
+        };
+        /** @description One of your connected computers */
+        LocalBridgeDevice: {
+            /** Format: date-time */
+            createdAt?: string;
+            /** @description Device id */
+            id?: string;
+            /**
+             * Format: date-time
+             * @description When the computer last reported in
+             */
+            lastSeenAt?: string;
+            /** @description The computer's name */
+            name?: string;
+            /** @description The computer's operating system */
+            os?: string;
+            /** @description The bash it runs commands with; null when none was found or it has not reported yet */
+            shell?: components["schemas"]["DeviceShell"];
+            /** @enum {string} */
+            status?: "PENDING" | "ACTIVE" | "DISABLED" | "REVOKED";
+            /** @description The folders it offers */
+            workspaces?: components["schemas"]["DeviceWorkspace"][];
+        };
+        /** @description A member's connected computer as an admin sees it: no folders and no paths */
+        LocalBridgeDeviceSummary: {
+            /** Format: date-time */
+            createdAt?: string;
+            /** @description Device id */
+            id?: string;
+            /**
+             * Format: date-time
+             * @description When the computer last reported in
+             */
+            lastSeenAt?: string;
+            /** @description The computer's name */
+            name?: string;
+            /** @description The computer's operating system */
+            os?: string;
+            /** @description The member who connected it */
+            ownerMemberId?: string;
+            /** @enum {string} */
+            status?: "PENDING" | "ACTIVE" | "DISABLED" | "REVOKED";
+        };
+        /** @description A new pairing and the single-use code that connects a computer to it */
+        LocalBridgePairingCreated: {
+            /**
+             * @description Single-use code for `2kw bridge connect`; shown once
+             * @example bbp_3q2-7wQ1nZ0aTqH8bV9cXw
+             */
+            code?: string;
+            /**
+             * Format: date-time
+             * @description When the code and the pairing expire
+             */
+            expiresAt?: string;
+            /** @description Pairing id */
+            id?: string;
+        };
+        /** @description A pairing as the computer sees it; the device identity only once the member confirmed it */
+        LocalBridgePairingPoll: {
+            /** @description Base URL of the API the computer talks to */
+            issuer?: string;
+            /** @description The keys requests to the computer are signed with, as a JWKS */
+            jwks?: {
+                [key: string]: unknown;
+            };
+            /** @description The organization the computer belongs to */
+            organizationId?: string;
+            /** @description The member who connected the computer */
+            ownerMemberId?: string;
+            /** @description The computer's device id */
+            relayId?: string;
+            /** @enum {string} */
+            status?: "OPEN" | "AWAITING_CONFIRMATION" | "CONFIRMED" | "EXPIRED";
+        };
+        /** @description A pairing as its member sees it; name, os, kid and fingerprint once a computer redeemed it */
+        LocalBridgePairingStatus: {
+            /** Format: date-time */
+            expiresAt?: string;
+            /** @description Six words derived from the computer's key */
+            fingerprint?: string[];
+            /** @description Id of the computer's key; send it back to confirm */
+            kid?: string;
+            /** @description The computer's name */
+            name?: string;
+            /** @description The computer's operating system */
+            os?: string;
+            /** @enum {string} */
+            status?: "OPEN" | "AWAITING_CONFIRMATION" | "CONFIRMED" | "EXPIRED";
+        };
+        /** @description A computer's redemption of a pairing code, signed with its new key */
+        LocalBridgeRedeemRequest: {
+            /** @description The pairing code */
+            code: string;
+            /** @description Key id: first 16 characters of base64url(SHA-256(key)) */
+            kid: string;
+            /** @description Computer name, 1-64 printable characters */
+            name: string;
+            /** @description Operating system, 1-64 printable characters */
+            os: string;
+            /** @description Ed25519 signature, base64url, over "localbridge-pair-v1", code, kid, publicKey, name and os joined by line feeds */
+            proof: string;
+            /** @description Ed25519 public key, raw 32 bytes, base64url */
+            publicKey: string;
+        };
+        /** @description A redeemed pairing, waiting for the member to confirm it */
+        LocalBridgeRedeemResponse: {
+            /**
+             * Format: date-time
+             * @description When the pairing expires unconfirmed
+             */
+            expiresAt?: string;
+            /** @description Six words derived from the key; the member confirms only if they match */
+            fingerprint?: string[];
+            /** @description Base URL of the API the computer talks to */
+            issuer?: string;
+            /** @description Pairing id */
+            pairingId?: string;
         };
         McpApprovalRequestItem: {
             type: "McpApprovalRequestItem";
@@ -5780,6 +6293,58 @@ export interface components {
             id?: string;
             mode?: string;
         });
+        ModelCapabilityDTO: {
+            aliases?: string[];
+            /** Format: date-time */
+            createdAt?: string;
+            /** @enum {string} */
+            defaultEffort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+            displayName?: string;
+            extendedPromptCacheRetention?: boolean;
+            id?: string;
+            /** Format: date-time */
+            lastModifiedAt?: string;
+            model?: string;
+            /** @description Owning organization; null for a platform row. */
+            organizationId?: string;
+            /** @description True for a read-only platform row. */
+            platform?: boolean;
+            /** @enum {string} */
+            providerFamily?: "openai" | "anthropic" | "xai" | "mistral" | "ollama";
+            /** @enum {string} */
+            reasoningControl?: "effort" | "budget" | "toggle";
+            reasoningEfforts?: ("none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max")[];
+            rejectedParams?: string[];
+        };
+        ModelCapabilityRequest: {
+            /** @description Other names the same model answers to. */
+            aliases?: string[];
+            /**
+             * @description The provider's default level; one of reasoningEfforts.
+             * @enum {string}
+             */
+            defaultEffort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+            /** @description Name shown in pickers. */
+            displayName?: string;
+            /** @description Whether the model accepts a 24h prompt cache retention. Defaults to false. */
+            extendedPromptCacheRetention?: boolean;
+            /** @description Model name as the provider receives it. */
+            model?: string;
+            /**
+             * @description Provider family the model belongs to.
+             * @enum {string}
+             */
+            providerFamily?: "openai" | "anthropic" | "xai" | "mistral" | "ollama";
+            /**
+             * @description How reasoning is steered; omit when the model does not reason.
+             * @enum {string}
+             */
+            reasoningControl?: "effort" | "budget" | "toggle";
+            /** @description Supported levels. Empty exactly when reasoningControl is omitted. */
+            reasoningEfforts?: ("none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max")[];
+            /** @description Request parameters the model refuses. */
+            rejectedParams?: ("temperature" | "top_p" | "top_k" | "presence_penalty" | "frequency_penalty" | "stop")[];
+        };
         ModelInfo: {
             /** Format: int64 */
             created?: number;
@@ -6263,6 +6828,24 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
+        PageSearchProviderDTO: {
+            content?: components["schemas"]["SearchProviderDTO"][];
+            empty?: boolean;
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            number?: number;
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            /** Format: int32 */
+            size?: number;
+            sort?: components["schemas"]["SortObject"];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
         PageSessionListDto: {
             content?: components["schemas"]["SessionListDto"][];
             empty?: boolean;
@@ -6614,6 +7197,7 @@ export interface components {
             clientSecret?: string;
             issuer: string;
             relayId?: string;
+            scopes?: string[];
             tokenEndpointAuthMethod: string;
         };
         RegisterInstallationKeyRequest: {
@@ -6890,6 +7474,37 @@ export interface components {
             thresholds?: {
                 [key: string]: number;
             };
+        };
+        /** @description An organization's own web search provider. The API key is write-only and never returned. */
+        SearchProviderDTO: {
+            /** @description Vendor options; PERPLEXITY takes `country`, BRAVE takes `country` and `safesearch` */
+            config?: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            readonly createdAt?: string;
+            id?: string;
+            /** Format: date-time */
+            readonly lastModifiedAt?: string;
+            name?: string;
+            organizationId?: string;
+            /** @enum {string} */
+            provider?: "PERPLEXITY" | "BRAVE";
+            version?: string;
+        };
+        SearchProviderRequest: {
+            /** @description The vendor API key; write-only. On update, leave it out or blank to keep it */
+            apiKey: string;
+            /** @description Vendor options, all optional: PERPLEXITY `country` (two capital letters); BRAVE `country` (two capital letters or ALL) and `safesearch` (off, moderate, strict). On update it replaces the stored options whole */
+            config?: {
+                [key: string]: unknown;
+            };
+            name: string;
+            /**
+             * @description The vendor; cannot be changed on update
+             * @enum {string}
+             */
+            provider: "PERPLEXITY" | "BRAVE";
         };
         SearchResponse: {
             degraded?: string;
@@ -7277,6 +7892,21 @@ export interface components {
             processingDurationMs?: number;
             success?: boolean;
         };
+        TestSearchProviderRequest: {
+            /** @description The key to test; leave it out to test the stored key of `searchProviderId` */
+            apiKey?: string;
+            config?: {
+                [key: string]: unknown;
+            };
+            /** @enum {string} */
+            provider: "PERPLEXITY" | "BRAVE";
+            /** @description A search provider of this organization whose stored key is tested */
+            searchProviderId?: string;
+        };
+        TestSearchProviderResponse: {
+            message: string;
+            success: boolean;
+        };
         TierInfoDTO: {
             byokEnabled?: boolean;
             /** Format: int32 */
@@ -7391,6 +8021,7 @@ export interface components {
             /** Format: int32 */
             tool_count?: number;
         };
+        /** @description An image a ViewImage call or a connector tool attached for the model. A ViewImage item's id is timg_<call id>; a connector item's id is timgc<n>_<call id>, n counting the call's images from 1. */
         ToolImageItem: {
             type: "ToolImageItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
@@ -7747,7 +8378,7 @@ export interface operations {
             };
         };
     };
-    create_10: {
+    create_11: {
         parameters: {
             query?: never;
             header?: never;
@@ -8129,7 +8760,7 @@ export interface operations {
             };
         };
     };
-    get_6: {
+    get_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -8151,7 +8782,7 @@ export interface operations {
             };
         };
     };
-    update_6: {
+    update_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -8177,7 +8808,7 @@ export interface operations {
             };
         };
     };
-    delete_5: {
+    delete_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -8362,7 +8993,7 @@ export interface operations {
             };
         };
     };
-    list_4: {
+    list_5: {
         parameters: {
             query?: {
                 archived?: boolean;
@@ -8384,7 +9015,7 @@ export interface operations {
             };
         };
     };
-    create_9: {
+    create_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -8431,7 +9062,7 @@ export interface operations {
             };
         };
     };
-    get_9: {
+    get_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -8453,7 +9084,7 @@ export interface operations {
             };
         };
     };
-    update_10: {
+    update_11: {
         parameters: {
             query?: never;
             header?: never;
@@ -9444,7 +10075,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
                 };
             };
-            /** @description The issuer is not an https URL on an approved host (with relayId: not reached through the relay), or the method and secret do not match */
+            /** @description The issuer is not an https URL on an approved host (with relayId: not reached through the relay), the method and secret do not match, or the permissions are wrong: for a Microsoft Entra tenant issuer scopes is required and must be a permission set the Add Microsoft 365 dialog can make, and for any other issuer it is refused */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -9497,7 +10128,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
                 };
             };
-            /** @description Not a usable registration, another issuer or relay, or an automatic registration */
+            /** @description Not a usable registration, another issuer or relay, an automatic registration, or the wrong permissions: a Microsoft Entra tenant registration needs scopes, any other refuses it */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -9805,7 +10436,7 @@ export interface operations {
             };
         };
     };
-    create_8: {
+    create_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -9880,7 +10511,7 @@ export interface operations {
             };
         };
     };
-    update_7: {
+    update_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -9906,7 +10537,7 @@ export interface operations {
             };
         };
     };
-    delete_6: {
+    delete_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -10218,7 +10849,7 @@ export interface operations {
             };
         };
     };
-    create_7: {
+    create_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -10242,7 +10873,7 @@ export interface operations {
             };
         };
     };
-    get_5: {
+    get_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -10264,7 +10895,7 @@ export interface operations {
             };
         };
     };
-    update_5: {
+    update_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -10290,7 +10921,7 @@ export interface operations {
             };
         };
     };
-    delete_4: {
+    delete_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -10717,7 +11348,7 @@ export interface operations {
             };
         };
     };
-    list_3: {
+    list_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -10737,7 +11368,7 @@ export interface operations {
             };
         };
     };
-    create_6: {
+    create_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -10761,7 +11392,7 @@ export interface operations {
             };
         };
     };
-    get_4: {
+    get_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -10783,7 +11414,7 @@ export interface operations {
             };
         };
     };
-    update_4: {
+    update_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -10809,7 +11440,7 @@ export interface operations {
             };
         };
     };
-    delete_3: {
+    delete_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -10829,7 +11460,7 @@ export interface operations {
             };
         };
     };
-    list_5: {
+    list_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -10873,7 +11504,7 @@ export interface operations {
             };
         };
     };
-    create_5: {
+    create_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -10897,7 +11528,7 @@ export interface operations {
             };
         };
     };
-    get_3: {
+    get_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -10919,7 +11550,7 @@ export interface operations {
             };
         };
     };
-    update_3: {
+    update_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -10945,7 +11576,7 @@ export interface operations {
             };
         };
     };
-    delete_2: {
+    delete_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -11430,6 +12061,48 @@ export interface operations {
             };
         };
     };
+    bulkRerun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkRerunRequest"];
+            };
+        };
+        responses: {
+            /** @description The eligible re-runs are queued; the body has one outcome per extraction */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BulkRerunResponse"];
+                };
+            };
+            /** @description Neither or both of ids and a filter were given, or the filter matches more than 100 extractions */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The batch needs more extraction credits than remain; nothing was queued */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     getExtraction: {
         parameters: {
             query?: never;
@@ -11507,7 +12180,7 @@ export interface operations {
             };
         };
     };
-    list_2: {
+    list_3: {
         parameters: {
             query: {
                 purpose?: string;
@@ -11539,7 +12212,7 @@ export interface operations {
             };
         };
     };
-    create_4: {
+    create_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -11630,7 +12303,7 @@ export interface operations {
             };
         };
     };
-    delete_10: {
+    delete_11: {
         parameters: {
             query?: never;
             header?: never;
@@ -11799,7 +12472,7 @@ export interface operations {
             };
         };
     };
-    get_2: {
+    get_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -11821,7 +12494,7 @@ export interface operations {
             };
         };
     };
-    update_2: {
+    update_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -12143,7 +12816,7 @@ export interface operations {
             };
         };
     };
-    list: {
+    list_1: {
         parameters: {
             query: {
                 search?: string;
@@ -12166,7 +12839,7 @@ export interface operations {
             };
         };
     };
-    create_3: {
+    create_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -12190,7 +12863,7 @@ export interface operations {
             };
         };
     };
-    get_8: {
+    get_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -12212,7 +12885,7 @@ export interface operations {
             };
         };
     };
-    delete_8: {
+    delete_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -12232,7 +12905,7 @@ export interface operations {
             };
         };
     };
-    update_9: {
+    update_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -12281,7 +12954,7 @@ export interface operations {
             };
         };
     };
-    list_1: {
+    list_2: {
         parameters: {
             query: {
                 status?: "PENDING" | "PARSING" | "CHUNKING" | "EMBEDDING" | "READY" | "ERROR";
@@ -12361,7 +13034,7 @@ export interface operations {
             };
         };
     };
-    get_10: {
+    get_11: {
         parameters: {
             query?: never;
             header?: never;
@@ -12384,7 +13057,7 @@ export interface operations {
             };
         };
     };
-    delete_9: {
+    delete_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -12474,6 +13147,319 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SearchResponse"];
+                };
+            };
+        };
+    };
+    disconnectLocalBridgeDevice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Disconnected */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The computer's token is missing, expired or revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listLocalBridgeDevices: {
+        parameters: {
+            query?: {
+                /** @description true lists every member's computers, without folders (admins only) */
+                all?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Your computers; with all=true, every member's computers */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeDevice"][] | components["schemas"]["LocalBridgeDeviceSummary"][];
+                };
+            };
+            /** @description all=true without the admin role */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeDevice"][];
+                };
+            };
+        };
+    };
+    revokeLocalBridgeDevice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Disconnected */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such computer, or not yours */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    reportLocalBridgeInventory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceInventoryRecord"];
+            };
+        };
+        responses: {
+            /** @description Stored */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The hash does not match, or a folder name repeats */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The computer's token is missing, expired or revoked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The bridge is too old */
+            426: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    createLocalBridgePairing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pairing created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgePairingCreated"];
+                };
+            };
+            /** @description Not a signed-in member, or the sign-in is too old */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgePairingCreated"];
+                };
+            };
+        };
+    };
+    redeemLocalBridgePairing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocalBridgeRedeemRequest"];
+            };
+        };
+        responses: {
+            /** @description Redeemed; waiting for the member to confirm */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeRedeemResponse"];
+                };
+            };
+            /** @description Invalid key, kid, proof, name or os */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeRedeemResponse"];
+                };
+            };
+            /** @description Code invalid, expired or already used */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeRedeemResponse"];
+                };
+            };
+            /** @description Too many attempts from this address */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeRedeemResponse"];
+                };
+            };
+        };
+    };
+    pollLocalBridgePairing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The pairing's status, and the device identity once confirmed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgePairingPoll"];
+                };
+            };
+            /** @description The token is missing, expired or not the pairing's key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgePairingPoll"];
+                };
+            };
+            /** @description The token is for another pairing */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgePairingPoll"];
+                };
+            };
+        };
+    };
+    confirmLocalBridgePairing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocalBridgeConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Computer connected */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeConfirmResponse"];
+                };
+            };
+            /** @description Pairing not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeConfirmResponse"];
+                };
+            };
+            /** @description Key mismatch, expired, or not waiting for confirmation */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgeConfirmResponse"];
+                };
+            };
+        };
+    };
+    getLocalBridgePairingStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocalBridgePairingStatus"];
                 };
             };
         };
@@ -13078,6 +14064,120 @@ export interface operations {
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
+            };
+        };
+    };
+    list: {
+        parameters: {
+            query?: {
+                family?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ModelCapabilityDTO"][];
+                };
+            };
+        };
+    };
+    create_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModelCapabilityRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ModelCapabilityDTO"];
+                };
+            };
+        };
+    };
+    get_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ModelCapabilityDTO"];
+                };
+            };
+        };
+    };
+    update_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModelCapabilityRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ModelCapabilityDTO"];
+                };
+            };
+        };
+    };
+    delete_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -13791,7 +14891,7 @@ export interface operations {
             };
         };
     };
-    get_7: {
+    get_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -13813,7 +14913,7 @@ export interface operations {
             };
         };
     };
-    delete_7: {
+    delete_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -13833,7 +14933,7 @@ export interface operations {
             };
         };
     };
-    update_8: {
+    update_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -14478,6 +15578,144 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SchemaVersionDTO"];
+                };
+            };
+        };
+    };
+    listSearchProviders: {
+        parameters: {
+            query: {
+                pageable: components["schemas"]["Pageable"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageSearchProviderDTO"];
+                };
+            };
+        };
+    };
+    createSearchProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchProviderRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SearchProviderDTO"];
+                };
+            };
+        };
+    };
+    testSearchProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TestSearchProviderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TestSearchProviderResponse"];
+                };
+            };
+        };
+    };
+    getSearchProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SearchProviderDTO"];
+                };
+            };
+        };
+    };
+    deleteSearchProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateSearchProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchProviderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SearchProviderDTO"];
                 };
             };
         };
