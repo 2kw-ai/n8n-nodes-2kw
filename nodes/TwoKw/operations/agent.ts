@@ -32,6 +32,8 @@ interface SendMessageOptions extends RunOptions {
 interface OutputItem {
   type?: string;
   role?: string;
+  /** `commentary` on a message said on the way to a tool call (#913, spec D14). */
+  phase?: string;
   content?: { type?: string; text?: string }[];
   id?: string;
   tool?: string;
@@ -82,14 +84,24 @@ export function buildAgentModel(ref: string, label: string): string {
   return ref.includes('@') ? `agent/${ref}@` : `agent/${ref}`;
 }
 
-/** Every assistant `output_text` part, in output order — the resource has no `output_text` field. */
-export function responseText(response: AgentResponse): string {
+/**
+ * The answer and what the agent said on its way to it (#1297; the surface's split, #913): the answer
+ * is the last assistant `message`, unless the server marked it `commentary` (a turn that paused on
+ * the way has no answer yet); every other assistant message is commentary. Each message's
+ * `output_text` parts are joined; the resource has no `output_text` field.
+ */
+export function responseText(response: AgentResponse): { text: string; commentary: string[] } {
+  const messages = (response.output ?? []).filter((item) => item.type === 'message' && item.role === 'assistant');
+  const last = messages[messages.length - 1];
+  const answered = last !== undefined && last.phase !== 'commentary';
+  const commentary = (answered ? messages.slice(0, -1) : messages).map(messageText).filter((text) => text !== '');
+  return { text: answered ? messageText(last) : '', commentary };
+}
+
+function messageText(item: OutputItem): string {
   const parts: string[] = [];
-  for (const item of response.output ?? []) {
-    if (item.type !== 'message' || item.role !== 'assistant') continue;
-    for (const part of item.content ?? []) {
-      if (part.type === 'output_text' && typeof part.text === 'string') parts.push(part.text);
-    }
+  for (const part of item.content ?? []) {
+    if (part.type === 'output_text' && typeof part.text === 'string') parts.push(part.text);
   }
   return parts.join('\n\n');
 }
@@ -201,8 +213,10 @@ export function pendingInputsJson(output: unknown, answerUrl: string): IDataObje
 }
 
 function simplify(response: AgentResponse, connectorsUrl: string, answerUrl: string): IDataObject {
+  const { text, commentary } = responseText(response);
   const json: IDataObject = {
-    text: responseText(response),
+    text,
+    commentary,
     status: response.status,
     responseId: response.id,
     conversationId: response.conversation?.id ?? null,

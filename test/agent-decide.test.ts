@@ -52,7 +52,12 @@ function pausedRun(overrides: Record<string, unknown> = {}) {
     id: 'resp_p',
     status: 'requires_action',
     output: [
-      { type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'I need to write.' }] },
+      {
+        type: 'message',
+        role: 'assistant',
+        phase: 'commentary',
+        content: [{ type: 'output_text', text: 'I need to write.' }],
+      },
       {
         type: 'backbone:approval_request',
         id: 'apreq_1',
@@ -110,7 +115,8 @@ describe('Agent › Send Message › Return Paused Runs (#660)', () => {
     const [item] = await executeAgent.call(ctx, 0, 'sendMessage');
 
     expect(item.json).toEqual({
-      text: 'I need to write.',
+      text: '',
+      commentary: ['I need to write.'],
       status: 'requires_action',
       responseId: 'resp_p',
       conversationId: 'conv_1',
@@ -228,6 +234,7 @@ describe('Agent › Decide Approval (#660)', () => {
       {
         json: {
           text: 'Done',
+          commentary: [],
           status: 'completed',
           responseId: 'resp_2',
           conversationId: 'conv_1',

@@ -173,16 +173,23 @@ describe('Agent resource — Send Message', () => {
     expect(fn).not.toHaveBeenCalled();
   });
 
-  it('returns a simplified item with joined assistant text on completed', async () => {
+  it('returns the last assistant message as text and the earlier ones as commentary (#1297)', async () => {
     const response = completed({
       output: [
         { type: 'reasoning', summary: [] },
-        { type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'Part one' }] },
+        {
+          type: 'message',
+          role: 'assistant',
+          phase: 'commentary',
+          content: [{ type: 'output_text', text: 'Let me look that up.' }],
+        },
         { type: 'function_call', name: 'lookup', call_id: 'c1', arguments: '{}' },
         {
           type: 'message',
           role: 'assistant',
+          phase: 'final_answer',
           content: [
+            { type: 'output_text', text: 'Part one' },
             { type: 'output_text', text: 'Part two' },
             { type: 'refusal', refusal: 'no' },
           ],
@@ -197,6 +204,7 @@ describe('Agent resource — Send Message', () => {
       {
         json: {
           text: 'Part one\n\nPart two',
+          commentary: ['Let me look that up.'],
           status: 'completed',
           responseId: 'resp_1',
           conversationId: 'conv_1',
