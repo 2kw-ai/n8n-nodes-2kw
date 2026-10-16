@@ -6133,6 +6133,8 @@ export interface components {
             id: string;
             name: string;
             output: string | null;
+            /** @description Backbone extension: the files the call stored, for a connector tool that returned files. Filled by the server; ignored on input. */
+            output_files?: components["schemas"]["OutputFileRef"][];
             server_label: string;
             status: string;
         });
