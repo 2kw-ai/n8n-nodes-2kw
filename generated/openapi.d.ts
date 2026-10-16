@@ -4216,7 +4216,7 @@ export interface paths {
         };
         /**
          * List recent traces
-         * @description Returns paginated trace summaries for the caller's organization. Each summary aggregates all spans sharing a trace_id into start/end times, span count, source services, and worst-case status. Optionally filter by source_service, status, free-text search, a start-time range (from/to, ISO-8601) and session id.
+         * @description Returns paginated trace summaries for the caller's organization. Each summary aggregates all spans sharing a trace_id into start/end times, span count, source services, and worst-case status. Optionally filter by source_service, status, free-text search, a start-time range (from/to, ISO-8601) and session id. A trace matches when any of its spans does; its summary still covers all of its spans. Sort by start time, duration or status.
          */
         get: operations["listTraces"];
         put?: never;
@@ -16465,6 +16465,8 @@ export interface operations {
                 from?: string;
                 to?: string;
                 sessionId?: string;
+                /** @description Sort as column,direction: startTime, durationMs or statusCode, asc or desc. Defaults to startTime,desc; statusCode,desc lists errors first. */
+                sort?: string;
             };
             header?: never;
             path?: never;
