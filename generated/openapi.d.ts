@@ -4746,6 +4746,9 @@ export interface components {
         ComparisonResponseDTO: {
             aggregates?: components["schemas"]["VariantAggregateDTO"][];
             evaluatorIds?: string[];
+            evaluatorNames?: {
+                [key: string]: string;
+            };
             items?: components["schemas"]["PageComparisonItemDTO"];
         };
         CompilePromptRequest: {
