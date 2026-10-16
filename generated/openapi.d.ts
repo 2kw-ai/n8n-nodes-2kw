@@ -3334,7 +3334,7 @@ export interface paths {
         put?: never;
         /**
          * Create provider
-         * @description Create a new AI provider configuration with credentials and optional model aliases.
+         * @description Create a new AI provider configuration with credentials.
          */
         post: operations["create_1"];
         delete?: never;
@@ -3426,7 +3426,7 @@ export interface paths {
         head?: never;
         /**
          * Update provider
-         * @description Update an AI provider configuration (PATCH semantics). Use alias management endpoints for aliases.
+         * @description Update an AI provider configuration (PATCH semantics).
          */
         patch: operations["update_9"];
         trace?: never;
@@ -4513,14 +4513,6 @@ export interface components {
             versionNumber?: number;
             /** @description Notices about this version that do not stop it from running, for example instructions too long for the automatic approver to read in full. Omitted when there are none. */
             warnings?: string[];
-        };
-        AliasDTO: {
-            aliasName?: string;
-            defaultParameters?: {
-                [key: string]: unknown;
-            };
-            id?: string;
-            model?: string;
         };
         AnnotationQueueDTO: {
             /** Format: date-time */
@@ -7005,7 +6997,7 @@ export interface components {
             ocrEngine?: string;
             /** @description OCR languages (e.g. ['en', 'de']) */
             ocrLanguages?: string[];
-            /** @description Output formats. Default: [MD] */
+            /** @description Output formats. Default: [MD, TEXT] */
             outputFormats?: ("MD" | "TEXT" | "JSON" | "HTML")[];
             /** @description PDF backend (e.g. 'dlparser', 'pypdfium2') */
             pdfBackend?: string;
@@ -7124,7 +7116,6 @@ export interface components {
             versionNumber?: number;
         };
         ProviderDTO: {
-            aliases?: components["schemas"]["AliasDTO"][];
             config: {
                 [key: string]: unknown;
             };
