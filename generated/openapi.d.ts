@@ -938,7 +938,7 @@ export interface paths {
         };
         /**
          * List the organization's connector OAuth client registrations
-         * @description Automatic (CIMD) and manual registrations, by issuer; a relayed one names its relay. Never a client secret.
+         * @description Automatic (CIMD) and manual registrations, by issuer; a relayed one names its relay. Shows when a client secret expires, if known, and whether the authorization server stopped accepting a registration. Never a client secret.
          */
         get: operations["listConnectorOAuthClients"];
         put?: never;
@@ -963,7 +963,7 @@ export interface paths {
         get?: never;
         /**
          * Replace a manual connector OAuth client registration
-         * @description Replaces the client id, secret and authentication method; the issuer stays. Members connected through the registration sign in again.
+         * @description Replaces the client id, secret, authentication method and secret expiry; the issuer stays. A registration the authorization server stopped accepting is usable again. Members connected through the registration sign in again.
          */
         put: operations["updateConnectorOAuthClient"];
         post?: never;
@@ -972,6 +972,26 @@ export interface paths {
          * @description Manual registrations only. Members connected through it sign in again.
          */
         delete: operations["removeConnectorOAuthClient"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/connectors/presets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the connectors the organization has set up for agents
+         * @description One Microsoft 365 entry per tenant an admin enabled under Agents → Connectors, with the connector URL to give an agent. Empty while none is enabled.
+         */
+        get: operations["listConnectorPresets"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -4854,6 +4874,8 @@ export interface components {
         };
         ConnectorOAuthClientDTO: {
             clientId?: string;
+            /** Format: date-time */
+            clientSecretExpiresAt?: string;
             /** Format: int32 */
             generation?: number;
             id?: string;
@@ -4865,6 +4887,12 @@ export interface components {
             relayId?: string;
             scopes?: string[];
             tokenEndpointAuthMethod?: string;
+        };
+        ConnectorPresetDTO: {
+            /** @enum {string} */
+            kind?: "MICROSOFT_365";
+            tenantId?: string;
+            url?: string;
         };
         ConnectorPublicHostDTO: {
             /** Format: date-time */
@@ -7194,6 +7222,12 @@ export interface components {
         RegisterConnectorOAuthClientRequest: {
             clientId: string;
             clientSecret?: string;
+            /**
+             * Format: date-time
+             * @description When the client secret expires, if the authorization server named a date; must be in the future. Absent on a replacement clears it.
+             * @example 2027-04-01T00:00:00Z
+             */
+            clientSecretExpiresAt?: string;
             issuer: string;
             relayId?: string;
             scopes?: string[];
@@ -10074,7 +10108,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
                 };
             };
-            /** @description The issuer is not an https URL on an approved host (with relayId: not reached through the relay), the method and secret do not match, or the permissions are wrong: for a Microsoft Entra tenant issuer scopes is required and must be a permission set the Add Microsoft 365 dialog can make, and for any other issuer it is refused */
+            /** @description The issuer is not an https URL on an approved host (with relayId: not reached through the relay), the method and secret do not match, or the permissions are wrong: for a Microsoft Entra tenant issuer scopes is required and must be a permission set the Add Microsoft 365 dialog can make, and for any other issuer it is refused; or clientSecretExpiresAt is not in the future */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -10127,7 +10161,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
                 };
             };
-            /** @description Not a usable registration, another issuer or relay, an automatic registration, or the wrong permissions: a Microsoft Entra tenant registration needs scopes, any other refuses it */
+            /** @description Not a usable registration, another issuer or relay, an automatic registration, or the wrong permissions: a Microsoft Entra tenant registration needs scopes, any other refuses it; or clientSecretExpiresAt is not in the future */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -10194,6 +10228,35 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    listConnectorPresets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The presets */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorPresetDTO"][];
+                };
+            };
+            /** @description Not allowed to edit agents */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorPresetDTO"][];
+                };
             };
         };
     };
