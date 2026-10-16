@@ -853,7 +853,7 @@ export interface paths {
         post?: never;
         /**
          * Disconnect the signed-in member from one MCP server
-         * @description Deletes the member's connection and their grants for the server, then revokes the tokens at the server, best effort.
+         * @description Deletes the caller's connection and their grants for the server, then revokes the tokens at the server, best effort. From an embedded panel, the panel user's own.
          */
         delete: operations["disconnectConnector"];
         options?: never;
@@ -1047,7 +1047,7 @@ export interface paths {
         };
         /**
          * List the organization's MCP servers with the signed-in member's connection
-         * @description Every server the latest version of an agent declares, directly or through a relay, and every server someone is still connected to, with the member's own connection and grants and the number of connected members. One URL directly and behind a relay are two servers. Never a token. Below MEMBER, serverUrl carries no query string.
+         * @description Every server the latest version of an agent declares, directly or through a relay, and every server someone is still connected to, with the member's own connection and grants and the number of connected members. One URL directly and behind a relay are two servers. Never a token. Below MEMBER, serverUrl carries no query string. From an embedded panel: only the servers of the panel's agent, with the panel user's own connection, and connectedUsers 0.
          */
         get: operations["listConnectorServers"];
         put?: never;
@@ -4798,6 +4798,7 @@ export interface components {
             authorizationUrl?: string;
             /** Format: date-time */
             expiresAt?: string;
+            redirectUri?: string;
             state?: string;
         };
         ConnectorAuthorizationStatus: {
@@ -9789,7 +9790,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description No such connection of the member */
+            /** @description No such connection of the caller */
             404: {
                 headers: {
                     [name: string]: unknown;
