@@ -4511,6 +4511,8 @@ export interface components {
             version?: string;
             /** Format: int32 */
             versionNumber?: number;
+            /** @description Notices about this version that do not stop it from running, for example instructions too long for the automatic approver to read in full. Omitted when there are none. */
+            warnings?: string[];
         };
         AliasDTO: {
             aliasName?: string;
