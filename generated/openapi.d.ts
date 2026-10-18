@@ -12220,7 +12220,7 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
-            /** @description The batch needs more extraction credits than remain; nothing was queued */
+            /** @description The batch needs more usage than the organisation has left; nothing was queued */
             402: {
                 headers: {
                     [name: string]: unknown;
