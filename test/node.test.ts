@@ -19,12 +19,6 @@ describe('TwoKw node', () => {
     expect(instance.description.credentials).toEqual([{ name: '2kwApi', required: true }]);
   });
 
-  it('adds new nodes at version 2 and keeps version 1 nodes running (#1482)', () => {
-    const { version, defaultVersion } = new TwoKw().description;
-    expect(version).toEqual([1, 2]);
-    expect(defaultVersion).toBe(2);
-  });
-
   it('exposes a Resource parameter', () => {
     const instance = new TwoKw();
     const resourceField = instance.description.properties.find((p) => p.name === 'resource');

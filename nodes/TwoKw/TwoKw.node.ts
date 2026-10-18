@@ -34,9 +34,7 @@ export class TwoKw implements INodeType {
     name: 'twoKw',
     icon: { light: 'file:icon.light.svg', dark: 'file:icon.dark.svg' },
     group: ['transform'],
-    // v2 (#1482): Agent › Send Message returns the answer as `text`; v1 keeps every assistant message joined.
-    version: [1, 2],
-    defaultVersion: 2,
+    version: 1,
     // Every operation here is a request the model can usefully make on its own
     // behalf (extract, convert, transcribe, read a schema), so the node is
     // offered in the AI Agent tool picker.
