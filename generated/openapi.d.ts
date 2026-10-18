@@ -2651,6 +2651,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/local-bridge/pairings/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel a pairing
+         * @description Ends a pairing that is still open or waiting for your confirmation, for example when the computer shown is not yours. Its code can no longer be used. 409 with errorCode PAIRING_NOT_AWAITING when the computer is already connected.
+         */
+        post: operations["cancelLocalBridgePairing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/local-bridge/pairings/{id}/confirm": {
         parameters: {
             query?: never;
@@ -5848,7 +5868,7 @@ export interface components {
             status: string;
         });
         InputRequester: {
-            kind?: string;
+            kind: string;
             user_id?: string;
         };
         InputResponseItem: {
@@ -13502,6 +13522,40 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["LocalBridgePairingPoll"];
                 };
+            };
+        };
+    };
+    cancelLocalBridgePairing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pairing ended */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Pairing not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Computer already connected */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

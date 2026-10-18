@@ -50,6 +50,8 @@ Agent, Label, Schema, Prompt, Schema Version, and Prompt Label fields are **sear
 
 **Agent › Send Message** runs one turn of an agent you built in 2kw and returns its answer as `text`, together with `commentary` (what the agent said on its way to a tool call, one string per message, oldest first; when a run pauses before it answers, `text` is empty and what it said so far is here), `status`, `responseId`, `conversationId`, `conversationMode`, `model` and `usage`. `conversationMode` is the [conversation mode](#conversation-mode) the turn ran under: `plan`, `ask`, `auto`, or `null` when none is set. Pass `conversationId` (or `responseId` as *Previous Response ID*) to a later Send Message to continue the thread. Files from binary properties are uploaded and attached to the message; images reach the model as pixels.
 
+This is node version 2, the default for a node you add now. A version 1 node, one added to a workflow before version 2 existed, returns every assistant message of the turn in `text`, joined by a blank line, commentary included; it returns `commentary` as well. In 7.3.0 a version 1 node returned the answer alone; from the release with version 2 on, it joins again. To get the answer alone, replace the workflow's 2kw node with a new one.
+
 **n8n runs agents unattended by default.** When an agent's policy wants a human to approve a tool call, the run pauses and this operation fails with the tools that are waiting, for example `Agent paused for approval: create_invoice (apreq_…)`. To ask a person instead, see [Human approval from a workflow](#human-approval-from-a-workflow). For agents you call from n8n, use tools their policy lets run without a human decision — once auto-approval is available, set `classes.write` to `auto` in the agent's policy. A run that asks for a client-side tool fails the same way (`Agent requested client-side tool …`), because n8n cannot execute it. A run that stops early (`status: incomplete`, e.g. too many tool iterations) is returned, not failed; check `incompleteReason`. Leave *Retry On Fail* off for agents with write tools: a timed-out turn may still be running, and a retry repeats its tool calls.
 
 ### Conversation mode
@@ -141,6 +143,7 @@ Prereleases publish under the `dev` dist-tag (`npm install n8n-nodes-2kw@dev`), 
 ## Changelog
 
 ### Unreleased
+- Node version 2: Agent › Send Message and Decide Approval return only the answer as `text` and what the agent said on the way as `commentary`. Version 1 nodes in existing workflows return every assistant message joined in `text` again, as before 7.3.0; a workflow built on 7.3.0 that reads the answer alone from `text` needs a new 2kw node.
 - Added Agent › Send Message: agent and label pickers, file attachments, loud failure when the agent pauses for approval.
 - Added Agent › Decide Approval: approve or reject every pending approval of a paused run and continue it. Send Message and Decide Approval gained `Return Paused Runs`, which returns an approval pause as an item with `pendingApprovals` instead of failing.
 - Added the `Mode` option (Plan, Ask, Auto) to Agent › Send Message and Decide Approval, which sets the conversation mode, and `conversationMode` to the simplified output.
