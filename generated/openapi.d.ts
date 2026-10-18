@@ -5793,6 +5793,7 @@ export interface components {
         FunctionCallOutputItem: {
             type: "FunctionCallOutputItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            approval_route?: string;
             call_id?: string;
             failed?: boolean;
             id?: string;
