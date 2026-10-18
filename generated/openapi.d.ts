@@ -3562,7 +3562,7 @@ export interface paths {
         put?: never;
         /**
          * Cancel a background response
-         * @description Cancels the background run whose newest response this is. A queued or paused run is cancelled at once and answers status cancelled; a running one stops at its next step and answers in_progress until it does. Only the caller that started the run may cancel it.
+         * @description Cancels the background run whose newest response this is. A queued or paused run is cancelled at once and answers status cancelled; a running one stops at its next step and answers in_progress until it does. Only the caller that started the run, or an organization admin or owner, may cancel it.
          */
         post: operations["cancelResponse"];
         delete?: never;
@@ -15210,7 +15210,7 @@ export interface operations {
                     "application/json": Record<string, never>;
                 };
             };
-            /** @description Surface turn rate exceeded for this installation and end-user, or too_many_open_runs: the organization's open background runs are at their limit */
+            /** @description Surface turn rate exceeded for this installation and end-user, or too_many_open_runs: the organization's or the caller's open background runs are at their limit */
             429: {
                 headers: {
                     [name: string]: unknown;
