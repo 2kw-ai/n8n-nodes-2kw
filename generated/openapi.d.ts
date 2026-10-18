@@ -79,6 +79,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/agents/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get agent tool availability
+         * @description Whether this deployment runs the Bash tool, for an editor that has no agent yet. Every agent read carries the same answer as bashAvailable.
+         */
+        get: operations["getAgentAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/agents/catalog": {
         parameters: {
             query?: never;
@@ -2398,7 +2418,7 @@ export interface paths {
         put?: never;
         /**
          * Attach an uploaded file
-         * @description Ingest a file uploaded earlier with purpose=knowledge through POST /v1/files. Always returns 202; poll acceptedVersion for completion. 400 for a file whose purpose is not knowledge, 404 for an unknown file, 410 for a deleted one.
+         * @description Ingest a file uploaded earlier with purpose=knowledge through POST /v1/files. Always returns 202; poll acceptedVersion for completion. 400 for a file whose purpose is not knowledge, 404 for an unknown file, 410 for a deleted one. A different file with identical bytes collapses onto the earlier revision, so acceptedVersion.fileId may name the earlier file.
          */
         post: operations["attachKnowledgeDocumentFile"];
         delete?: never;
@@ -2625,6 +2645,26 @@ export interface paths {
         get: operations["pollLocalBridgePairing"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-bridge/pairings/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel a pairing
+         * @description Ends a pairing that is still open or waiting for your confirmation, for example when the computer shown is not yours. Its code can no longer be used. 409 with errorCode PAIRING_NOT_AWAITING when the computer is already connected.
+         */
+        post: operations["cancelLocalBridgePairing"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3522,7 +3562,7 @@ export interface paths {
         put?: never;
         /**
          * Cancel a background response
-         * @description Cancels the background run whose newest response this is. A queued or paused run is cancelled at once and answers status cancelled; a running one stops at its next step and answers in_progress until it does. Only the caller that started the run may cancel it.
+         * @description Cancels the background run whose newest response this is. A queued or paused run is cancelled at once and answers status cancelled; a running one stops at its next step and answers in_progress until it does. Only the caller that started the run, or an organization admin or owner, may cancel it.
          */
         post: operations["cancelResponse"];
         delete?: never;
@@ -4421,6 +4461,11 @@ export interface components {
     schemas: {
         AddQueueItemsRequest: {
             items: components["schemas"]["Item"][];
+        };
+        /** @description What this deployment offers every agent. */
+        AgentAvailabilityDTO: {
+            /** @description Whether this deployment runs the Bash tool. Where it is false, a backbone.bash entry is stored but never offered to the model. */
+            bashAvailable: boolean;
         };
         AgentCatalogEntryDTO: {
             conversationModes?: components["schemas"]["ConversationModes"];
@@ -5748,6 +5793,7 @@ export interface components {
         FunctionCallOutputItem: {
             type: "FunctionCallOutputItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            approval_route?: string;
             call_id?: string;
             failed?: boolean;
             id?: string;
@@ -5823,7 +5869,7 @@ export interface components {
             status: string;
         });
         InputRequester: {
-            kind?: string;
+            kind: string;
             user_id?: string;
         };
         InputResponseItem: {
@@ -8431,6 +8477,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AgentDTO"];
+                };
+            };
+        };
+    };
+    getAgentAvailability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AgentAvailabilityDTO"];
                 };
             };
         };
@@ -13460,6 +13526,40 @@ export interface operations {
             };
         };
     };
+    cancelLocalBridgePairing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pairing ended */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Pairing not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Computer already connected */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     confirmLocalBridgePairing: {
         parameters: {
             query?: never;
@@ -15110,7 +15210,7 @@ export interface operations {
                     "application/json": Record<string, never>;
                 };
             };
-            /** @description Surface turn rate exceeded for this installation and end-user, or too_many_open_runs: the organization's open background runs are at their limit */
+            /** @description Surface turn rate exceeded for this installation and end-user, or too_many_open_runs: the organization's or the caller's open background runs are at their limit */
             429: {
                 headers: {
                     [name: string]: unknown;

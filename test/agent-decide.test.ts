@@ -319,6 +319,19 @@ describe('Agent › Decide Approval (#660)', () => {
     expect((item.json.pendingApprovals as { approvalId: string }[]).map((a) => a.approvalId)).toEqual(['apreq_1']);
   });
 
+  it('keeps every assistant message joined in text on a typeVersion 1 node (#1482)', async () => {
+    const { ctx } = makeCtx({ ...decideParams, decideOptions: { returnPausedRuns: true } }, [
+      pendingPage([{ id: 'apreq_0', responseId: 'resp_p', hmac: 'h0', policyClass: 'WRITE' }]),
+      pausedRun({ id: 'resp_q' }),
+    ]);
+    ctx.getNode.mockReturnValue({ name: '2kw', typeVersion: 1 });
+
+    const [item] = await executeAgent.call(ctx, 0, 'decideApproval');
+
+    expect(item.json.text).toBe('I need to write.');
+    expect(item.json.commentary).toEqual(['I need to write.']);
+  });
+
   it('fails a run that pauses again by default', async () => {
     const { ctx } = makeCtx(decideParams, [
       pendingPage([{ id: 'apreq_0', responseId: 'resp_p', hmac: 'h0', policyClass: 'WRITE' }]),
