@@ -79,6 +79,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/agents/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get agent tool availability
+         * @description Whether this deployment runs the Bash tool, for an editor that has no agent yet. Every agent read carries the same answer as bashAvailable.
+         */
+        get: operations["getAgentAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/agents/catalog": {
         parameters: {
             query?: never;
@@ -4422,6 +4442,11 @@ export interface components {
         AddQueueItemsRequest: {
             items: components["schemas"]["Item"][];
         };
+        /** @description What this deployment offers every agent. */
+        AgentAvailabilityDTO: {
+            /** @description Whether this deployment runs the Bash tool. Where it is false, a backbone.bash entry is stored but never offered to the model. */
+            bashAvailable: boolean;
+        };
         AgentCatalogEntryDTO: {
             conversationModes?: components["schemas"]["ConversationModes"];
             description?: string;
@@ -8431,6 +8456,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AgentDTO"];
+                };
+            };
+        };
+    };
+    getAgentAvailability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AgentAvailabilityDTO"];
                 };
             };
         };
