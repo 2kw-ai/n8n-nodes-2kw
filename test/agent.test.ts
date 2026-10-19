@@ -5,7 +5,7 @@ type Binary = Record<string, { mimeType?: string; fileName?: string }>;
 
 function makeCtx(
   params: Record<string, unknown>,
-  opts: { responses?: unknown[]; binary?: Binary; typeVersion?: number } = {},
+  opts: { responses?: unknown[]; binary?: Binary } = {},
 ) {
   const queue = [...(opts.responses ?? [])];
   const fn = vi.fn().mockImplementation(async () => queue.shift());
@@ -21,7 +21,7 @@ function makeCtx(
       throw new Error(`unexpected parameter ${name}`);
     }),
     getInputData: vi.fn().mockReturnValue([{ json: {}, binary: opts.binary }]),
-    getNode: vi.fn().mockReturnValue({ name: '2kw', typeVersion: opts.typeVersion ?? 2 }),
+    getNode: vi.fn().mockReturnValue({ name: '2kw' }),
   };
   return { ctx, fn };
 }
@@ -215,32 +215,6 @@ describe('Agent resource — Send Message', () => {
         pairedItem: 0,
       },
     ]);
-  });
-
-  it('keeps every assistant message joined in text on a typeVersion 1 node (#1482)', async () => {
-    const response = completed({
-      output: [
-        {
-          type: 'message',
-          role: 'assistant',
-          phase: 'commentary',
-          content: [{ type: 'output_text', text: 'Let me look that up.' }],
-        },
-        { type: 'function_call', name: 'lookup', call_id: 'c1', arguments: '{}' },
-        {
-          type: 'message',
-          role: 'assistant',
-          phase: 'final_answer',
-          content: [{ type: 'output_text', text: 'The answer' }],
-        },
-      ],
-    });
-    const { ctx } = makeCtx(baseParams, { responses: [response], typeVersion: 1 });
-
-    const [item] = await executeAgent.call(ctx, 0, 'sendMessage');
-
-    expect(item.json.text).toBe('Let me look that up.\n\nThe answer');
-    expect(item.json.commentary).toEqual(['Let me look that up.']);
   });
 
   it('returns incomplete runs with the reason instead of throwing', async () => {

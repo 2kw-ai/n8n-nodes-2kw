@@ -212,12 +212,10 @@ export function pendingInputsJson(output: unknown, answerUrl: string): IDataObje
   }));
 }
 
-function simplify(response: AgentResponse, connectorsUrl: string, answerUrl: string, v1: boolean): IDataObject {
+function simplify(response: AgentResponse, connectorsUrl: string, answerUrl: string): IDataObject {
   const { text, commentary } = responseText(response);
   const json: IDataObject = {
-    // typeVersion 1 (#1482) joins every assistant message, as before #1297; it keeps `commentary` too,
-    // which 7.3.0 shipped on v1 nodes.
-    text: v1 ? [...commentary, text].filter((t) => t !== '').join('\n\n') : text,
+    text,
     commentary,
     status: response.status,
     responseId: response.id,
@@ -364,7 +362,7 @@ async function runResult(
   const answerUrl = answerUrlFor(chatOrigin, response.conversation?.id ?? null);
   assertNotPaused(ctx, response, itemIndex, options.returnPausedRuns === true, connectorsUrl, answerUrl);
   const json =
-    options.simplify === false ? (response as unknown as IDataObject) : simplify(response, connectorsUrl, answerUrl, ctx.getNode().typeVersion === 1);
+    options.simplify === false ? (response as unknown as IDataObject) : simplify(response, connectorsUrl, answerUrl);
   return [{ json, pairedItem: itemIndex }];
 }
 
