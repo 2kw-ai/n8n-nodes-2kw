@@ -4520,6 +4520,7 @@ export interface components {
         };
         AgentPolicyAutoApprovalDTO: {
             enabled?: boolean;
+            instructionsExceedJudgeBound?: boolean;
             judgeConfigured?: boolean;
         };
         AgentPolicyDTO: {
