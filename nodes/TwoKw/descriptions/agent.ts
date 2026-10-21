@@ -31,10 +31,14 @@ const conversationMode: INodeProperties = {
   type: 'options',
   default: 'ask',
   description:
-    "Conversation mode for this and later turns of the conversation. Leave the option out to keep the conversation's mode.",
+    "Conversation mode for this and later turns of the conversation. Leave the option out to keep the conversation's mode, else the agent's default. A mode the agent does not offer is refused.",
   options: [
-    { name: 'Ask', value: 'ask', description: 'No automatic approver. Calls that need approval wait for a person.' },
-    { name: 'Auto', value: 'auto', description: "The operator's policy as written, automatic approver included" },
+    { name: 'Ask', value: 'ask', description: 'Calls that need approval wait for a person' },
+    {
+      name: 'Auto',
+      value: 'auto',
+      description: 'The automatic approver decides reads and writes the server marks safe; a person decides the rest',
+    },
     { name: 'Plan', value: 'plan', description: 'Read only. Anything that could change something is refused.' },
   ],
 };

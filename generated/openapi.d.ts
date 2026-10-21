@@ -324,7 +324,7 @@ export interface paths {
         };
         /**
          * Get effective policy
-         * @description What the policy gate would do to a call of each tool this version configures: the verdict, the composed action, the class and its source, and every policy statement that contributed. Read-only — no run, no approval row, no judge call.
+         * @description What the policy gate would do to a call of each tool this version configures: the verdict, the composed action, the class and its source, and every policy statement that contributed, under one conversation mode (`effectiveMode`, and whether it came from the request or the agent's default). Read-only — no run, no approval row, no approver call. A `mode` the version does not offer is refused with 400 `conversation_mode_not_offered`.
          */
         get: operations["getAgentVersionPolicy"];
         put?: never;
@@ -4528,6 +4528,8 @@ export interface components {
             autoApproval?: components["schemas"]["AgentPolicyAutoApprovalDTO"];
             /** Format: date-time */
             catalogResolvedAt?: string;
+            effectiveMode?: string;
+            effectiveModeSource?: string;
             tools?: components["schemas"]["AgentPolicyToolDTO"][];
             versionId?: string;
         };
@@ -4632,6 +4634,7 @@ export interface components {
             human_only?: boolean;
             id?: string;
             mode?: string;
+            pause_reason?: string;
             policy_class?: string;
             preview?: components["schemas"]["SkillsApplyPreview"];
             reason?: string;
@@ -4911,7 +4914,6 @@ export interface components {
             id?: string;
         };
         ConnectorGrantToolDTO: {
-            auto?: boolean;
             ceiling?: string;
             effective?: string;
             name?: string;
@@ -8048,6 +8050,7 @@ export interface components {
             judgeReason?: string;
             judgedBy?: string;
             organizationId?: string;
+            pauseReason?: string;
             /** @enum {string} */
             policyClass?: "READ" | "WRITE" | "DESTRUCTIVE";
             reason?: string;
@@ -8837,7 +8840,7 @@ export interface operations {
             query?: {
                 tool?: string;
                 installation?: string;
-                /** @description Answer as a conversation in this mode would be gated: `plan` refuses every call that is not read-only, `ask` puts a person where the policy delegates to the judge, `auto` is the policy as written. Omit for no mode. A mode that contributed is listed in `matchedRules` as `conversation_mode.<mode>`. */
+                /** @description Answer as a conversation in this mode would be gated: `plan` refuses every call that is not read-only, `ask` puts a person on every call that needs approval, `auto` lets the automatic approver decide reads and writes the server marks safe. Omit for the agent's default mode. A mode that contributed is listed in `matchedRules` as `conversation_mode.<mode>`. */
                 mode?: "plan" | "ask" | "auto";
             };
             header?: never;
