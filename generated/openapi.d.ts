@@ -12375,7 +12375,7 @@ export interface operations {
                     "*/*": components["schemas"]["FileResource"];
                 };
             };
-            /** @description File over the per-file limit (error.code file_too_large). A file far above the limit is refused before the request is read and answers 413 with a problem+json body that has no error.code. */
+            /** @description File over the per-file limit (error.code file_too_large) */
             413: {
                 headers: {
                     [name: string]: unknown;
