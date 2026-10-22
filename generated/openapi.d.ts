@@ -4129,7 +4129,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Export a skill bundle */
+        /**
+         * Export a skill bundle
+         * @description Returns SKILL.md and the version's resources as a zip. Files under examples/ are confidential and left out unless includeExamples=true; when any were left out, the X-Skill-Examples-Omitted response header gives their count. includeExamples=true needs ADMIN or OWNER and is 403 for any other role.
+         */
         get: operations["exportSkillVersion"];
         put?: never;
         post?: never;
@@ -6020,6 +6023,8 @@ export interface components {
             textSearchLanguage?: "arabic" | "armenian" | "basque" | "catalan" | "danish" | "dutch" | "english" | "finnish" | "french" | "german" | "greek" | "hindi" | "hungarian" | "indonesian" | "irish" | "italian" | "lithuanian" | "nepali" | "norwegian" | "portuguese" | "romanian" | "russian" | "serbian" | "simple" | "spanish" | "swedish" | "tamil" | "turkish" | "yiddish";
         };
         KnowledgeBaseRequest: {
+            /** @description `true` abandons the text-search reindex in progress, if any, keeps the active language and discards the rows the reindex built. Applied before `textSearchLanguage`, so sending both moves the reindex to that language. Omit it or send `false` to leave a reindex running. Ignored on create. */
+            cancelTextSearchReindex?: boolean;
             /** Format: int32 */
             chunkOverlap?: number;
             /** Format: int32 */
@@ -6039,7 +6044,10 @@ export interface components {
             /** @description The id of one of the organization's provider rows to rerank results with. `builtin` is refused with a 400: there is no built-in reranker. */
             rerankerProviderId?: string;
             slug: string;
-            /** @enum {string} */
+            /**
+             * @description Text-search language for the keyword leg of hybrid search (stemming and stop words). Default `simple` on create. On update, a language other than the active and the pending one starts a background reindex; omitting it, or sending the active or pending language back, leaves both untouched. To abandon a reindex in progress, send `cancelTextSearchReindex: true`.
+             * @enum {string}
+             */
             textSearchLanguage?: "arabic" | "armenian" | "basque" | "catalan" | "danish" | "dutch" | "english" | "finnish" | "french" | "german" | "greek" | "hindi" | "hungarian" | "indonesian" | "irish" | "italian" | "lithuanian" | "nepali" | "norwegian" | "portuguese" | "romanian" | "russian" | "serbian" | "simple" | "spanish" | "swedish" | "tamil" | "turkish" | "yiddish";
         };
         KnowledgeSearchRequest: {
@@ -7698,7 +7706,7 @@ export interface components {
              */
             name?: string;
             /**
-             * @description Label name or integer version number as string. Defaults to latest.
+             * @description Label name, integer version number as string, or a content pin sha256:<64 lowercase hex> that resolves only to the version with exactly that contentHash. Defaults to latest.
              * @example production
              */
             ref?: string;
@@ -16139,6 +16147,10 @@ export interface operations {
     resolveSkill: {
         parameters: {
             query: {
+                /**
+                 * @description name, name@label, name@<version number>, or name@sha256:<64 lowercase hex>: a content pin that resolves to the lowest version with exactly that contentHash, and 404 when no version has it.
+                 * @example invoice-workflow@production
+                 */
                 ref: string;
             };
             header?: never;
@@ -16430,7 +16442,10 @@ export interface operations {
     };
     exportSkillVersion: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Include the confidential examples/ files. ADMIN or OWNER only. */
+                includeExamples?: boolean;
+            };
             header?: never;
             path: {
                 id: string;
