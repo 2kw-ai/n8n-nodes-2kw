@@ -11352,6 +11352,15 @@ export interface operations {
                     "application/json": components["schemas"]["DictationResponse"];
                 };
             };
+            /** @description No credential, or one that names no user */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DictationResponse"];
+                };
+            };
             /** @description Slice larger than 1 MiB */
             413: {
                 headers: {
