@@ -9373,7 +9373,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "multipart/form-data": {
                     /** Format: binary */
@@ -9734,7 +9734,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -10571,7 +10571,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ConversationListResource"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description scope=org without the MEMBER role */
@@ -10580,7 +10580,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ConversationListResource"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -10613,7 +10613,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ConversationResource"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -10735,21 +10735,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
             };
             /** @description The caller is a VIEWER */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
             };
             /** @description No conversation with this id is visible to the caller */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
             };
         };
     };
@@ -10785,7 +10791,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "multipart/form-data": {
                     files: string[];
@@ -10842,7 +10848,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "multipart/form-data": {
                     files: string[];
@@ -11321,7 +11327,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "multipart/form-data": {
                     /** Format: binary */
@@ -11347,7 +11353,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DictationResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description No credential, or one that names no user */
@@ -11356,7 +11362,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DictationResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Slice larger than 1 MiB */
@@ -11365,7 +11371,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DictationResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Slice is not PCM16 mono 16 kHz WAV */
@@ -11374,16 +11380,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DictationResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Dictation rate exceeded; see Retry-After */
+            /** @description Dictation rate exceeded, or the speech service is busy; see Retry-After */
             429: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DictationResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Dictation is unavailable */
@@ -11392,7 +11398,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DictationResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -13168,7 +13174,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "multipart/form-data": {
                     files: string[];
@@ -15243,7 +15249,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description billing_error: usage used up, or a provider/model on a plan without your own provider keys */
@@ -15252,7 +15258,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description not_run_origin: only the background run's starter may continue it with anything but approval decisions, and only the starter may continue a run that waits for them to connect, allow or reconnect a connector */
@@ -15261,7 +15267,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description background: previous_response_id names no response visible to the caller */
@@ -15270,7 +15276,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description A background run refuses the continuation: run_active, stale_previous_response, run_terminal, run_deadline_exceeded, connector_auth_expired (the run waited for its starter to connect, allow or reconnect a connector and they did not in time), run_is_background, response_is_synchronous or conversation_has_active_run. The error carries head_response_id. */
@@ -15279,7 +15285,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Surface turn rate exceeded for this installation and end-user, or too_many_open_runs: the organization's or the caller's open background runs are at their limit */
@@ -15288,7 +15294,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description stream: true was sent for a model whose provider cannot stream; retry without it */
@@ -15297,7 +15303,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -15329,7 +15335,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description No response with that id is visible to the caller */
@@ -15338,7 +15344,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -15370,7 +15376,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description No response with that id is visible to the caller */
@@ -15379,7 +15385,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description not_run_head: a newer response of the run exists; run_terminal: the run already ended. The error carries head_response_id. */
@@ -15388,7 +15394,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -16127,7 +16133,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "multipart/form-data": {
                     /** Format: binary */
