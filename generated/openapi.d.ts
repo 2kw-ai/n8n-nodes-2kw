@@ -14887,6 +14887,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                promptId: string;
                 versionId: string;
             };
             cookie?: never;
@@ -14909,6 +14910,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                promptId: string;
                 versionId: string;
             };
             cookie?: never;
@@ -14929,6 +14931,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                promptId: string;
                 versionId: string;
             };
             cookie?: never;
