@@ -5699,7 +5699,6 @@ export interface components {
         ExtractionMetadata: {
             /** Format: int32 */
             chunksProcessed?: number;
-            cost?: number;
             /** Format: int64 */
             durationMs?: number;
             /** Format: int32 */
@@ -7454,7 +7453,6 @@ export interface components {
             /** Format: int64 */
             durationMs?: number;
             error?: components["schemas"]["JsonNode"];
-            estimatedCost?: number;
             id?: string;
             /** Format: int64 */
             inputTokens?: number;
@@ -8352,7 +8350,6 @@ export interface components {
             };
             /** Format: int32 */
             successfulItemCount?: number;
-            totalCost?: number;
             variantId?: string;
             variantName?: string;
         };
