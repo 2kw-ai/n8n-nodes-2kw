@@ -2036,7 +2036,7 @@ export interface paths {
         };
         /**
          * List files
-         * @description List the organization's files as a page, newest first by default, optionally narrowed by purpose.
+         * @description List the organization's files, newest first by default, optionally narrowed by purpose. Page with limit and after: while has_more is true, pass last_id as after.
          */
         get: operations["list_3"];
         put?: never;
@@ -5745,6 +5745,13 @@ export interface components {
             id?: string;
             object?: string;
         };
+        FileListResource: {
+            data?: components["schemas"]["FileResource"][];
+            first_id?: string;
+            has_more?: boolean;
+            last_id?: string;
+            object?: string;
+        };
         FileResource: {
             /** Format: int64 */
             bytes?: number;
@@ -6502,6 +6509,7 @@ export interface components {
             type: "OutputTextContent";
         } & (Omit<components["schemas"]["ContentPart"], "type"> & {
             annotations?: unknown[];
+            logprobs?: unknown[];
             text?: string;
         });
         OverageDTO: {
@@ -6710,24 +6718,6 @@ export interface components {
         };
         PageExtractionDTO: {
             content?: components["schemas"]["ExtractionDTO"][];
-            empty?: boolean;
-            first?: boolean;
-            last?: boolean;
-            /** Format: int32 */
-            number?: number;
-            /** Format: int32 */
-            numberOfElements?: number;
-            pageable?: components["schemas"]["PageableObject"];
-            /** Format: int32 */
-            size?: number;
-            sort?: components["schemas"]["SortObject"];
-            /** Format: int64 */
-            totalElements?: number;
-            /** Format: int32 */
-            totalPages?: number;
-        };
-        PageFileResource: {
-            content?: components["schemas"]["FileResource"][];
             empty?: boolean;
             first?: boolean;
             last?: boolean;
@@ -12358,9 +12348,13 @@ export interface operations {
     };
     list_3: {
         parameters: {
-            query: {
+            query?: {
                 purpose?: string;
-                pageable: components["schemas"]["Pageable"];
+                /** @description How many files to return, 1 to 100. Defaults to 20. */
+                limit?: number;
+                /** @description A file id: list the files that come after it in this order. */
+                after?: string;
+                order?: "asc" | "desc";
             };
             header?: never;
             path?: never;
@@ -12368,22 +12362,31 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description A page of file objects */
+            /** @description A list of file objects */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["PageFileResource"];
+                    "*/*": components["schemas"]["FileListResource"];
                 };
             };
-            /** @description Unknown purpose */
+            /** @description Unknown purpose, or order other than asc or desc */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["PageFileResource"];
+                    "*/*": components["schemas"]["FileListResource"];
+                };
+            };
+            /** @description after names no file of the organization */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FileListResource"];
                 };
             };
         };
