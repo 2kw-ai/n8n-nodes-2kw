@@ -6392,6 +6392,12 @@ export interface components {
             reasoningControl?: "effort" | "budget" | "toggle";
             reasoningEfforts?: ("none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max")[];
             rejectedParams?: string[];
+            /** @description Whether the model returns schema-conforming JSON when asked; null = unknown. */
+            structuredOutput?: boolean | null;
+            /** @description Whether the model accepts function tools; null = unknown. */
+            toolCalling?: boolean | null;
+            /** @description Whether the model accepts image input; null = unknown. */
+            vision?: boolean | null;
         };
         ModelCapabilityRequest: {
             /** @description Other names the same model answers to. */
@@ -6421,6 +6427,12 @@ export interface components {
             reasoningEfforts?: ("none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max")[];
             /** @description Request parameters the model refuses. */
             rejectedParams?: ("temperature" | "top_p" | "top_k" | "presence_penalty" | "frequency_penalty" | "stop")[];
+            /** @description Whether the model returns schema-conforming JSON when asked. Omit or null for unknown. */
+            structuredOutput?: boolean | null;
+            /** @description Whether the model accepts function tools. Omit or null for unknown. */
+            toolCalling?: boolean | null;
+            /** @description Whether the model accepts image input. Omit or null for unknown. */
+            vision?: boolean | null;
         };
         ModelInfo: {
             /** Format: int64 */
