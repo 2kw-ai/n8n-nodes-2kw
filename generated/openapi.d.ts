@@ -9732,6 +9732,15 @@ export interface operations {
                     "text/event-stream": Record<string, never>;
                 };
             };
+            /** @description billing_error: usage used up, or a provider/model on a plan without your own provider keys */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
         };
     };
     startConnectorAuthorization: {
@@ -15005,13 +15014,22 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Created */
+            /** @description The provider is saved */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "*/*": components["schemas"]["ProviderDTO"];
+                };
+            };
+            /** @description LIMIT_EXCEEDED_BYOK: the plan does not include your own provider keys */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
@@ -15203,6 +15221,15 @@ export interface operations {
             };
             /** @description background_stream_unsupported: background with stream; background_requires_agent: background on a provider/model */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description billing_error: usage used up, or a provider/model on a plan without your own provider keys */
+            402: {
                 headers: {
                     [name: string]: unknown;
                 };
