@@ -2502,7 +2502,7 @@ export interface paths {
         put?: never;
         /**
          * Search a knowledge base
-         * @description Hybrid dense + lexical retrieval with Reciprocal Rank Fusion. topK is clamped to 1..100. Results are visible to the caller's own principals only; an empty result is not an error. Search is top-k and deliberately not paginated: every request re-embeds the query, re-runs both retrievers under a bounded per-retriever fetch, and re-fuses their rankings, so there is no stable global ordering to offset into. Raise topK instead of asking for a later page. The knowledge-base and document list endpoints do paginate.
+         * @description Hybrid semantic and keyword search over a knowledge base. topK is clamped to 1..100. Results are visible to the caller's own principals only; an empty result is not an error. Search is top-k and deliberately not paginated: every request ranks afresh, so there is no stable global ordering to offset into. Raise topK instead of asking for a later page. The knowledge-base and document list endpoints do paginate.
          */
         post: operations["search"];
         delete?: never;
@@ -7081,13 +7081,13 @@ export interface components {
              * @description Maximum number of pages to process
              */
             maxPages?: number;
-            /** @description OCR engine (e.g. 'easyocr', 'tesseract') */
+            /** @description OCR engine to read text from scanned pages and images. Omit for the default. */
             ocrEngine?: string;
             /** @description OCR languages (e.g. ['en', 'de']) */
             ocrLanguages?: string[];
             /** @description Output formats. Default: [MD, TEXT] */
             outputFormats?: ("MD" | "TEXT" | "JSON" | "HTML")[];
-            /** @description PDF backend (e.g. 'dlparser', 'pypdfium2') */
+            /** @description PDF parser to read the document layout. Omit for the default. */
             pdfBackend?: string;
             /** @description Enable picture classification */
             pictureClassification?: boolean;
