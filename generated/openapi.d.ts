@@ -11150,6 +11150,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                id: string;
                 versionId: string;
             };
             cookie?: never;
@@ -11174,6 +11175,7 @@ export interface operations {
             };
             header?: never;
             path: {
+                id: string;
                 versionId: string;
             };
             cookie?: never;
@@ -11196,6 +11198,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                id: string;
                 versionId: string;
             };
             cookie?: never;
@@ -11222,6 +11225,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                id: string;
                 versionId: string;
             };
             cookie?: never;
@@ -11248,6 +11252,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                id: string;
+                versionId: string;
                 itemId: string;
             };
             cookie?: never;
@@ -11268,6 +11274,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                id: string;
+                versionId: string;
                 itemId: string;
             };
             cookie?: never;
