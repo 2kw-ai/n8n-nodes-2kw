@@ -7411,6 +7411,7 @@ export interface components {
             headingPath?: string[];
             hitId?: string;
             knowledgeBaseId?: string;
+            matchedBy?: string[];
             matchedSpan?: string;
             /** Format: int32 */
             pageEnd?: number;
