@@ -15763,6 +15763,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                schemaId: string;
                 versionId: string;
             };
             cookie?: never;
@@ -15785,6 +15786,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                schemaId: string;
                 versionId: string;
             };
             cookie?: never;
@@ -15805,6 +15807,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                schemaId: string;
                 versionId: string;
             };
             cookie?: never;
