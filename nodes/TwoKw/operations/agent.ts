@@ -46,6 +46,10 @@ interface OutputItem {
   server_label?: string;
   host?: string;
   destinations?: string[];
+  /** `backbone:ui` (#1419): `table` or `chart`, and its validated props. */
+  component?: string;
+  schema_version?: number;
+  props?: IDataObject;
 }
 
 export interface AgentResponse {
@@ -225,6 +229,16 @@ function simplify(response: AgentResponse, connectorsUrl: string, answerUrl: str
     conversationMode: conversationModeOf(response),
     model: response.model,
     usage: response.usage ?? null,
+    // The tables and charts the agent showed (#1419), as the CLI and the MCP server publish them.
+    components: (response.output ?? [])
+      .filter((item) => item.type === 'backbone:ui')
+      .map((item) => ({
+        id: item.id ?? null,
+        callId: item.call_id ?? null,
+        component: item.component ?? null,
+        schemaVersion: item.schema_version ?? null,
+        props: item.props ?? null,
+      })),
   };
   if (response.status === 'incomplete') {
     json.incompleteReason = response.incomplete_details?.reason ?? null;

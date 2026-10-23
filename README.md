@@ -48,7 +48,7 @@ Agent, Label, Schema, Prompt, Schema Version, and Prompt Label fields are **sear
 
 ## Agents in n8n
 
-**Agent › Send Message** runs one turn of an agent you built in 2kw and returns its answer as `text`, together with `commentary` (what the agent said on its way to a tool call, one string per message, oldest first; when a run pauses before it answers, `text` is empty and what it said so far is here), `status`, `responseId`, `conversationId`, `conversationMode`, `model` and `usage`. `conversationMode` is the [conversation mode](#conversation-mode) the turn ran under: `plan`, `ask`, `auto`, or `null` when none is set. Pass `conversationId` (or `responseId` as *Previous Response ID*) to a later Send Message to continue the thread. Files from binary properties are uploaded and attached to the message; images reach the model as pixels.
+**Agent › Send Message** runs one turn of an agent you built in 2kw and returns its answer as `text`, together with `commentary` (what the agent said on its way to a tool call, one string per message, oldest first; when a run pauses before it answers, `text` is empty and what it said so far is here), `status`, `responseId`, `conversationId`, `conversationMode`, `model`, `usage` and `components`, the tables and charts the agent showed (each with `id`, `callId`, `component`, `schemaVersion` and `props`; empty when none). `conversationMode` is the [conversation mode](#conversation-mode) the turn ran under: `plan`, `ask`, `auto`, or `null` when none is set. Pass `conversationId` (or `responseId` as *Previous Response ID*) to a later Send Message to continue the thread. Files from binary properties are uploaded and attached to the message; images reach the model as pixels.
 
 This is node version 2, the default for a node you add now. A version 1 node, one added to a workflow before version 2 existed, returns every assistant message of the turn in `text`, joined by a blank line, commentary included; it returns `commentary` as well. In 7.3.0 a version 1 node returned the answer alone; from the release with version 2 on, it joins again. To get the answer alone, replace the workflow's 2kw node with a new one.
 
@@ -149,6 +149,7 @@ Prereleases publish under the `dev` dist-tag (`npm install n8n-nodes-2kw@dev`), 
 - Added the `Mode` option (Plan, Ask, Auto) to Agent › Send Message and Decide Approval, which sets the conversation mode, and `conversationMode` to the simplified output.
 - A run paused on a connector the user must connect in chat.2kw.ai now fails with the connector's label, host and the Connectors link instead of "client-side tool mcp__<label>__connect". With Return Paused Runs on it is returned with `pendingConnections`; the simplified output of every paused run now carries `pendingConnections` (empty when none).
 - A run paused on a connector's question to the user now fails with the connector's label and the chat link to answer in. With Return Paused Runs on it is returned with `pendingInputs`; the simplified output of every paused run now carries `pendingInputs` (empty when none).
+- The simplified output carries `components`, the tables and charts the agent showed the user (empty when none).
 
 Entries below `1.0.0` predate npm publication and use the node's own numbering.
 

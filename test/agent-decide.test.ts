@@ -123,6 +123,7 @@ describe('Agent › Send Message › Return Paused Runs (#660)', () => {
       conversationMode: null,
       model: 'agent/support@4',
       usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
+      components: [],
       pendingApprovals: [
         {
           approvalId: 'apreq_1',
@@ -241,6 +242,7 @@ describe('Agent › Decide Approval (#660)', () => {
           conversationMode: null,
           model: 'agent/support@4',
           usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
+          components: [],
         },
         pairedItem: 0,
       },

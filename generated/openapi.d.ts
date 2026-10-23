@@ -5199,7 +5199,7 @@ export interface components {
             background?: boolean;
             conversation?: string;
             /** @description The turn's input: a string, or an array of items */
-            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["InputRequestItem"] | components["schemas"]["InputResponseItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"] | components["schemas"]["ToolImageItem"])[];
+            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["InputRequestItem"] | components["schemas"]["InputResponseItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"] | components["schemas"]["ToolImageItem"] | components["schemas"]["UiItem"])[];
             instructions?: string;
             /** Format: int32 */
             max_output_tokens?: number;
@@ -8200,6 +8200,17 @@ export interface components {
              */
             retentionDays?: number | null;
         };
+        UiItem: {
+            type: "UiItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            call_id: string;
+            component: string;
+            id: string;
+            /** @description The component's validated props */
+            props: string;
+            /** Format: int32 */
+            schema_version: number;
+        });
         UnsupportedComponent: {
             path?: string;
             reason?: string;

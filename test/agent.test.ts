@@ -211,9 +211,29 @@ describe('Agent resource — Send Message', () => {
           conversationMode: null,
           model: 'agent/ag-1',
           usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
+          components: [],
         },
         pairedItem: 0,
       },
+    ]);
+  });
+
+  it('keeps the tables and charts the agent showed in the simplified item (#1419)', async () => {
+    const props = { title: 'Open invoices', columns: [{ key: 'n', label: 'No.', format: 'text', align: 'left' }], rows: [{ n: 'INV-1' }] };
+    const response = completed({
+      output: [
+        { type: 'function_call', name: 'ShowTable', call_id: 'c1', arguments: '{}' },
+        { type: 'function_call_output', call_id: 'c1', output: 'Shown to the user.' },
+        { type: 'backbone:ui', id: 'ui_c1', call_id: 'c1', component: 'table', schema_version: 1, props },
+        { type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'Here they are.' }] },
+      ],
+    });
+    const { ctx } = makeCtx(baseParams, { responses: [response] });
+
+    const [item] = await executeAgent.call(ctx, 0, 'sendMessage');
+
+    expect(item.json.components).toEqual([
+      { id: 'ui_c1', callId: 'c1', component: 'table', schemaVersion: 1, props },
     ]);
   });
 
