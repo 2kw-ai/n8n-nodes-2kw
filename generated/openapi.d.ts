@@ -3571,6 +3571,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/scheduled-tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List your scheduled tasks
+         * @description Your scheduled tasks with their next run, their last run and the connectors you need to connect or allow before the first run.
+         */
+        get: operations["listScheduledTasks"];
+        put?: never;
+        /**
+         * Schedule a task
+         * @description Creates a task that runs the agent as you at each time of its recurrence (at most once an hour), with your connector sign-ins, each run in a new conversation of yours. A run that needs an approval or a sign-in waits for you. You can have 10 active tasks.
+         */
+        post: operations["createScheduledTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/scheduled-tasks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a scheduled task
+         * @description Deletes the task. A run in progress finishes; the conversations of past runs stay yours.
+         */
+        delete: operations["deleteScheduledTask"];
+        options?: never;
+        head?: never;
+        /**
+         * Change, pause or resume a scheduled task
+         * @description Changes the given fields. state paused stops the schedule, active resumes it; the next run is the next time after now. The agent cannot change.
+         */
+        patch: operations["updateScheduledTask"];
+        trace?: never;
+    };
+    "/v1/scheduled-tasks/{id}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run a scheduled task now
+         * @description Starts one run of the task now, in a new conversation, without changing its schedule. Works on a paused, completed or on-demand task, not on a stopped one.
+         */
+        post: operations["runScheduledTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/schemas": {
         parameters: {
             query?: never;
@@ -4505,6 +4573,7 @@ export interface components {
             organizationId?: string;
             /** @description Skills bound to the agent (#639): at most 20 entries, names unique, ref defaults to latest. */
             skills?: components["schemas"]["SkillBinding"][];
+            /** @description The agent's tools: function tools, connectors and built-ins. An entry {"type": "backbone.agent", "name", "description"?, "requiresConfirmation"?, "config": {"agent_id"}} makes another published agent of the organization a sub-agent: the model hands it a task, optionally with files, and gets back its answer and the files it returns. At most 5 sub-agents per version and 5 calls per turn; a sub-agent has no sub-agents of its own, runs as the caller, cannot fetch web pages, and a step of it that needs a person's approval fails. Not available in embedded installations. */
             tools?: components["schemas"]["JsonNode"];
             version?: string;
         };
@@ -5025,7 +5094,12 @@ export interface components {
         ContentPart: {
             type: string;
         };
+        ConversationActiveRun: {
+            head_response_id?: string;
+            status?: string;
+        };
         ConversationBackbone: {
+            active_run?: components["schemas"]["ConversationActiveRun"];
             agent_id?: string;
             failed_turn?: components["schemas"]["ConversationFailedTurn"];
             head_response_id?: string;
@@ -5035,6 +5109,7 @@ export interface components {
             last_reasoning_effort?: string;
             mode?: string;
             pause_reason?: string;
+            scheduled_task?: components["schemas"]["ConversationScheduledTask"];
             status?: string;
         };
         ConversationDeletedResource: {
@@ -5078,6 +5153,13 @@ export interface components {
             id?: string;
             metadata?: components["schemas"]["JsonNode"];
             object?: string;
+        };
+        ConversationScheduledTask: {
+            /** Format: date-time */
+            ended_at?: string;
+            name?: string;
+            outcome?: string;
+            task_id?: string;
         };
         ConversationSummaryResource: {
             /** Format: int64 */
@@ -5144,6 +5226,7 @@ export interface components {
             options?: components["schemas"]["JsonNode"];
             /** @description Skills to bind (#639): [{ name, ref? }], at most 20, names unique, ref defaults to latest. */
             skills?: components["schemas"]["SkillBinding"][];
+            /** @description The agent's tools: function tools, connectors and built-ins. An entry {"type": "backbone.agent", "name", "description"?, "requiresConfirmation"?, "config": {"agent_id"}} makes another published agent of the organization a sub-agent: the model hands it a task, optionally with files, and gets back its answer and the files it returns. At most 5 sub-agents per version and 5 calls per turn; a sub-agent has no sub-agents of its own, runs as the caller, cannot fetch web pages, and a step of it that needs a person's approval fails. Not available in embedded installations. */
             tools?: components["schemas"]["JsonNode"];
         };
         CreateAnnotationQueueRequest: {
@@ -5225,6 +5308,17 @@ export interface components {
             /** Format: double */
             top_p?: number;
         };
+        CreateScheduledTaskRequest: {
+            /** @description The agent to run. */
+            agent_id: string;
+            /** @description The message each run starts with, 1 to 4,000 characters. */
+            instructions: string;
+            /** @description 1 to 80 characters. */
+            name: string;
+            recurrence: components["schemas"]["Recurrence"];
+            /** @description IANA time zone, for example Europe/Berlin. */
+            time_zone: string;
+        };
         CreateSchemaLabelRequest: {
             name: string;
             schemaVersionId: string;
@@ -5270,6 +5364,7 @@ export interface components {
             metadata?: components["schemas"]["JsonNode"];
             name: string;
             organizationId?: string;
+            /** @description Dataset type, such as `text` or `agent`. Defaults to `text` when omitted on create; an update that omits it keeps the current type. */
             type?: string;
             version?: string;
         };
@@ -5801,6 +5896,8 @@ export interface components {
             id?: string;
             name?: string;
             status?: string;
+            /** @description Present and true when this call hands a task to another agent of the organization (a sub-agent). Written by the server; ignored on input. */
+            sub_agent?: boolean;
         });
         FunctionCallOutputItem: {
             type: "FunctionCallOutputItem";
@@ -7272,6 +7369,36 @@ export interface components {
             id?: string;
             summary?: (components["schemas"]["InputFileContent"] | components["schemas"]["InputImageContent"] | components["schemas"]["InputTextContent"] | components["schemas"]["OutputTextContent"] | components["schemas"]["RefusalContent"] | components["schemas"]["SummaryTextContent"])[];
         });
+        /** @description When the task runs. Fields depend on kind: once (date, time), hourly (minute), daily and weekdays (time), weekly (day, time), monthly (day_of_month, time), manual (none; run on demand only). */
+        Recurrence: {
+            /**
+             * @description The date of a one-time task, YYYY-MM-DD.
+             * @example 2026-11-03
+             */
+            date?: string;
+            /**
+             * @description The day of a weekly task.
+             * @enum {string}
+             */
+            day?: "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+            /**
+             * Format: int32
+             * @description The day of a monthly task, 1 to 31; a month without that day runs on its last day.
+             */
+            day_of_month?: number;
+            /** @enum {string} */
+            kind: "once" | "hourly" | "daily" | "weekdays" | "weekly" | "monthly" | "manual";
+            /**
+             * Format: int32
+             * @description The minute past each hour of an hourly task, 0 to 59.
+             */
+            minute?: number;
+            /**
+             * @description The time of day, HH:MM, 24-hour.
+             * @example 07:00
+             */
+            time?: string;
+        };
         RefusalContent: {
             type: "RefusalContent";
         } & (Omit<components["schemas"]["ContentPart"], "type"> & {
@@ -7463,6 +7590,53 @@ export interface components {
             runId?: string;
             scores?: components["schemas"]["EvaluationScoreDTO"][];
             version?: string;
+        };
+        /** @description A scheduled task: an agent that runs on a schedule as you, each run in a new conversation. */
+        ScheduledTaskDTO: {
+            agent_id?: string;
+            /** Format: date-time */
+            created_at?: string;
+            id?: string;
+            /** @description The message each run starts with. */
+            instructions?: string;
+            /** @description The newest run or skip, or null before the first. */
+            last_run?: components["schemas"]["ScheduledTaskLastRun"];
+            name?: string;
+            /**
+             * Format: date-time
+             * @description When the next run is due; null when the task is not active or runs only on demand. Runs may start some minutes after this time.
+             */
+            next_run_at?: string;
+            /** @description Connectors you need to connect, allow or reconnect before the first run; empty once the task has run. */
+            preflight?: components["schemas"]["ScheduledTaskPreflight"][];
+            recurrence?: components["schemas"]["Recurrence"];
+            /**
+             * @description active, paused (by you), stopped (by the system, see stopped_reason) or completed (a one-time task after its run).
+             * @enum {string}
+             */
+            state?: "active" | "paused" | "stopped" | "completed";
+            /**
+             * @description Why the system stopped the task. Resume it to run again.
+             * @enum {string}
+             */
+            stopped_reason?: "owner_not_allowed" | "agent_unavailable" | "not_finishing";
+            /** @description IANA time zone the schedule follows. */
+            time_zone?: string;
+        };
+        ScheduledTaskLastRun: {
+            /** Format: date-time */
+            at?: string;
+            conversation_id?: string;
+            /** @enum {string} */
+            outcome?: "accepted" | "done" | "failed" | "canceled" | "skipped_previous_open" | "skipped_disabled" | "skipped_unavailable" | "skipped_limit" | "skipped_billing" | "missed";
+        };
+        ScheduledTaskPreflight: {
+            /** @enum {string} */
+            reason?: "connect" | "allow" | "reconnect";
+            server_label?: string;
+        };
+        ScheduledTaskRunStarted: {
+            conversation_id?: string;
         };
         SchemaDTO: {
             /** Format: date-time */
@@ -8256,6 +8430,19 @@ export interface components {
             assignedTo?: string;
             /** @enum {string} */
             status?: "PENDING" | "IN_PROGRESS" | "DONE" | "SKIPPED";
+        };
+        UpdateScheduledTaskRequest: {
+            /** @description 1 to 4,000 characters. */
+            instructions?: string;
+            /** @description 1 to 80 characters. */
+            name?: string;
+            recurrence?: components["schemas"]["Recurrence"];
+            /**
+             * @description paused stops the schedule; active resumes it.
+             * @enum {string}
+             */
+            state?: "active" | "paused";
+            time_zone?: string;
         };
         UpdateSchemaLabelRequest: {
             schemaVersionId: string;
@@ -15406,6 +15593,233 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listScheduledTasks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Your scheduled tasks */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"][];
+                };
+            };
+            /** @description scheduled_tasks_disabled: scheduled tasks are not available */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"][];
+                };
+            };
+        };
+    };
+    createScheduledTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateScheduledTaskRequest"];
+            };
+        };
+        responses: {
+            /** @description The task */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+            /** @description invalid_recurrence, invalid_time_zone, invalid_scheduled_task or agent_not_runnable */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+            /** @description scheduled_tasks_disabled, or a viewer: viewers cannot schedule tasks */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+            /** @description scheduled_task_limit: 10 active tasks; scheduled_task_count: 50 tasks */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+        };
+    };
+    deleteScheduledTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such task of yours */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateScheduledTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateScheduledTaskRequest"];
+            };
+        };
+        responses: {
+            /** @description The task */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+            /** @description invalid_recurrence, invalid_time_zone or invalid_scheduled_task */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+            /** @description scheduled_tasks_disabled on resume, or a viewer */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+            /** @description No such task of yours */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+            /** @description scheduled_task_limit: 10 active tasks */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+        };
+    };
+    runScheduledTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The run started; conversation_id names its conversation */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskRunStarted"];
+                };
+            };
+            /** @description agent_not_runnable: the task's agent no longer exists, is not published, or you cannot chat with it */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskRunStarted"];
+                };
+            };
+            /** @description scheduled_tasks_disabled, or a viewer */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskRunStarted"];
+                };
+            };
+            /** @description No such task of yours */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskRunStarted"];
+                };
+            };
+            /** @description previous_run_open: the last run has not finished; task_changed: the task changed or is stopped */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskRunStarted"];
                 };
             };
         };
