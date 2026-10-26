@@ -5272,6 +5272,7 @@ export interface components {
             metadata?: components["schemas"]["JsonNode"];
             name: string;
             organizationId?: string;
+            /** @description Dataset type, such as `text` or `agent`. Defaults to `text` when omitted on create; an update that omits it keeps the current type. */
             type?: string;
             version?: string;
         };
