@@ -4505,7 +4505,6 @@ export interface components {
             organizationId?: string;
             /** @description Skills bound to the agent (#639): at most 20 entries, names unique, ref defaults to latest. */
             skills?: components["schemas"]["SkillBinding"][];
-            /** @description The agent's tools: function tools, connectors and built-ins. An entry {"type": "backbone.agent", "name", "description"?, "requiresConfirmation"?, "config": {"agent_id"}} makes another published agent of the organization a sub-agent: the model hands it a task, optionally with files, and gets back its answer and the files it returns. At most 5 sub-agents per version and 5 calls per turn; a sub-agent has no sub-agents of its own, runs as the caller, cannot fetch web pages, and a step of it that needs a person's approval fails. Not available in embedded installations. */
             tools?: components["schemas"]["JsonNode"];
             version?: string;
         };
@@ -5145,7 +5144,6 @@ export interface components {
             options?: components["schemas"]["JsonNode"];
             /** @description Skills to bind (#639): [{ name, ref? }], at most 20, names unique, ref defaults to latest. */
             skills?: components["schemas"]["SkillBinding"][];
-            /** @description The agent's tools: function tools, connectors and built-ins. An entry {"type": "backbone.agent", "name", "description"?, "requiresConfirmation"?, "config": {"agent_id"}} makes another published agent of the organization a sub-agent: the model hands it a task, optionally with files, and gets back its answer and the files it returns. At most 5 sub-agents per version and 5 calls per turn; a sub-agent has no sub-agents of its own, runs as the caller, cannot fetch web pages, and a step of it that needs a person's approval fails. Not available in embedded installations. */
             tools?: components["schemas"]["JsonNode"];
         };
         CreateAnnotationQueueRequest: {
@@ -5272,7 +5270,6 @@ export interface components {
             metadata?: components["schemas"]["JsonNode"];
             name: string;
             organizationId?: string;
-            /** @description Dataset type, such as `text` or `agent`. Defaults to `text` when omitted on create; an update that omits it keeps the current type. */
             type?: string;
             version?: string;
         };
@@ -5804,8 +5801,6 @@ export interface components {
             id?: string;
             name?: string;
             status?: string;
-            /** @description Present and true when this call hands a task to another agent of the organization (a sub-agent). Written by the server; ignored on input. */
-            sub_agent?: boolean;
         });
         FunctionCallOutputItem: {
             type: "FunctionCallOutputItem";
