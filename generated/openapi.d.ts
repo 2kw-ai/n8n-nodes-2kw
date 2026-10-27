@@ -139,6 +139,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/agents/{agentId}/knowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List an agent's knowledge bases
+         * @description The knowledge bases the latest published version of an agent can search, as {name, description}. Readable by every organization member including the chat-only USER role, which cannot read the version itself. An agent with no published version, or one that searches no knowledge base, returns an empty list rather than a 404. A knowledge base that has been deleted is omitted. 404 for an agent of another organization.
+         */
+        get: operations["listAgentKnowledge"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/agents/{agentId}/labels": {
         parameters: {
             query?: never;
@@ -1204,6 +1224,70 @@ export interface paths {
          * @description Backbone extension: asks the turn named by turn_id - the value the client sent as the Backbone-Turn-Id header on POST /v1/responses - to stop at its next step boundary. 204 means the stop was accepted, not that the turn stopped: the turn's own response reports status cancelled, or completed when the stop arrived too late. Work in flight finishes, and a model round that returns after the stop is billed and discarded. A stop applies to the id, in this conversation: every later request carrying it stops at its first check, a tool-output continuation included. A stop for an id no request carries again changes nothing. Mint a fresh id per turn and never reuse one. Closing the connection is not a stop.
          */
         post: operations["cancelConversationTurn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/conversations/{conversationId}/canvases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List canvases
+         * @description Backbone extension: the conversation's canvases, newest change first, each with the title of its newest version. An agent writes canvases with the Canvas tools.
+         */
+        get: operations["listCanvases"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/conversations/{conversationId}/canvases/{canvasId}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List canvas versions
+         * @description Backbone extension: every version of a canvas, newest first, without content.
+         */
+        get: operations["listCanvasVersions"];
+        put?: never;
+        /**
+         * Save or restore a canvas version
+         * @description Backbone extension: the member who owns the conversation saves a document's new content (content, optionally title) or restores a version (restore_from) as a new head. base_version must be the current head. Restoring the head itself (Done) lifts the limit a selection set. Tables are not edited by hand; restore works for both kinds.
+         */
+        post: operations["createCanvasVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/conversations/{conversationId}/canvases/{canvasId}/versions/{version}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read a canvas version
+         * @description Backbone extension: one version with its content. version is a number, or head for the newest. limit, when set, is the passage the agent may change in writes based on this version.
+         */
+        get: operations["getCanvasVersion"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3571,6 +3655,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/scheduled-tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List your scheduled tasks
+         * @description Your scheduled tasks with their next run, their last run and the connectors you need to connect or allow before the first run.
+         */
+        get: operations["listScheduledTasks"];
+        put?: never;
+        /**
+         * Schedule a task
+         * @description Creates a task that runs the agent as you at each time of its recurrence (at most once an hour), with your connector sign-ins, each run in a new conversation of yours. A run that needs an approval or a sign-in waits for you. You can have 10 active tasks.
+         */
+        post: operations["createScheduledTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/scheduled-tasks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a scheduled task
+         * @description Deletes the task. A run in progress finishes; the conversations of past runs stay yours.
+         */
+        delete: operations["deleteScheduledTask"];
+        options?: never;
+        head?: never;
+        /**
+         * Change, pause or resume a scheduled task
+         * @description Changes the given fields. state paused stops the schedule, active resumes it; the next run is the next time after now. The agent cannot change.
+         */
+        patch: operations["updateScheduledTask"];
+        trace?: never;
+    };
+    "/v1/scheduled-tasks/{id}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run a scheduled task now
+         * @description Starts one run of the task now, in a new conversation, without changing its schedule. Works on a paused, completed or on-demand task, not on a stopped one.
+         */
+        post: operations["runScheduledTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/schemas": {
         parameters: {
             query?: never;
@@ -4505,8 +4657,16 @@ export interface components {
             organizationId?: string;
             /** @description Skills bound to the agent (#639): at most 20 entries, names unique, ref defaults to latest. */
             skills?: components["schemas"]["SkillBinding"][];
+            /** @description The agent's tools: function tools, connectors and built-ins. An entry {"type": "backbone.agent", "name", "description"?, "requiresConfirmation"?, "config": {"agent_id"}} makes another published agent of the organization a sub-agent: the model hands it a task, optionally with files, and gets back its answer and the files it returns. At most 5 sub-agents per version and 5 calls per turn; a sub-agent has no sub-agents of its own, runs as the caller, cannot fetch web pages, and a step of it that needs a person's approval fails. Not available in embedded installations. */
             tools?: components["schemas"]["JsonNode"];
             version?: string;
+        };
+        /** @description A knowledge base the agent can search. */
+        AgentKnowledgeDTO: {
+            /** @description The knowledge base's description, or null when it has none. */
+            description?: string | null;
+            /** @description The knowledge base's name. */
+            name?: string;
         };
         AgentLabelDTO: {
             agentId?: string;
@@ -4705,6 +4865,124 @@ export interface components {
         CancelTurnRequest: {
             /** @description The turn to stop: the value the client sent as the Backbone-Turn-Id header on POST /v1/responses. 1-64 characters of A-Z, a-z, 0-9, '_' or '-'. */
             turn_id: string;
+        };
+        CanvasItem: {
+            type: "CanvasItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            /** @enum {string} */
+            action: "created" | "updated";
+            call_id: string;
+            canvas_id: string;
+            id: string;
+            /** @enum {string} */
+            kind: "document" | "table";
+            title: string;
+            /** Format: int32 */
+            version: number;
+        });
+        /** @description A range of the content in UTF-16 code units: start inclusive, end exclusive. */
+        CanvasLimit: {
+            /** Format: int32 */
+            end?: number;
+            /** Format: int32 */
+            start?: number;
+        };
+        /** @description A canvas: a named, versioned document or table of a conversation. */
+        CanvasResource: {
+            /**
+             * Format: int32
+             * @description The newest version.
+             */
+            head_version?: number;
+            /**
+             * @description The canvas id.
+             * @example cnv_3f2a9c
+             */
+            id?: string;
+            /**
+             * @description What the canvas holds; fixed when it is created.
+             * @enum {string}
+             */
+            kind?: "document" | "table";
+            /** @description The title of the head version. */
+            title?: string;
+            /**
+             * Format: date-time
+             * @description When the newest version was written.
+             */
+            updated_at?: string;
+        };
+        CanvasSelectionItem: {
+            type: "CanvasSelectionItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            canvas_id: string;
+            /** Format: int32 */
+            end: number;
+            id?: string;
+            /** Format: int32 */
+            start: number;
+            /** @description Filled by the server; ignored on input */
+            text?: string;
+            /** Format: int32 */
+            version: number;
+        });
+        /** @description A version of a canvas. Versions are never changed or removed. */
+        CanvasVersionResource: {
+            /**
+             * @description Who wrote this version.
+             * @enum {string}
+             */
+            author?: "agent" | "member";
+            /** @description The canvas id; on a version read only. */
+            canvas_id?: string;
+            /** @description On a version read only: Markdown for a document; for a table, JSON with columns and rows. */
+            content?: string;
+            /**
+             * Format: date-time
+             * @description When this version was written.
+             */
+            created_at?: string;
+            /**
+             * Format: int32
+             * @description The canvas's newest version; on a version read only.
+             */
+            head_version?: number;
+            /**
+             * @description The canvas's kind; on a version read only.
+             * @enum {string}
+             */
+            kind?: "document" | "table";
+            /** @description The passage agent writes based on this version may change, or null when they may change the whole canvas. */
+            limit?: components["schemas"]["CanvasLimit"];
+            /**
+             * Format: int32
+             * @description The version this one restored, or null. A selection and Done name the version just before.
+             */
+            restored_from?: number | null;
+            /** @description The title of this version. */
+            title?: string;
+            /**
+             * Format: int32
+             * @description The version number, from 1.
+             */
+            version?: number;
+        };
+        /** @description Save new content, or restore a version. Send content or restore_from, not both. */
+        CanvasWriteRequest: {
+            /**
+             * Format: int32
+             * @description The head version the change is based on. A write at any other version is refused with 409 canvas_conflict.
+             */
+            base_version: number;
+            /** @description The new Markdown content, at most 256 KB. Documents only. */
+            content?: string;
+            /**
+             * Format: int32
+             * @description Restore this version as the new head. Restoring the head itself (Done) lifts a selection's limit.
+             */
+            restore_from?: number;
+            /** @description The new title, 1 to 120 characters; omitted keeps the current one. Documents only. */
+            title?: string;
         };
         ChatCompletionRequest: {
             /** Format: double */
@@ -5025,7 +5303,12 @@ export interface components {
         ContentPart: {
             type: string;
         };
+        ConversationActiveRun: {
+            head_response_id?: string;
+            status?: string;
+        };
         ConversationBackbone: {
+            active_run?: components["schemas"]["ConversationActiveRun"];
             agent_id?: string;
             failed_turn?: components["schemas"]["ConversationFailedTurn"];
             head_response_id?: string;
@@ -5035,6 +5318,7 @@ export interface components {
             last_reasoning_effort?: string;
             mode?: string;
             pause_reason?: string;
+            scheduled_task?: components["schemas"]["ConversationScheduledTask"];
             status?: string;
         };
         ConversationDeletedResource: {
@@ -5078,6 +5362,13 @@ export interface components {
             id?: string;
             metadata?: components["schemas"]["JsonNode"];
             object?: string;
+        };
+        ConversationScheduledTask: {
+            /** Format: date-time */
+            ended_at?: string;
+            name?: string;
+            outcome?: string;
+            task_id?: string;
         };
         ConversationSummaryResource: {
             /** Format: int64 */
@@ -5144,6 +5435,7 @@ export interface components {
             options?: components["schemas"]["JsonNode"];
             /** @description Skills to bind (#639): [{ name, ref? }], at most 20, names unique, ref defaults to latest. */
             skills?: components["schemas"]["SkillBinding"][];
+            /** @description The agent's tools: function tools, connectors and built-ins. An entry {"type": "backbone.agent", "name", "description"?, "requiresConfirmation"?, "config": {"agent_id"}} makes another published agent of the organization a sub-agent: the model hands it a task, optionally with files, and gets back its answer and the files it returns. At most 5 sub-agents per version and 5 calls per turn; a sub-agent has no sub-agents of its own, runs as the caller, cannot fetch web pages, and a step of it that needs a person's approval fails. Not available in embedded installations. */
             tools?: components["schemas"]["JsonNode"];
         };
         CreateAnnotationQueueRequest: {
@@ -5199,7 +5491,7 @@ export interface components {
             background?: boolean;
             conversation?: string;
             /** @description The turn's input: a string, or an array of items */
-            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["InputRequestItem"] | components["schemas"]["InputResponseItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"] | components["schemas"]["ToolImageItem"] | components["schemas"]["UiItem"])[];
+            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CanvasItem"] | components["schemas"]["CanvasSelectionItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["InputRequestItem"] | components["schemas"]["InputResponseItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"] | components["schemas"]["ToolImageItem"] | components["schemas"]["UiItem"])[];
             instructions?: string;
             /** Format: int32 */
             max_output_tokens?: number;
@@ -5224,6 +5516,17 @@ export interface components {
             tools?: unknown[];
             /** Format: double */
             top_p?: number;
+        };
+        CreateScheduledTaskRequest: {
+            /** @description The agent to run. */
+            agent_id: string;
+            /** @description The message each run starts with, 1 to 4,000 characters. */
+            instructions: string;
+            /** @description 1 to 80 characters. */
+            name: string;
+            recurrence: components["schemas"]["Recurrence"];
+            /** @description IANA time zone, for example Europe/Berlin. */
+            time_zone: string;
         };
         CreateSchemaLabelRequest: {
             name: string;
@@ -5270,6 +5573,7 @@ export interface components {
             metadata?: components["schemas"]["JsonNode"];
             name: string;
             organizationId?: string;
+            /** @description Dataset type, such as `text` or `agent`. Defaults to `text` when omitted on create; an update that omits it keeps the current type. */
             type?: string;
             version?: string;
         };
@@ -5801,6 +6105,8 @@ export interface components {
             id?: string;
             name?: string;
             status?: string;
+            /** @description Present and true when this call hands a task to another agent of the organization (a sub-agent). Written by the server; ignored on input. */
+            sub_agent?: boolean;
         });
         FunctionCallOutputItem: {
             type: "FunctionCallOutputItem";
@@ -6500,6 +6806,7 @@ export interface components {
             bytes?: number;
             content_type?: string;
             delivery?: string;
+            expires_at?: string;
             file_id?: string;
             kind?: string;
             name?: string;
@@ -7272,6 +7579,36 @@ export interface components {
             id?: string;
             summary?: (components["schemas"]["InputFileContent"] | components["schemas"]["InputImageContent"] | components["schemas"]["InputTextContent"] | components["schemas"]["OutputTextContent"] | components["schemas"]["RefusalContent"] | components["schemas"]["SummaryTextContent"])[];
         });
+        /** @description When the task runs. Fields depend on kind: once (date, time), hourly (minute), daily and weekdays (time), weekly (day, time), monthly (day_of_month, time), manual (none; run on demand only). */
+        Recurrence: {
+            /**
+             * @description The date of a one-time task, YYYY-MM-DD.
+             * @example 2026-11-03
+             */
+            date?: string;
+            /**
+             * @description The day of a weekly task.
+             * @enum {string}
+             */
+            day?: "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+            /**
+             * Format: int32
+             * @description The day of a monthly task, 1 to 31; a month without that day runs on its last day.
+             */
+            day_of_month?: number;
+            /** @enum {string} */
+            kind: "once" | "hourly" | "daily" | "weekdays" | "weekly" | "monthly" | "manual";
+            /**
+             * Format: int32
+             * @description The minute past each hour of an hourly task, 0 to 59.
+             */
+            minute?: number;
+            /**
+             * @description The time of day, HH:MM, 24-hour.
+             * @example 07:00
+             */
+            time?: string;
+        };
         RefusalContent: {
             type: "RefusalContent";
         } & (Omit<components["schemas"]["ContentPart"], "type"> & {
@@ -7463,6 +7800,53 @@ export interface components {
             runId?: string;
             scores?: components["schemas"]["EvaluationScoreDTO"][];
             version?: string;
+        };
+        /** @description A scheduled task: an agent that runs on a schedule as you, each run in a new conversation. */
+        ScheduledTaskDTO: {
+            agent_id?: string;
+            /** Format: date-time */
+            created_at?: string;
+            id?: string;
+            /** @description The message each run starts with. */
+            instructions?: string;
+            /** @description The newest run or skip, or null before the first. */
+            last_run?: components["schemas"]["ScheduledTaskLastRun"];
+            name?: string;
+            /**
+             * Format: date-time
+             * @description When the next run is due; null when the task is not active or runs only on demand. Runs may start some minutes after this time.
+             */
+            next_run_at?: string;
+            /** @description Connectors you need to connect, allow or reconnect before the first run; empty once the task has run. */
+            preflight?: components["schemas"]["ScheduledTaskPreflight"][];
+            recurrence?: components["schemas"]["Recurrence"];
+            /**
+             * @description active, paused (by you), stopped (by the system, see stopped_reason) or completed (a one-time task after its run).
+             * @enum {string}
+             */
+            state?: "active" | "paused" | "stopped" | "completed";
+            /**
+             * @description Why the system stopped the task. Resume it to run again.
+             * @enum {string}
+             */
+            stopped_reason?: "owner_not_allowed" | "agent_unavailable" | "not_finishing";
+            /** @description IANA time zone the schedule follows. */
+            time_zone?: string;
+        };
+        ScheduledTaskLastRun: {
+            /** Format: date-time */
+            at?: string;
+            conversation_id?: string;
+            /** @enum {string} */
+            outcome?: "accepted" | "done" | "failed" | "canceled" | "skipped_previous_open" | "skipped_disabled" | "skipped_unavailable" | "skipped_limit" | "skipped_billing" | "missed";
+        };
+        ScheduledTaskPreflight: {
+            /** @enum {string} */
+            reason?: "connect" | "allow" | "reconnect";
+            server_label?: string;
+        };
+        ScheduledTaskRunStarted: {
+            conversation_id?: string;
         };
         SchemaDTO: {
             /** Format: date-time */
@@ -8257,6 +8641,19 @@ export interface components {
             /** @enum {string} */
             status?: "PENDING" | "IN_PROGRESS" | "DONE" | "SKIPPED";
         };
+        UpdateScheduledTaskRequest: {
+            /** @description 1 to 4,000 characters. */
+            instructions?: string;
+            /** @description 1 to 80 characters. */
+            name?: string;
+            recurrence?: components["schemas"]["Recurrence"];
+            /**
+             * @description paused stops the schedule; active resumes it.
+             * @enum {string}
+             */
+            state?: "active" | "paused";
+            time_zone?: string;
+        };
         UpdateSchemaLabelRequest: {
             schemaVersionId: string;
         };
@@ -8568,6 +8965,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PageToolApprovalDTO"];
+                };
+            };
+        };
+    };
+    listAgentKnowledge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AgentKnowledgeDTO"][];
                 };
             };
         };
@@ -10760,6 +11179,174 @@ export interface operations {
                 };
             };
             /** @description No conversation with this id is visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listCanvases: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The canvases */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CanvasResource"][];
+                };
+            };
+            /** @description No conversation with this id is visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listCanvasVersions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+                canvasId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The versions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CanvasVersionResource"][];
+                };
+            };
+            /** @description No such conversation or canvas is visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createCanvasVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+                canvasId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CanvasWriteRequest"];
+            };
+        };
+        responses: {
+            /** @description The new head version */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CanvasVersionResource"];
+                };
+            };
+            /** @description base_version is missing, both or neither of content and restore_from are sent, the title is blank, or content is sent for a table (canvas_kind) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The caller is a VIEWER */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description No such conversation, canvas or version, or the caller does not own the conversation */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description canvas_conflict: the canvas changed since base_version; read the head and try again */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description canvas_limit: the content is over 256 KB, the title over 120 characters, or the canvas has 200 versions */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getCanvasVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+                canvasId: string;
+                version: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The version */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CanvasVersionResource"];
+                };
+            };
+            /** @description No such conversation, canvas or version is visible to the caller */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -15406,6 +15993,233 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listScheduledTasks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Your scheduled tasks */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"][];
+                };
+            };
+            /** @description scheduled_tasks_disabled: scheduled tasks are not available */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"][];
+                };
+            };
+        };
+    };
+    createScheduledTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateScheduledTaskRequest"];
+            };
+        };
+        responses: {
+            /** @description The task */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+            /** @description invalid_recurrence, invalid_time_zone, invalid_scheduled_task or agent_not_runnable */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+            /** @description scheduled_tasks_disabled, or a viewer: viewers cannot schedule tasks */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+            /** @description scheduled_task_limit: 10 active tasks; scheduled_task_count: 50 tasks */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+        };
+    };
+    deleteScheduledTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such task of yours */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateScheduledTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateScheduledTaskRequest"];
+            };
+        };
+        responses: {
+            /** @description The task */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+            /** @description invalid_recurrence, invalid_time_zone or invalid_scheduled_task */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+            /** @description scheduled_tasks_disabled on resume, or a viewer */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+            /** @description No such task of yours */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+            /** @description scheduled_task_limit: 10 active tasks */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskDTO"];
+                };
+            };
+        };
+    };
+    runScheduledTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The run started; conversation_id names its conversation */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskRunStarted"];
+                };
+            };
+            /** @description agent_not_runnable: the task's agent no longer exists, is not published, or you cannot chat with it */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskRunStarted"];
+                };
+            };
+            /** @description scheduled_tasks_disabled, or a viewer */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskRunStarted"];
+                };
+            };
+            /** @description No such task of yours */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskRunStarted"];
+                };
+            };
+            /** @description previous_run_open: the last run has not finished; task_changed: the task changed or is stopped */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScheduledTaskRunStarted"];
                 };
             };
         };
