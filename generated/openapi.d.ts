@@ -4653,6 +4653,7 @@ export interface components {
             model?: string;
             models?: string[];
             name: string;
+            /** @description Model and run options. Every run reads `reasoning.effort` and `maxToolRounds`. `maxToolRounds`: maximum rounds of tool calls one request may take, 1 to 100; the platform default applies when absent. Also bounded by the deployment's run limit. Sending `options` replaces the whole object: a key left out is removed. */
             options?: components["schemas"]["JsonNode"];
             organizationId?: string;
             /** @description Skills bound to the agent (#639): at most 20 entries, names unique, ref defaults to latest. */
@@ -4735,6 +4736,7 @@ export interface components {
             readonly lastModifiedAt?: string;
             model?: string;
             models?: string[];
+            /** @description Model and run options. Every run reads `reasoning.effort` and `maxToolRounds`. `maxToolRounds`: maximum rounds of tool calls one request may take, 1 to 100; the platform default applies when absent. Also bounded by the deployment's run limit. Sending `options` replaces the whole object: a key left out is removed. */
             options?: components["schemas"]["JsonNode"];
             /** @description Skills bound to this version (#639); ref is materialised on write. */
             skills?: components["schemas"]["SkillBinding"][];
@@ -5432,6 +5434,7 @@ export interface components {
             instructions?: string;
             model?: string;
             models?: string[];
+            /** @description Model and run options. Every run reads `reasoning.effort` and `maxToolRounds`. `maxToolRounds`: maximum rounds of tool calls one request may take, 1 to 100; the platform default applies when absent. Also bounded by the deployment's run limit. Sending `options` replaces the whole object: a key left out is removed. */
             options?: components["schemas"]["JsonNode"];
             /** @description Skills to bind (#639): [{ name, ref? }], at most 20, names unique, ref defaults to latest. */
             skills?: components["schemas"]["SkillBinding"][];
