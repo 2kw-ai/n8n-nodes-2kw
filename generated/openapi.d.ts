@@ -5075,13 +5075,23 @@ export interface components {
             document_name?: string;
             document_version_id?: string;
             handle?: string;
+            /** @description The cited site's icon as a PNG data URI; absent when none is available. */
+            icon?: string;
             id?: string;
             knowledge_base_id?: string;
             /** Format: int32 */
             page_end?: number;
             /** Format: int32 */
             page_start?: number;
+            /** @description The cited web page's host name, for a web citation. */
+            site?: string;
+            /** @description A short excerpt of the cited web page, for a web citation. */
+            snippet?: string;
             status?: string;
+            /** @description The cited web page's title, for a web citation. */
+            title?: string;
+            /** @description The cited web page, for a web citation; absent on a knowledge citation. */
+            url?: string;
         });
         ComparisonItemDTO: {
             datasetItemId?: string;
