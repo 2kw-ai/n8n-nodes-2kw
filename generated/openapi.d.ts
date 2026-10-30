@@ -1645,7 +1645,7 @@ export interface paths {
         put?: never;
         /**
          * Transcribe one dictation slice
-         * @description Transcribes one PCM16 mono 16 kHz WAV slice (`audio`, at most 1 MiB, about 31 s) on the built-in speech model. Optional `locale` is a BCP-47 tag such as de-DE; without it the language is detected. Optional `phrases`, one part per phrase, lists up to 50 words or names of 1 to 64 characters to favour, such as names already in the draft. Called by the chat composer while the user dictates.
+         * @description Transcribes one PCM16 mono 16 kHz WAV slice (`audio`, at most 1 MiB, about 31 s) on the built-in speech model. Optional `locale` is a BCP-47 tag such as de-DE; repeat the part (at most 4) to give candidate languages, likeliest first, and the response names the one heard. Without it the language is detected. Optional `phrases`, one part per phrase, lists up to 50 words or names of 1 to 64 characters to favour, such as names already in the draft. Called by the chat composer while the user dictates.
          */
         post: operations["createDictation"];
         delete?: never;
@@ -5661,6 +5661,11 @@ export interface components {
         };
         /** @description Text transcribed from one dictation slice */
         DictationResponse: {
+            /**
+             * @description BCP-47 tag of the language the slice was heard in; null when no language was recognised
+             * @example de-DE
+             */
+            locale?: string | null;
             /** @description Transcribed text; may be empty */
             text?: string;
         };
@@ -11944,7 +11949,7 @@ export interface operations {
                 "multipart/form-data": {
                     /** Format: binary */
                     audio: string;
-                    locale?: string;
+                    locale?: string[];
                     phrases?: string[];
                 };
             };
@@ -11959,7 +11964,7 @@ export interface operations {
                     "application/json": components["schemas"]["DictationResponse"];
                 };
             };
-            /** @description locale not a BCP-47 tag such as de-DE, or more than 50 phrases, or a phrase that is not 1 to 64 characters */
+            /** @description locale not a BCP-47 tag such as de-DE, more than 4 locales, more than 50 phrases, or a phrase that is not 1 to 64 characters */
             400: {
                 headers: {
                     [name: string]: unknown;
