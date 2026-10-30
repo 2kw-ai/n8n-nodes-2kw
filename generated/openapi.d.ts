@@ -108,7 +108,7 @@ export interface paths {
         };
         /**
          * List the agent catalog
-         * @description Published agents of the current organization as {id, name, description, conversationModes, models}, name-ascending. Readable by every organization member including the chat-only USER role, and the only agent read that role has: the response never carries instructions, tools, options, skills or credentials, and of the HITL policy only the conversation modes the operator offers end users. `models` names the models the latest version lists, in order and the first being the default, each with its display name, reasoning control, the reasoning effort levels it accepts and the default level already adjusted to them. An agent with no published version is omitted. The sort parameter is ignored.
+         * @description Published agents of the current organization as {id, name, description, conversationModes, models, canvas}, name-ascending. Readable by every organization member including the chat-only USER role, and the only agent read that role has: the response never carries instructions, tools, options, skills or credentials, and of the HITL policy only the conversation modes the operator offers end users. `models` names the models the latest version lists, in order and the first being the default, each with its display name, reasoning control, the reasoning effort levels it accepts and the default level already adjusted to them. `canvas` is true when the latest version has Canvas switched on. An agent with no published version is omitted. The sort parameter is ignored.
          */
         get: operations["listAgentCatalog"];
         put?: never;
@@ -4623,6 +4623,7 @@ export interface components {
             bashAvailable: boolean;
         };
         AgentCatalogEntryDTO: {
+            canvas?: boolean;
             conversationModes?: components["schemas"]["ConversationModes"];
             description?: string;
             id?: string;
