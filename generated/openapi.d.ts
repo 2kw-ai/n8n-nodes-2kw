@@ -881,6 +881,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/connectors/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the connector directory
+         * @description The tested connectors an admin can add. The same list for every organization; send the ETag back as If-None-Match to get 304 while it is unchanged.
+         */
+        get: operations["listConnectorCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/connectors/connections/{id}": {
         parameters: {
             query?: never;
@@ -5175,6 +5195,19 @@ export interface components {
             /** @enum {string} */
             status?: "ACTIVE" | "NEEDS_RECONSENT";
         };
+        ConnectorDirectoryEntryDTO: {
+            blurb?: string;
+            docs?: string;
+            hosts?: components["schemas"]["ConnectorHostDTO"][];
+            id?: string;
+            issuer?: string;
+            logo?: string;
+            name?: string;
+            /** @enum {string} */
+            setup?: "auto" | "entra" | "own";
+            url?: string;
+            vendor?: string;
+        };
         ConnectorGrantDTO: {
             agentId?: string;
             /** Format: date-time */
@@ -5213,6 +5246,23 @@ export interface components {
             name?: string;
             override?: string;
             toolClass?: string;
+        };
+        ConnectorHostDTO: {
+            host?: string;
+            /** Format: int32 */
+            port?: number;
+            /** @enum {string} */
+            role?: "server" | "sign-in";
+        };
+        ConnectorIdentityDTO: {
+            blurb?: string;
+            catalogId?: string;
+            /** @enum {string} */
+            kind?: "catalog" | "entra" | "own" | "custom";
+            logo?: string;
+            movedFromCatalog?: boolean;
+            name?: string;
+            vendor?: string;
         };
         ConnectorOAuthClientDTO: {
             clientId?: string;
@@ -5270,7 +5320,10 @@ export interface components {
             /** Format: int32 */
             connectedUsers?: number;
             connection?: components["schemas"]["ConnectorConnectionDTO"];
+            connectorId?: string;
             host?: string;
+            identity?: components["schemas"]["ConnectorIdentityDTO"];
+            name?: string;
             relay?: string;
             relayName?: string;
             serverUrl?: string;
@@ -10326,6 +10379,46 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ConnectorAuthorizationStatus"];
+                };
+            };
+        };
+    };
+    listConnectorCatalog: {
+        parameters: {
+            query?: never;
+            header?: {
+                "If-None-Match"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The directory */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDirectoryEntryDTO"][];
+                };
+            };
+            /** @description Unchanged since the ETag sent */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDirectoryEntryDTO"][];
+                };
+            };
+            /** @description Not a member of the organization */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDirectoryEntryDTO"][];
                 };
             };
         };
