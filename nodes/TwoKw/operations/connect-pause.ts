@@ -1,8 +1,8 @@
-// GENERATED COPY of cli/src/lib/connect-pause.ts (#1086). Do not edit here: edit the CLI's file,
+// GENERATED COPY of cli/src/lib/connect-pause.ts. Do not edit here: edit the CLI's file,
 // then run `npm run sync-connect-pause` in n8n/. `npm run check-connect-pause` fails on any drift.
 /**
- * The connect pause, decoded one way for every client (#1086, spec §4, D4): an open
- * `backbone:connector_auth_request` (#807 R12) is a connector the run waits for the user to
+ * The connect pause, decoded one way for every client: an open
+ * `backbone:connector_auth_request` is a connector the run waits for the user to
  * connect, allow or reconnect in chat.2kw.ai.
  *
  * This file is canonical. `mcp/src/lib/connect-pause.ts` and
@@ -10,7 +10,7 @@
  * here, then run `npm run sync:connect-pause` in mcp/ and `npm run sync-connect-pause` in n8n/.
  * Its golden fixture, `cli/tests/fixtures/connect-pause-cases.json`, is copied the same way into
  * mcp/, n8n/ and surface/, and every client's decoder test runs every case of it. The input pause
- * (#1320, connectors spec §12) lives here too, with its own fixture `input-pause-cases.json`.
+ * lives here too, with its own fixture `input-pause-cases.json`.
  *
  * Plain TypeScript with no imports, no `process`, no Node types and no timers, so n8n's source
  * scanner and its empty `dependencies` accept the copy. The CLI and the MCP server keep their
@@ -20,7 +20,7 @@
 /** Fallback chat.2kw.ai origin when the API host is not one we recognise. */
 export const DEFAULT_CHAT_URL = "https://chat.2kw.ai";
 
-/** Known API-host → chat web host mappings; a connect pause points the user there (#807 R11). */
+/** Known API-host → chat web host mappings; a connect pause points the user there. */
 export const CHAT_URL_BY_API_HOST: Readonly<Record<string, string>> = {
   "api.2kw.ai": "https://chat.2kw.ai",
   "api-dev.2kw.ai": "https://chat-dev.2kw.ai",
@@ -60,7 +60,7 @@ export interface PendingConnection {
   /** The MCP server's host: what the user is asked to connect to. */
   host: string;
   reason: ConnectReason;
-  /** The egress difference an allow is asked again for (#807 R9); absent otherwise, never empty. */
+  /** The egress difference an allow is asked again for; absent otherwise, never empty. */
   destinations?: string[];
 }
 
@@ -84,7 +84,7 @@ function text(value: unknown): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
-/** The synthetic tool a connector's connect pause is raised through (#806). */
+/** The synthetic tool a connector's connect pause is raised through. */
 export function connectToolName(serverLabel: string): string {
   return `mcp__${serverLabel}__connect`;
 }
@@ -185,7 +185,7 @@ export function connectionsPhrase(connections: readonly ConnectTarget[]): string
 export type InputMode = "form" | "url" | "mixed" | "unknown";
 
 /**
- * One open `backbone:input_request` (#1320, connectors spec §12): a connector's question that only
+ * One open `backbone:input_request`: a connector's question that only
  * the requester can answer, and only in chat. `id` is the item's `inreq_…` id. Its message, schema
  * and URL are never read: no assistant may see them (D7).
  */

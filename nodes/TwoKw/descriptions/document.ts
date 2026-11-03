@@ -102,11 +102,11 @@ export const documentFields: INodeProperties[] = [
     default: 'fast',
     options: [
       { name: 'Fast', value: 'fast' },
-      { name: 'OCR', value: 'ocr' },
-      { name: 'VLM', value: 'vlm' },
+      { name: 'Scanned Documents', value: 'ocr' },
+      { name: 'Complex Layouts', value: 'vlm' },
     ],
     description:
-      'Fast for text-heavy files, OCR for scans, VLM for image-heavy or complex layouts',
+      'Fast suits files with selectable text. Scanned Documents reads scans and photos. Complex Layouts handles multi-column pages, forms and image-heavy files.',
     displayOptions: { show: { resource: ['document'], operation: ['convertSource'] } },
   },
   {

@@ -19,7 +19,7 @@ type ConversationMode = 'plan' | 'ask' | 'auto';
 interface RunOptions {
   returnPausedRuns?: boolean;
   simplify?: boolean;
-  /** Absent unless the workflow added the option (#656 D2). */
+  /** Absent unless the workflow added the option. */
   mode?: ConversationMode;
 }
 
@@ -32,7 +32,7 @@ interface SendMessageOptions extends RunOptions {
 interface OutputItem {
   type?: string;
   role?: string;
-  /** `commentary` on a message said on the way to a tool call (#913, spec D14). */
+  /** `commentary` on a message said on the way to a tool call. */
   phase?: string;
   content?: { type?: string; text?: string }[];
   id?: string;
@@ -46,7 +46,7 @@ interface OutputItem {
   server_label?: string;
   host?: string;
   destinations?: string[];
-  /** `backbone:ui` (#1419): `table` or `chart`, and its validated props. */
+  /** `backbone:ui`: `table` or `chart`, and its validated props. */
   component?: string;
   schema_version?: number;
   props?: IDataObject;
@@ -89,7 +89,7 @@ export function buildAgentModel(ref: string, label: string): string {
 }
 
 /**
- * The answer and what the agent said on its way to it (#1297; the surface's split, #913): the answer
+ * The answer and what the agent said on its way to it: the answer
  * is the last assistant `message`, unless the server marked it `commentary` (a turn that paused on
  * the way has no answer yet); every other assistant message is commentary. Each message's
  * `output_text` parts are joined; the resource has no `output_text` field.
@@ -163,7 +163,7 @@ function modeItems(mode: ConversationMode | undefined): IDataObject[] {
   return mode ? [{ type: MODE_ITEM, mode }] : [];
 }
 
-/** The echoed `conversation_mode` (#656); an absent key or any other value reads as null. */
+/** The echoed `conversation_mode`; an absent key or any other value reads as null. */
 function conversationModeOf(response: AgentResponse): string | null {
   const raw = response.conversation_mode;
   return typeof raw === 'string' && CONVERSATION_MODES.includes(raw) ? raw : null;
@@ -171,7 +171,7 @@ function conversationModeOf(response: AgentResponse): string | null {
 
 /**
  * Approval requests still waiting for a decision. Requests the auto-approver or a
- * conversation grant already decided carry another status and are not pending (#634).
+ * conversation grant already decided carry another status and are not pending.
  */
 function pendingApprovalItems(response: AgentResponse): OutputItem[] {
   return (response.output ?? []).filter(
@@ -181,14 +181,14 @@ function pendingApprovalItems(response: AgentResponse): OutputItem[] {
 
 /**
  * The Connectors page of the chat web host that belongs to the credential's base URL. The host
- * map is the CLI's, in the guarded copy `connect-pause.ts` (#807 R11, #1086).
+ * map is the CLI's, in the guarded copy `connect-pause.ts`.
  */
 export function connectorsUrlFor(baseUrl: unknown): string {
   return `${chatOriginFor(baseUrl)}/connectors`;
 }
 
 /**
- * The connectors a paused run waits on, in the workflow's shape (#807): what the CLI and the MCP
+ * The connectors a paused run waits on, in the workflow's shape: what the CLI and the MCP
  * server decode, with `destinations` null when there are none and the page to open beside each.
  */
 export function pendingConnectionsJson(output: unknown, connectorsUrl: string): IDataObject[] {
@@ -202,9 +202,9 @@ export function pendingConnectionsJson(output: unknown, connectorsUrl: string): 
 }
 
 /**
- * A connector's questions a paused run waits on (#1320), in the workflow's shape: what the CLI and the
+ * A connector's questions a paused run waits on, in the workflow's shape: what the CLI and the
  * MCP server publish, and the conversation to answer in beside each. Never the question, its form or
- * its link (connectors spec D7).
+ * its link.
  */
 export function pendingInputsJson(output: unknown, answerUrl: string): IDataObject[] {
   return pendingInputsOf(output).map((input) => ({
@@ -219,7 +219,7 @@ export function pendingInputsJson(output: unknown, answerUrl: string): IDataObje
 function simplify(response: AgentResponse, connectorsUrl: string, answerUrl: string, v1: boolean): IDataObject {
   const { text, commentary } = responseText(response);
   const json: IDataObject = {
-    // typeVersion 1 (#1482) joins every assistant message, as before #1297; it keeps `commentary` too,
+    // typeVersion 1 joins every assistant message, as before 7.3.0; it keeps `commentary` too,
     // which 7.3.0 shipped on v1 nodes.
     text: v1 ? [...commentary, text].filter((t) => t !== '').join('\n\n') : text,
     commentary,
@@ -229,7 +229,7 @@ function simplify(response: AgentResponse, connectorsUrl: string, answerUrl: str
     conversationMode: conversationModeOf(response),
     model: response.model,
     usage: response.usage ?? null,
-    // The tables and charts the agent showed (#1419), as the CLI and the MCP server publish them.
+    // The tables and charts the agent showed, as the CLI and the MCP server publish them.
     components: (response.output ?? [])
       .filter((item) => item.type === 'backbone:ui')
       .map((item) => ({
@@ -245,8 +245,8 @@ function simplify(response: AgentResponse, connectorsUrl: string, answerUrl: str
   }
   if (response.status === 'requires_action') {
     json.pendingInputs = pendingInputsJson(response.output, answerUrl);
-    // A question outranks every other pause (#1320, P91): only the requester's answer in chat continues
-    // the run and resolves the rest (spec D9), so Decide Approval would be refused. Listing nothing else
+    // A question outranks every other pause: only the requester's answer in chat continues
+    // the run and resolves the rest, so Decide Approval would be refused. Listing nothing else
     // keeps a workflow that routes on pendingApprovals or pendingConnections from trying.
     const questionOpen = (json.pendingInputs as IDataObject[]).length > 0;
     json.pendingApprovals = questionOpen
@@ -264,12 +264,12 @@ function simplify(response: AgentResponse, connectorsUrl: string, answerUrl: str
 }
 
 /**
- * n8n runs agents unattended (spec D2): a turn that waits for a human or for a
+ * n8n runs agents unattended: a turn that waits for a human or for a
  * client-side tool fails the item loudly instead of reaching the workflow as
  * empty output. With Return Paused Runs on, an approval pause or a connector
- * connect pause (#807) is returned as an item instead, for a later Decide
- * Approval (#660) or a Send Message with Previous Response ID; so is a
- * connector's question (#1320), which only the user answers, in chat. A relay
+ * connect pause is returned as an item instead, for a later Decide
+ * Approval or a Send Message with Previous Response ID; so is a
+ * connector's question, which only the user answers, in chat. A relay
  * pause still fails.
  */
 function assertNotPaused(
@@ -284,7 +284,7 @@ function assertNotPaused(
 
   const output = response.output ?? [];
   if (response.status === 'requires_action') {
-    // A question outranks every other pause (#1320, P91): only the requester's answer in chat
+    // A question outranks every other pause: only the requester's answer in chat
     // continues the run, and it resolves the rest. The error names where, never what (D7).
     const inputs = pendingInputsOf(response.output);
     if (inputs.length > 0) {
@@ -321,7 +321,7 @@ function assertNotPaused(
       );
     }
     // The connect call is in_progress like a relay call, but nobody answers it: the
-    // user connects in chat and the run is continued (#807, spec §8).
+    // user connects in chat and the run is continued.
     const connections = pendingConnectionsOf(response.output);
     if (connections.length > 0) {
       if (returnPausedRuns) return;
@@ -369,7 +369,7 @@ async function runResult(
   itemIndex: number,
   options: RunOptions,
 ): Promise<INodeExecutionData[]> {
-  // Read only for a connect pause or a question (#1320), the cases that name the chat web host.
+  // Read only for a connect pause or a question, the cases that name the chat web host.
   const namesChat =
     response.status === 'requires_action' &&
     (pendingConnectionsOf(response.output).length > 0 || pendingInputsOf(response.output).length > 0);
@@ -498,10 +498,10 @@ export function gatewayError(error: unknown): { code?: string; message?: string 
   return {};
 }
 
-/** Gateway refusals of a decision continuation (approval-gate spec §7), rewritten for a workflow author. */
+/** Gateway refusals of a decision continuation, rewritten for a workflow author. */
 /**
- * A decision on a response that also waits for a connector's question (#1320): only the user who
- * started the run answers it, in chat, and that answer carries the approvals too (connectors spec D9).
+ * A decision on a response that also waits for a connector's question: only the user who
+ * started the run answers it, in chat, and that answer carries the approvals too.
  */
 function questionPending(ctx: IExecuteFunctions, itemIndex: number, responseId: string, detail: string): NodeOperationError {
   return new NodeOperationError(ctx.getNode(), `Response ${responseId} waits for the answer to a connector's question`, {
@@ -535,7 +535,7 @@ function decisionError(
     case 'input_pending_for_requester':
       return questionPending(ctx, itemIndex, responseId, detail);
     case 'incomplete_tool_outputs':
-      // The same code refuses a continuation that leaves a connector's question open (#1320); its
+      // The same code refuses a continuation that leaves a connector's question open; its
       // message names the open inreq_ ids. Deciding again can never clear that.
       if (/\binreq_|\binput request/.test(message ?? '')) return questionPending(ctx, itemIndex, responseId, detail);
       return new NodeOperationError(ctx.getNode(), `Response ${responseId} has pending approvals this decision did not cover`, {

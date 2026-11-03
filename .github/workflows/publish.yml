@@ -84,7 +84,7 @@ jobs:
       # starts from the npm attestation. A red here therefore means a released
       # version is not submittable, not that a release was stopped — which is
       # exactly the signal that was missing when 5.3.0-dev.22 shipped and only
-      # failed the scan later, by hand (#363).
+      # failed the scan later, by hand.
       #
       # Pinned to the same version as the devDependency the pre-merge leg uses.
       # Floating would let an upstream rule addition turn an unrelated release
@@ -94,7 +94,7 @@ jobs:
         run: |
           # npm's attestation endpoint lags the publish by a few seconds.
           for attempt in 1 2 3 4 5; do
-            if npx -y @n8n/scan-community-package@0.32.0 \
+            if npx -y @n8n/scan-community-package@0.42.0 \
                  "${{ steps.v.outputs.name }}@${{ steps.v.outputs.version }}"; then
               exit 0
             fi

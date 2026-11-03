@@ -1,29 +1,70 @@
 # n8n-nodes-2kw
 
-n8n community node for the [2kw.ai](https://2kw.ai) platform (engineering name: Backbone).
+The **2kw** node for [n8n](https://n8n.io) brings [2kw.ai](https://2kw.ai) into your workflows: run your 2kw.ai agents and handle their approvals, extract structured data with your schemas, fetch and compile prompts, convert documents to Markdown, text, JSON or HTML, and transcribe audio.
 
-Use 2kw.ai inside n8n workflows: extract structured data with schemas, fetch and compile prompts, convert documents to markdown, transcribe audio, and append items to datasets.
+Full documentation: [docs.2kw.ai/integrations/n8n](https://docs.2kw.ai/integrations/n8n).
 
 ## Installation
 
 The package is published on npm as [`n8n-nodes-2kw`](https://www.npmjs.com/package/n8n-nodes-2kw).
 
-**In n8n (recommended).** Open *Settings → Community Nodes → Install*, enter `n8n-nodes-2kw`, accept the community-node risk prompt, and confirm. n8n installs it from npm and the **2kw** node appears in the node picker.
+**In n8n (recommended).** Open *Settings → Community Nodes → Install*, enter `n8n-nodes-2kw`, accept the community-node prompt, and confirm. The **2kw** node then appears in the node picker.
 
-**Manually into `~/.n8n/custom`.** `npm install n8n-nodes-2kw` inside `~/.n8n/custom/` and restart n8n. The node loader picks it up by the `n8n` field in `package.json`.
+**Manually (self-hosted n8n).** Run `npm install n8n-nodes-2kw` inside `~/.n8n/custom/` and restart n8n.
 
-**From source.** `cd n8n && npm install && npm run build && npm pack` produces a tarball you can point the same install dialog at. Useful for testing an unreleased change.
+## Credentials
 
-Releases are cut from the backbone monorepo, so the package version tracks the platform version rather than counting up on its own — see "Versioning" below.
+You need a 2kw.ai account and an API key. Create one under **API Keys** in the 2kw.ai dashboard.
 
-### Configure credentials
+In n8n, open *Credentials → New → 2kw API* and set:
 
-In n8n, open *Credentials → New → 2kw API* and provide:
+- **Base URL:** `https://api.2kw.ai`. Keep the default unless 2kw.ai gave you a dedicated API address.
+- **API Key:** the key you created.
 
-- **Base URL:** `https://api.2kw.ai` (or your self-hosted Backbone URL)
-- **API Key:** a personal access token created in the 2kw.ai dashboard under *Settings → API Keys*
+n8n tests the credential with `GET /v1/models`. If the test passes, the key is valid.
 
-n8n's credential test calls `GET /v1/models` against your base URL — if it succeeds, the key is valid.
+## Example workflow
+
+This workflow extracts an invoice number, a date and a total from a line of text with one of your schemas. Copy the JSON, paste it into an empty n8n canvas (Ctrl+V or Cmd+V), pick your **2kw API** credential on the 2kw node, and replace the schema ID with one of yours, or switch the **Schema** field to **From List** and pick one.
+
+```json
+{
+  "name": "2kw: extract invoice fields",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "resource": "extraction",
+        "operation": "run",
+        "schema": {
+          "__rl": true,
+          "mode": "id",
+          "value": "78af6e26-30b4-4677-bb3f-a2494444380c"
+        },
+        "model": "openai/gpt-4o",
+        "inputText": "Invoice INV-2026-0042 dated 3 November 2026, total EUR 1,250.00"
+      },
+      "name": "2kw",
+      "type": "n8n-nodes-2kw.twoKw",
+      "typeVersion": 2,
+      "position": [220, 0]
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [[{ "node": "2kw", "type": "main", "index": 0 }]]
+    }
+  }
+}
+```
+
+Run it: the 2kw node returns the extraction with its `result` object, shaped by your schema.
 
 ## Usage
 
@@ -43,7 +84,7 @@ Agent, Label, Schema, Prompt, Schema Version, and Prompt Label fields are **sear
 | Extraction | Get | Look up a previous extraction by ID. |
 | Extraction | Estimate | Estimate token usage + recommended strategy without running. |
 | Document | Convert | Multipart upload from a binary property. `Output Formats` selects which representations to include. Returns one item per converted document. |
-| Document | Convert From Source | URL or base64 (no binary upload). Same `Output Formats` + per-document item split as Convert. Pipeline option: fast / ocr / vlm. |
+| Document | Convert From Source | URL or base64 (no binary upload). Same `Output Formats` + per-document item split as Convert. Pipeline option: Fast, Scanned Documents or Complex Layouts. |
 | Transcription | Transcribe | Multipart audio upload. Required: `Model`. Optional: `Language`, `Prompt`, `Response Format`, `Temperature`. |
 
 ## Agents in n8n
@@ -110,99 +151,9 @@ Setup (one-time):
 
 After that, any n8n node that consumes an OpenAI credential — Chat Model, Embeddings, AI Agent, Tools — works against 2kw with no further setup. Use 2kw's `provider/model` format in the model field (e.g. `openai/gpt-4o-mini`).
 
-## Local development with Docker Compose
+## Documentation
 
-The repository's `compose.yaml` includes an off-by-default n8n service under the `n8n` profile. It bind-mounts `./n8n/dist` and `./n8n/package.json` into the container's custom-node folder so a `npm run build` is all that's needed to pick up code changes.
-
-```bash
-cd n8n && npm install && npm run build      # build the package once
-docker compose --profile n8n up -d n8n      # start n8n on http://localhost:5678
-# iterate:
-cd n8n && npm run build                     # after edits
-docker compose --profile n8n restart n8n    # reload the bind-mounted dist
-```
-
-n8n's first launch asks you to create an owner account in the UI. After that, *Credentials → New → 2kw API* and *the* `2kw` *node* are immediately available.
-
-## Smoke test (required before each release)
-
-1. Build the package: `cd n8n && npm install && npm run build`.
-2. Either install a locally packed tarball into your existing n8n, **or** start the local Docker n8n: `docker compose --profile n8n up -d n8n`.
-3. Configure a `2kw API` credential pointing at dev backbone with your API key.
-4. Build a 2-node workflow: a manual trigger → 2kw (Schema → Get) using a known schema ID. Run it. Confirm the output JSON contains the schema definition.
-5. Repeat with `Extraction → Run` against a small schema and a one-line `inputText`. Confirm the output contains a result object.
-
-## Versioning
-
-The published version is the backbone platform version, stamped by release CI — the same scheme `@2kw/ai` (CLI) and `@2kw/ai-mcp-server` already use. The `version` field committed here is a placeholder and is never what ships.
-
-The first npm release therefore jumps from the internal `0.3.0` to the platform's current major. There were no `1.x`–`4.x` releases of this node; the numbers are shared with the platform, not skipped.
-
-Prereleases publish under the `dev` dist-tag (`npm install n8n-nodes-2kw@dev`), stable releases under `latest`.
-
-## Changelog
-
-### Unreleased
-- Node version 2: Agent › Send Message and Decide Approval return only the answer as `text` and what the agent said on the way as `commentary`. Version 1 nodes in existing workflows return every assistant message joined in `text` again, as before 7.3.0; a workflow built on 7.3.0 that reads the answer alone from `text` needs a new 2kw node.
-- Added Agent › Send Message: agent and label pickers, file attachments, loud failure when the agent pauses for approval.
-- Added Agent › Decide Approval: approve or reject every pending approval of a paused run and continue it. Send Message and Decide Approval gained `Return Paused Runs`, which returns an approval pause as an item with `pendingApprovals` instead of failing.
-- Added the `Mode` option (Plan, Ask, Auto) to Agent › Send Message and Decide Approval, which sets the conversation mode, and `conversationMode` to the simplified output.
-- A run paused on a connector the user must connect in chat.2kw.ai now fails with the connector's label, host and the Connectors link instead of "client-side tool mcp__<label>__connect". With Return Paused Runs on it is returned with `pendingConnections`; the simplified output of every paused run now carries `pendingConnections` (empty when none).
-- A run paused on a connector's question to the user now fails with the connector's label and the chat link to answer in. With Return Paused Runs on it is returned with `pendingInputs`; the simplified output of every paused run now carries `pendingInputs` (empty when none).
-- The simplified output carries `components`, the tables and charts the agent showed the user (empty when none).
-
-Entries below `1.0.0` predate npm publication and use the node's own numbering.
-
-### 0.3.0
-- Resource locators for Schema, Prompt, Schema Version, Prompt Label (searchable dropdowns).
-- Document conversion: `Output Formats` multi-select (`MD`, `TEXT`, `JSON`, `HTML`); response split into one n8n item per converted document.
-- **Breaking:** removed Dataset resource. Workflows using `Dataset.AppendItem` will fail to load. Replace with a generic HTTP Request node hitting `POST /v1/datasets/{id}/versions/{versionId}/items`.
-
-### 0.2.0
-- Added Extraction.Get, Extraction.Estimate, Prompt.Resolve, Document.Convert From Source.
-- Extraction.Run gained `Wait For Completion` toggle (default on) — submits to async + polls.
-
-### 0.1.0
-- Initial release: Schema.Get, Prompt.Get/Compile, Extraction.Run (sync), Document.Convert, Transcription.Transcribe, Dataset.AppendItem.
-
-## Roadmap
-
-- n8n verified-community-node submission.
-- Trigger nodes (require backend webhook events).
-- Async document conversion + Wait For Completion (sync covers most cases today).
-
-## Development
-
-Source of truth is the `n8n/` directory of the backbone monorepo. `github.com/2kw-ai/n8n-nodes-2kw` is a **one-way mirror written only by release CI** — pull requests and direct commits there are overwritten by the next release. Report issues there; send patches against the monorepo.
-
-```bash
-cd n8n
-npm install
-npm run sync-types       # copy OpenAPI types from mcp/
-npm run dev              # tsc --watch
-npm test                 # vitest
-npm run lint             # tsc --noEmit + n8n community-package scan
-npm run scan             # the scan on its own
-npm run build            # tsc + gulp icons
-```
-
-`npm run scan` runs n8n's own `@n8n/scan-community-package` rule set against this
-working tree. Passing it is a requirement of n8n's verified-node programme, and
-the published `npx @n8n/scan-community-package n8n-nodes-2kw` form of it only
-accepts an already-published package — so this is the pre-merge equivalent, run
-on the source the scanner would otherwise fetch from the mirror. Two consequences
-worth knowing:
-
-- **Tests live in `test/`, not next to the code.** The scanner lints
-  `{nodes,credentials}/**` with inline configuration disabled, so a fixture like
-  `{ name: 'prod (v9)', value: 'v-9' }` under `nodes/` is read as a node
-  parameter and fails a naming rule that cannot be suppressed.
-- **The timer globals are off limits.** Use `sleep` from `n8n-workflow` rather
-  than `setTimeout`; n8n Cloud restricts them for community nodes.
-
-Type drift check fails the build if `generated/openapi.d.ts` no longer matches `mcp/src/generated/openapi.d.ts`. Run `npm run sync-types` after any MCP regeneration. In a standalone checkout of the mirror there is no `mcp/` to compare against, so the check accepts the committed copy and the drift guard runs in the monorepo pipeline only.
-
-The connect-pause decoder works the same way. `nodes/TwoKw/operations/connect-pause.ts` and `test/fixtures/connect-pause-cases.json` are copies of the CLI's `cli/src/lib/connect-pause.ts` and its golden fixture, so the CLI, the MCP server and this node read a paused run's connector requests by one rule. `npm test` runs `npm run check-connect-pause` first and fails when either copy has drifted; run `npm run sync-connect-pause` after changing the CLI's files, never edit the copies. The mirror has no `cli/` either, so there the check accepts the committed copies.
+Every operation, its parameters and the agent features are described at [docs.2kw.ai/integrations/n8n](https://docs.2kw.ai/integrations/n8n). What changed in each release: [docs.2kw.ai/changelog](https://docs.2kw.ai/changelog).
 
 ## License
 

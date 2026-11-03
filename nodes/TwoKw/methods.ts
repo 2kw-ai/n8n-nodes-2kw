@@ -6,7 +6,7 @@ interface CredentialsShape {
   apiKey: string;
 }
 
-async function backboneGet(
+async function apiGet(
   ctx: ILoadOptionsFunctions,
   path: string,
   query?: IDataObject,
@@ -48,7 +48,7 @@ export const methods = {
       this: ILoadOptionsFunctions,
       filter?: string,
     ): Promise<INodeListSearchResult> {
-      const data = (await backboneGet(this, '/v1/agents', pageQuery(filter))) as {
+      const data = (await apiGet(this, '/v1/agents', pageQuery(filter))) as {
         content?: { id: string; name: string }[];
       };
       return {
@@ -59,7 +59,7 @@ export const methods = {
     async searchAgentLabels(this: ILoadOptionsFunctions): Promise<INodeListSearchResult> {
       const agentId = readParentId(this, 'agent');
       if (!agentId) return { results: [] };
-      const data = (await backboneGet(
+      const data = (await apiGet(
         this,
         `/v1/agents/${encodeURIComponent(agentId)}/labels`,
       )) as { name: string }[];
@@ -72,7 +72,7 @@ export const methods = {
       this: ILoadOptionsFunctions,
       filter?: string,
     ): Promise<INodeListSearchResult> {
-      const data = (await backboneGet(this, '/v1/schemas', pageQuery(filter))) as {
+      const data = (await apiGet(this, '/v1/schemas', pageQuery(filter))) as {
         content?: { id: string; name: string }[];
       };
       return {
@@ -84,7 +84,7 @@ export const methods = {
       this: ILoadOptionsFunctions,
       filter?: string,
     ): Promise<INodeListSearchResult> {
-      const data = (await backboneGet(this, '/v1/prompts', pageQuery(filter))) as {
+      const data = (await apiGet(this, '/v1/prompts', pageQuery(filter))) as {
         content?: { id: string; name: string }[];
       };
       return {
@@ -95,7 +95,7 @@ export const methods = {
     async searchSchemaVersions(this: ILoadOptionsFunctions): Promise<INodeListSearchResult> {
       const schemaId = readParentId(this, 'schema');
       if (!schemaId) return { results: [] };
-      const data = (await backboneGet(
+      const data = (await apiGet(
         this,
         `/v1/schemas/${encodeURIComponent(schemaId)}/versions`,
         {
@@ -118,7 +118,7 @@ export const methods = {
     async searchSchemaLabels(this: ILoadOptionsFunctions): Promise<INodeListSearchResult> {
       const schemaId = readParentId(this, 'schema');
       if (!schemaId) return { results: [] };
-      const data = (await backboneGet(
+      const data = (await apiGet(
         this,
         `/v1/schemas/${encodeURIComponent(schemaId)}/labels`,
       )) as {
@@ -142,7 +142,7 @@ export const methods = {
     async searchPromptVersions(this: ILoadOptionsFunctions): Promise<INodeListSearchResult> {
       const promptId = readParentId(this, 'prompt');
       if (!promptId) return { results: [] };
-      const data = (await backboneGet(
+      const data = (await apiGet(
         this,
         `/v1/prompts/${encodeURIComponent(promptId)}/versions`,
         {
@@ -165,7 +165,7 @@ export const methods = {
     async searchPromptLabels(this: ILoadOptionsFunctions): Promise<INodeListSearchResult> {
       const promptId = readParentId(this, 'prompt');
       if (!promptId) return { results: [] };
-      const data = (await backboneGet(
+      const data = (await apiGet(
         this,
         `/v1/prompts/${encodeURIComponent(promptId)}/labels`,
       )) as {

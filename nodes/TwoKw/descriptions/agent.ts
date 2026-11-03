@@ -22,7 +22,7 @@ const simplifyOutput: INodeProperties = {
 };
 
 /**
- * The end user's conversation mode (#656). Absent until added: a workflow that never adds it
+ * The end user's conversation mode. Absent until added: a workflow that never adds it
  * sends no backbone:mode item (S3 D2). Values sorted by name, as the node's other options are.
  */
 const conversationMode: INodeProperties = {

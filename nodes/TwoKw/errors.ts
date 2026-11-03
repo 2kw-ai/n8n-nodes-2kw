@@ -6,7 +6,7 @@ import type { INode, JsonObject } from 'n8n-workflow';
  *
  * `execute()` cannot simply re-throw what it caught: raw errors lose their HTTP
  * context in the n8n UI, and `@n8n/community-nodes/require-node-api-error`
- * rejects the package for it (#363). It cannot blindly wrap either — the
+ * rejects the package for it. It cannot blindly wrap either — the
  * operations throw `NodeOperationError` with messages written for the user
  * ("Maximum 10 binary images per extraction"), and burying those inside a
  * `NodeApiError` would replace them with an HTTP-shaped default.

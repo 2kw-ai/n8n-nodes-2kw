@@ -13,7 +13,7 @@ export class TwoKwApi implements ICredentialType {
   // Deliberately a copy of the node's icon rather than a `../nodes/...` path:
   // n8n resolves `file:` icons relative to the compiled file, and the
   // credential lands in dist/credentials/ while the node icon lands in
-  // dist/nodes/TwoKw/ (#363).
+  // dist/nodes/TwoKw/.
   icon: Icon = { light: 'file:icon.light.svg', dark: 'file:icon.dark.svg' };
 
   properties: INodeProperties[] = [
@@ -22,7 +22,7 @@ export class TwoKwApi implements ICredentialType {
       name: 'baseUrl',
       type: 'string',
       default: 'https://api.2kw.ai',
-      description: 'Base URL of the 2kw.ai API. Override for self-hosted Backbone.',
+      description: 'Base URL of the 2kw.ai API. Keep the default unless 2kw.ai gave you a dedicated API address.',
     },
     {
       displayName: 'API Key',

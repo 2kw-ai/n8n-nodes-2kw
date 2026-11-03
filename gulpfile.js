@@ -1,7 +1,8 @@
 const { src, dest, parallel } = require('gulp');
 
+// The codex file (TwoKw.node.json) ships too: n8n reads the category and docs link next to the node's .js.
 function buildNodeIcons() {
-  return src('nodes/**/*.svg').pipe(dest('dist/nodes'));
+  return src('nodes/**/*.{svg,json}').pipe(dest('dist/nodes'));
 }
 
 // The credential class carries its own icon since #363, and `file:` paths are

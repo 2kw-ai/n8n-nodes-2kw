@@ -1,8 +1,8 @@
 {
-  "node": "n8n-nodes-base.twoKw",
+  "node": "n8n-nodes-2kw.twoKw",
   "nodeVersion": "1.0",
   "codexVersion": "1.0",
-  "categories": ["AI"],
+  "categories": ["Productivity"],
   "resources": {
     "primaryDocumentation": [
       { "url": "https://docs.2kw.ai/integrations/n8n" }

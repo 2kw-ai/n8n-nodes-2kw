@@ -23,7 +23,7 @@ export async function pollUntilTerminal<T extends { status?: string }>(
 			);
 		}
 		// `sleep`, not a bare setTimeout: n8n Cloud restricts the timer globals in
-		// community nodes, and its scan rejects the package outright (#363).
+		// community nodes, and its scan rejects the package outright.
 		await sleep(opts.intervalMs);
 	}
 }

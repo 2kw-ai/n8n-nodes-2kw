@@ -34,7 +34,7 @@ export class TwoKw implements INodeType {
     name: 'twoKw',
     icon: { light: 'file:icon.light.svg', dark: 'file:icon.dark.svg' },
     group: ['transform'],
-    // v2 (#1482): Agent › Send Message returns the answer as `text`; v1 keeps every assistant message joined.
+    // v2: Agent › Send Message returns the answer as `text`; v1 keeps every assistant message joined.
     version: [1, 2],
     defaultVersion: 2,
     // Every operation here is a request the model can usefully make on its own
@@ -42,7 +42,7 @@ export class TwoKw implements INodeType {
     // offered in the AI Agent tool picker.
     usableAsTool: true,
     subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-    description: 'Use 2kw.ai (Backbone) for AI extraction, prompts, and more',
+    description: 'Run 2kw.ai agents, extract structured data, convert documents and transcribe audio',
     defaults: { name: '2kw' },
     inputs: ['main' as NodeConnectionType],
     outputs: ['main' as NodeConnectionType],

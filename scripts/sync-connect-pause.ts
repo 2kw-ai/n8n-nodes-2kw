@@ -28,7 +28,7 @@ const MONOREPO_SIBLING = resolve(packageRoot, '..', 'cli');
 
 /** The header the module's copy starts with; the module itself follows it byte for byte. */
 const HEADER =
-  '// GENERATED COPY of cli/src/lib/connect-pause.ts (#1086). Do not edit here: edit the CLI\'s file,\n' +
+  '// GENERATED COPY of cli/src/lib/connect-pause.ts. Do not edit here: edit the CLI\'s file,\n' +
   '// then run `npm run sync-connect-pause` in n8n/. `npm run check-connect-pause` fails on any drift.\n';
 
 const copies = [

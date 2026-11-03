@@ -13,7 +13,7 @@ export const resourceField: INodeProperties = {
   noDataExpression: true,
   default: 'schema',
   // Alphabetical, not workflow order: n8n's community-node scan enforces
-  // `node-param-options-type-unsorted-items` (#363).
+  // `node-param-options-type-unsorted-items`.
   options: [
     { name: 'Agent', value: 'agent' },
     { name: 'Document', value: 'document' },

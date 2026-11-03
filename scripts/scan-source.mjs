@@ -28,7 +28,7 @@ import { dirname, resolve } from 'node:path';
 import {
 	analyzePackage,
 	SOURCE_FILE_PATTERNS,
-} from '@n8n/scan-community-package/scanner/scanner.mjs';
+} from '@n8n/scan-community-package/dist/scanner.js';
 
 const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 

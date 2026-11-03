@@ -1,7 +1,7 @@
 {
   "name": "n8n-nodes-2kw",
   "version": "8.2.0-dev.3",
-  "description": "n8n community node for the 2kw.ai platform (engineering name: Backbone)",
+  "description": "n8n node for 2kw.ai: run AI agents, extract structured data, convert documents and transcribe audio",
   "license": "MIT",
   "author": {
     "name": "Manfred Kunze Development",
@@ -49,7 +49,6 @@
     "n8n-community-node-package",
     "n8n",
     "2kw",
-    "backbone",
     "ai",
     "extraction"
   ],
@@ -58,12 +57,12 @@
     "n8n-workflow": "*"
   },
   "devDependencies": {
-    "@n8n/scan-community-package": "0.32.0",
+    "@n8n/scan-community-package": "0.42.0",
     "@types/node": "^22.20.1",
     "gulp": "^5.0.1",
     "n8n-workflow": "^1.120.13",
     "tsx": "^4.21.1",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vitest": "^2.1.9"
   }
 }
