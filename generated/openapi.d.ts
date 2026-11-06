@@ -1323,7 +1323,7 @@ export interface paths {
         };
         /**
          * List conversation items
-         * @description Fetch a conversation's items in replay order, oldest first.
+         * @description Fetch a conversation's items in replay order, oldest first. Each item also names the response it belongs to: `response_id`, `previous_response_id`, `logical_predecessor_id` (the response its turn continues from, null for the first turn), `turn_start` (true when the response carries a new user message rather than continuing a paused or tool round), `created_at` (Unix seconds: when a user message was sent, when an answer finished), and `stopped` / `capped` for an answer that was stopped or cut short.
          */
         get: operations["listConversationItems"];
         put?: never;
