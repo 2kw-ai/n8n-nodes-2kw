@@ -1314,6 +1314,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/conversations/{conversationId}/fork": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Branch a conversation
+         * @description Backbone extension: creates a new conversation holding this one's messages up to and including through_response_id, and returns it. The conversation branched from is never changed. Only the person who started a conversation can branch it; for anyone else it answers 404, as an unknown id does. The copy keeps the messages and their sources, and nothing else — attachments become a line naming the file, and no tool call, approval or uploaded file is carried over. Send the next message on the new conversation as usual; backbone.head_response_id names the response to continue from.
+         */
+        post: operations["forkConversation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/conversations/{conversationId}/items": {
         parameters: {
             query?: never;
@@ -1323,7 +1343,7 @@ export interface paths {
         };
         /**
          * List conversation items
-         * @description Fetch a conversation's items in replay order, oldest first. Each item also names the response it belongs to: `response_id`, `previous_response_id`, `logical_predecessor_id` (the response its turn continues from, null for the first turn), `turn_start` (true when the response carries a new user message rather than continuing a paused or tool round), `created_at` (Unix seconds: when a user message was sent, when an answer finished), and `stopped` / `capped` for an answer that was stopped or cut short.
+         * @description Fetch a conversation's items in replay order, oldest first. Each item also names the response it belongs to: `response_id`, `previous_response_id`, `logical_predecessor_id` (the response its turn continues from, null for the first turn), `turn_start` (true when the response carries a new user message rather than continuing a paused or tool round), `created_at` (Unix seconds: when a user message was sent, when an answer finished), `stopped` / `capped` for an answer that was stopped or cut short, and `acted` (true when the turn used a connected system, so running it again may repeat what it did).
          */
         get: operations["listConversationItems"];
         put?: never;
@@ -6167,6 +6187,13 @@ export interface components {
             /** Format: double */
             threshold?: number;
         };
+        ForkConversationRequest: {
+            /**
+             * @description The response the new chat keeps the messages through, its answer included. Required, and it must be the last response of a turn on the chat's current line.
+             * @example resp_abc123
+             */
+            through_response_id: string;
+        };
         Function: {
             description?: string;
             name?: string;
@@ -10396,9 +10423,7 @@ export interface operations {
     listConnectorCatalog: {
         parameters: {
             query?: never;
-            header?: {
-                "If-None-Match"?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -11470,6 +11495,77 @@ export interface operations {
             };
             /** @description No such conversation, canvas or version is visible to the caller */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    forkConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ForkConversationRequest"];
+            };
+        };
+        responses: {
+            /** @description The new conversation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConversationResource"];
+                };
+            };
+            /** @description through_response_id is missing, is not the last response of a turn, or is not on this conversation's current line (invalid_fork_point) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description No such conversation for this caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The conversation is still working on that turn (fork_point_not_ready), or its agent is not available (agent_unavailable) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The conversation is too long to branch */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too many branches in a minute */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
