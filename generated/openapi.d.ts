@@ -148,7 +148,7 @@ export interface paths {
         };
         /**
          * List an agent's knowledge bases
-         * @description The knowledge bases the latest published version of an agent can search, as {name, description}. Readable by every organization member including the chat-only USER role, which cannot read the version itself. An agent with no published version, or one that searches no knowledge base, returns an empty list rather than a 404. A knowledge base that has been deleted is omitted. 404 for an agent of another organization.
+         * @description The knowledge bases the latest published version of an agent can search, as {id, name, description}. Readable by every organization member including the chat-only USER role, which cannot read the version itself. An agent with no published version, or one that searches no knowledge base, returns an empty list rather than a 404. A knowledge base that has been deleted is omitted. 404 for an agent of another organization.
          */
         get: operations["listAgentKnowledge"];
         put?: never;
@@ -4687,6 +4687,8 @@ export interface components {
         AgentKnowledgeDTO: {
             /** @description The knowledge base's description, or null when it has none. */
             description?: string | null;
+            /** @description The knowledge base's id. */
+            id?: string;
             /** @description The knowledge base's name. */
             name?: string;
         };
