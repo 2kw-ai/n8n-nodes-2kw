@@ -4027,7 +4027,7 @@ export interface paths {
         put?: never;
         /**
          * Create search provider
-         * @description Register a Perplexity or Brave API key of the organization for agents' web search (`web_search` with `source: external`). Names are unique within the organization. Requires a plan that includes your own provider keys.
+         * @description Register a Perplexity or Brave API key of the organization for agents' web search (`web_search` with `source: external`). Names are unique within the organization. Requires a plan that includes your own provider keys. Requires admin role.
          */
         post: operations["createSearchProvider"];
         delete?: never;
@@ -4047,7 +4047,7 @@ export interface paths {
         put?: never;
         /**
          * Test search provider connection
-         * @description Run one minimal search on the given key, or on the stored key of `searchProviderId`. Answers 200 whether or not the vendor accepted the key; `success` says which. An unknown `searchProviderId` is 404. The vendor may bill the search to your account; Backbone does not charge for it. Limited to 10 tests per minute per organization (429 with `Retry-After`).
+         * @description Run one minimal search on the given key, or on the stored key of `searchProviderId`. Answers 200 whether or not the vendor accepted the key; `success` says which. An unknown `searchProviderId` is 404. The vendor may bill the search to your account; Backbone does not charge for it. Limited to 10 tests per minute per organization (429 with `Retry-After`). Requires admin role.
          */
         post: operations["testSearchProvider"];
         delete?: never;
@@ -4079,7 +4079,7 @@ export interface paths {
         head?: never;
         /**
          * Update search provider
-         * @description Update a search provider. A field left out is unchanged; a blank `apiKey` keeps the stored key; a `config` replaces the stored options whole. The vendor cannot be changed.
+         * @description Update a search provider. A field left out is unchanged; a blank `apiKey` keeps the stored key; a `config` replaces the stored options whole. The vendor cannot be changed. Requires admin role.
          */
         patch: operations["updateSearchProvider"];
         trace?: never;
