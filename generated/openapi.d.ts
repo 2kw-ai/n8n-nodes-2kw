@@ -3518,7 +3518,7 @@ export interface paths {
         put?: never;
         /**
          * Create provider
-         * @description Create a new AI provider configuration with credentials.
+         * @description Create a new AI provider configuration with credentials. Requires admin role.
          */
         post: operations["create_1"];
         delete?: never;
@@ -3578,7 +3578,7 @@ export interface paths {
         put?: never;
         /**
          * Test provider connection
-         * @description Test connection to an AI provider using the provided credentials.
+         * @description Test connection to an AI provider using the provided credentials. Requires admin role.
          */
         post: operations["testConnection"];
         delete?: never;
@@ -3610,7 +3610,7 @@ export interface paths {
         head?: never;
         /**
          * Update provider
-         * @description Update an AI provider configuration (PATCH semantics).
+         * @description Update an AI provider configuration (PATCH semantics). Requires admin role.
          */
         patch: operations["update_9"];
         trace?: never;
