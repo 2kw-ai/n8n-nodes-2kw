@@ -24,8 +24,11 @@ on:
 
 permissions:
   contents: read
-  # Required for npm provenance: the OIDC token is what npm uses to attest that
-  # this workflow, in this repo, at this commit, produced the tarball.
+  # Required for npm trusted publishing and provenance: npm exchanges this
+  # workflow's OIDC token for a short-lived publish credential, and attests that
+  # this workflow, in this repo, at this commit, produced the tarball. No npm
+  # token is stored anywhere. The trusted publisher on npmjs.com names this repo
+  # and this file (publish.yml), with no environment; renaming either breaks it.
   id-token: write
 
 jobs:
@@ -38,6 +41,9 @@ jobs:
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing needs npm >= 11.5.1; Node 22 bundles npm 10.
+      - run: npm install -g npm@^11.5.1
 
       - run: npm ci
 
@@ -68,11 +74,10 @@ jobs:
             *)   echo "tag=latest" >> "$GITHUB_OUTPUT" ;;
           esac
 
+      # Authenticates by OIDC (trusted publishing), not by NODE_AUTH_TOKEN.
       - name: Publish to npmjs.org with provenance
         if: steps.v.outputs.published == 'false'
         run: npm publish --provenance --access public --tag "${{ steps.v.outputs.tag }}"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # The gate for n8n's verified programme, run end to end on what was just
       # published: provenance, the attested source checkout, and the tarball.
