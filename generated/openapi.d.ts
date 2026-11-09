@@ -4471,7 +4471,7 @@ export interface paths {
         };
         /**
          * List recent traces
-         * @description Returns paginated trace summaries for the caller's organization. Each summary aggregates all spans sharing a trace_id into start/end times, span count, source services, and worst-case status. Optionally filter by source_service, status, free-text search, a start-time range (from/to, ISO-8601) and session id. A trace matches when any of its spans does; its summary still covers all of its spans. Sort by start time, duration or status.
+         * @description Returns paginated trace summaries for the caller's organization. Each summary aggregates all spans sharing a trace_id into start/end times, span count, source services, and worst-case status. Optionally filter by source_service, status, free-text search, a start-time range (from/to, ISO-8601) and session id. Without from, the list covers the 7 days before to, or before now. A trace matches when any of its spans does; its summary still covers all of its spans. Sort by start time, duration or status.
          */
         get: operations["listTraces"];
         put?: never;
@@ -4495,7 +4495,7 @@ export interface paths {
         };
         /**
          * List sessions
-         * @description Paginated session summaries for the caller's organization: trace, span, turn and error counts, duration, tokens and cost. A turn is a span carrying a prompt, a completion or a tool call. Optional free-text search over session id and name, an exact match on the exporter's session.id, and a start-time range. Sessions written by agent evaluation runs are hidden unless source=experiment, which lists only those. Each row's id is what GET /v1/traces/sessions/{id} takes.
+         * @description Paginated session summaries for the caller's organization: trace, span, turn and error counts, duration, tokens and cost. A turn is a span carrying a prompt, a completion or a tool call. Optional free-text search over session id and name, an exact match on the exporter's session.id, and a start-time range; without from, the 7 days before to, or before now. Sessions written by agent evaluation runs are hidden unless source=experiment, which lists only those. Each row's id is what GET /v1/traces/sessions/{id} takes.
          */
         get: operations["listSessions"];
         put?: never;
