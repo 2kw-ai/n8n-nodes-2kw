@@ -64,7 +64,7 @@ export interface paths {
         };
         /**
          * List agents
-         * @description Retrieve a paginated list of agents for the current organization. Carries the full agent configuration and is therefore VIEWER+; a chat-only USER reads GET /v1/agents/catalog instead.
+         * @description Retrieve a paginated list of agents for the current organization. Carries the full agent configuration and is therefore MEMBER or above; a chat-only USER reads GET /v1/agents/catalog instead.
          */
         get: operations["find_6"];
         put?: never;
@@ -364,7 +364,7 @@ export interface paths {
         };
         /**
          * Get agent
-         * @description Retrieve an agent by its ID, including its instructions, tools, options, HITL policy and skills. VIEWER+; a chat-only USER reads GET /v1/agents/catalog instead.
+         * @description Retrieve an agent by its ID, including its instructions, tools, options, HITL policy and skills. MEMBER or above; a chat-only USER reads GET /v1/agents/catalog instead.
          */
         get: operations["get_7"];
         /**
@@ -8148,7 +8148,7 @@ export interface components {
         };
         SetSkillMinRoleRequest: {
             /** @enum {string} */
-            minRole?: "USER" | "VIEWER" | "MEMBER" | "ADMIN" | "OWNER";
+            minRole?: "USER" | "MEMBER" | "ADMIN" | "OWNER";
         };
         SettingMemberTier: {
             /** Format: date-time */
@@ -8199,7 +8199,7 @@ export interface components {
             /** Format: int32 */
             latestVersionNumber?: number;
             /** @enum {string} */
-            minRole?: "USER" | "VIEWER" | "MEMBER" | "ADMIN" | "OWNER";
+            minRole?: "USER" | "MEMBER" | "ADMIN" | "OWNER";
             name?: string;
             /** @enum {string} */
             status?: "ACTIVE" | "ARCHIVED";
@@ -11316,15 +11316,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description The caller is a VIEWER */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
             /** @description No conversation with this id is visible to the caller */
             404: {
                 headers: {
@@ -11426,15 +11417,6 @@ export interface operations {
             };
             /** @description base_version is missing, both or neither of content and restore_from are sent, the title is blank, or content is sent for a table (canvas_kind) */
             400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description The caller is a VIEWER */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -16275,7 +16257,7 @@ export interface operations {
                     "*/*": components["schemas"]["ScheduledTaskDTO"];
                 };
             };
-            /** @description scheduled_tasks_disabled, or a viewer: viewers cannot schedule tasks */
+            /** @description scheduled_tasks_disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16355,7 +16337,7 @@ export interface operations {
                     "*/*": components["schemas"]["ScheduledTaskDTO"];
                 };
             };
-            /** @description scheduled_tasks_disabled on resume, or a viewer */
+            /** @description scheduled_tasks_disabled on resume */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16413,7 +16395,7 @@ export interface operations {
                     "*/*": components["schemas"]["ScheduledTaskRunStarted"];
                 };
             };
-            /** @description scheduled_tasks_disabled, or a viewer */
+            /** @description scheduled_tasks_disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
