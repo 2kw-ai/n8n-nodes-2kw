@@ -1023,7 +1023,7 @@ export interface paths {
         get?: never;
         /**
          * Replace a manual connector OAuth client registration
-         * @description Replaces the client id, secret, authentication method and secret expiry; the issuer stays. A registration the authorization server stopped accepting is usable again. Members connected through the registration sign in again.
+         * @description Replaces the client id, secret, authentication method and secret expiry; the issuer stays. A registration the authorization server stopped accepting is usable again. Members connected through the registration sign in again. A Microsoft Entra tenant registration whose request changes only scopes (no clientSecret, the same client id and method) revises the permissions and keeps the credentials.
          */
         put: operations["updateConnectorOAuthClient"];
         post?: never;

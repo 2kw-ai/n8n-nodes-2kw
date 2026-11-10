@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-2kw",
-  "version": "8.3.0-dev.4",
+  "version": "8.3.0-dev.5",
   "description": "n8n node for 2kw.ai: run AI agents, extract structured data, convert documents and transcribe audio",
   "license": "MIT",
   "author": {
