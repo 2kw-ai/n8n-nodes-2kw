@@ -70,7 +70,7 @@ export interface paths {
         put?: never;
         /**
          * Create agent
-         * @description Create a new agent for the current organization. The configuration is published as version 1 with the latest label on it, so the agent is runnable and listed in the catalog at once; the response carries latestVersionId and latestVersionNumber. A name that is already taken answers 409.
+         * @description Create a new agent for the current organization. The configuration is published as version 1 with the latest label on it, so the agent is runnable and listed in the catalog at once; the response carries latestVersionId and latestVersionNumber. A name that is already taken answers 409. `visibility` and `teamIds` set who may use it; omitted, every member of the organization may.
          */
         post: operations["create_11"];
         delete?: never;
@@ -378,6 +378,30 @@ export interface paths {
          * @description Delete an agent and cascade-delete its versions and labels.
          */
         delete: operations["delete_6"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agents/{id}/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get agent access
+         * @description Who may use the agent: everyone in the organization, or members of the listed teams. Administrators and owners reach every agent. 404 for an agent the caller cannot reach.
+         */
+        get: operations["getAgentAccess"];
+        /**
+         * Set agent access
+         * @description Replace who may use the agent. `organization` opens it to every member and takes no teams; `restricted` limits it to members of `teamIds`, and with no team to administrators and owners. Administrators and owners only. The organization's default agent cannot be restricted (409); choose another default first.
+         */
+        put: operations["setAgentAccess"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -4657,6 +4681,16 @@ export interface components {
         AddQueueItemsRequest: {
             items: components["schemas"]["Item"][];
         };
+        /** @description Who may use an agent. Administrators and owners reach every agent. */
+        AgentAccessDTO: {
+            /** @description The teams a restricted agent is open to. Empty for `organization`. A restricted agent with no team is reachable by administrators and owners only. */
+            teamIds?: string[];
+            /**
+             * @description `organization`: every member of the organization. `restricted`: only members of the listed teams.
+             * @enum {string}
+             */
+            visibility: "organization" | "restricted";
+        };
         /** @description What this deployment offers every agent. */
         AgentAvailabilityDTO: {
             /** @description Whether this deployment runs the Bash tool. Where it is false, a backbone.bash entry is stored but never offered to the model. */
@@ -5514,6 +5548,39 @@ export interface components {
         CreateAgentLabelRequest: {
             agentVersionId: string;
             name: string;
+        };
+        CreateAgentRequest: {
+            /** @description Whether this deployment runs the Bash tool. Where it is false, a backbone.bash entry is stored but never offered to the model. */
+            readonly bashAvailable?: boolean;
+            /** Format: date-time */
+            readonly createdAt?: string;
+            description?: string;
+            hitlPolicy?: components["schemas"]["JsonNode"];
+            id?: string;
+            instructions?: string;
+            /** Format: date-time */
+            readonly lastModifiedAt?: string;
+            latestVersionId?: string;
+            /** Format: int32 */
+            readonly latestVersionNumber?: number;
+            model?: string;
+            models?: string[];
+            name: string;
+            /** @description Model and run options. Every run reads `reasoning.effort` and `maxToolRounds`. `maxToolRounds`: maximum rounds of tool calls one request may take, 1 to 100; the platform default applies when absent. Also bounded by the deployment's run limit. Sending `options` replaces the whole object: a key left out is removed. */
+            options?: components["schemas"]["JsonNode"];
+            organizationId?: string;
+            /** @description Skills bound to the agent (#639): at most 20 entries, names unique, ref defaults to latest. */
+            skills?: components["schemas"]["SkillBinding"][];
+            /** @description The teams a restricted agent is open to. Leave empty for `organization`. */
+            teamIds?: string[];
+            /** @description The agent's tools: function tools, connectors and built-ins. An entry {"type": "backbone.agent", "name", "description"?, "requiresConfirmation"?, "config": {"agent_id"}} makes another published agent of the organization a sub-agent: the model hands it a task, optionally with files, and gets back its answer and the files it returns. At most 5 sub-agents per version and 5 calls per turn; a sub-agent has no sub-agents of its own, runs as the caller, cannot fetch web pages, and a step of it that needs a person's approval fails. Not available in embedded installations. */
+            tools?: components["schemas"]["JsonNode"];
+            version?: string;
+            /**
+             * @description Who may use the agent: `organization` (default) for every member, `restricted` for members of `teamIds` only. A member may restrict an agent to teams they belong to; administrators and owners to any team.
+             * @enum {string}
+             */
+            visibility?: "organization" | "restricted";
         };
         CreateAgentVersionRequest: {
             changeDescription?: string;
@@ -9019,7 +9086,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AgentDTO"];
+                "application/json": components["schemas"]["CreateAgentRequest"];
             };
         };
         responses: {
@@ -9499,6 +9566,54 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    getAgentAccess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AgentAccessDTO"];
+                };
+            };
+        };
+    };
+    setAgentAccess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentAccessDTO"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AgentAccessDTO"];
+                };
             };
         };
     };
