@@ -4841,6 +4841,7 @@ export interface components {
             hmac?: string;
             human_only?: boolean;
             id?: string;
+            knowledge_apply?: components["schemas"]["KnowledgeApplyPreview"];
             mode?: string;
             pause_reason?: string;
             policy_class?: string;
@@ -6412,6 +6413,29 @@ export interface components {
             /** @deprecated */
             textual?: boolean;
             valueNode?: boolean;
+        };
+        KnowledgeApplyPreview: {
+            entries?: components["schemas"]["KnowledgeApplyPreviewEntry"][];
+        };
+        KnowledgeApplyPreviewEntry: {
+            /** Format: int32 */
+            base_version?: number;
+            document_id?: string;
+            excerpt?: string;
+            /** Format: int32 */
+            index?: number;
+            knowledge_base?: string;
+            knowledge_base_name?: string;
+            /** Format: int32 */
+            latest_version?: number;
+            mime_type?: string;
+            name?: string;
+            op?: string;
+            reason?: string;
+            result?: string;
+            /** Format: int64 */
+            size_bytes?: number;
+            version_id?: string;
         };
         KnowledgeBaseDTO: {
             /** Format: int32 */
