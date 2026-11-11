@@ -96,11 +96,24 @@ jobs:
       # red; bumping both together is a deliberate act with a diff to read.
       - name: Verify against n8n's community-package scan
         if: steps.v.outputs.published == 'false'
+        env:
+          PKG: ${{ steps.v.outputs.name }}@${{ steps.v.outputs.version }}
         run: |
+          # npm "processes" a fresh publish for minutes; the scanner reads the same
+          # metadata, so wait until the version resolves (up to 5 min) (#1894).
+          for i in $(seq 1 30); do
+            [ -n "$(npm view "$PKG" version 2>/dev/null)" ] && break
+            echo "Waiting for npm to serve $PKG ($i/30)."
+            sleep 10
+          done
           # npm's attestation endpoint lags the publish by a few seconds.
           for attempt in 1 2 3 4 5; do
-            if npx -y @n8n/scan-community-package@0.42.0 \
-                 "${{ steps.v.outputs.name }}@${{ steps.v.outputs.version }}"; then
+            # The scanner exits 0 on a failed check too (0.42.0), so the verdict is
+            # its success line on stdout, never its exit code (#1894).
+            OUT=$(npx -y @n8n/scan-community-package@0.42.0 "$PKG") || true
+            echo "$OUT"
+            if grep -qF "✅ Package $PKG has passed all security checks" <<<"$OUT" \
+               && ! grep -qE '❌|failed' <<<"$OUT"; then
               exit 0
             fi
             echo "Scan attempt $attempt failed; retrying in 20s."
