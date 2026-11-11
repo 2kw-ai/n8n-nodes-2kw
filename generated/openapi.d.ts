@@ -4623,7 +4623,7 @@ export interface paths {
         };
         /**
          * Get platform usage of a period
-         * @description How much of the period's included usage is used, per meter with its quantity and per credential kind, plus extra usage and the prepaid balance in euros, net of VAT. Percentages are exact to two places, rounded down. accounting UNAVAILABLE carries no figures. Needs a member login: API keys and surface tokens are refused.
+         * @description How much of the period's included usage is used, per meter with its quantity and per credential kind, plus extra usage and the prepaid balance in euros, net of VAT. Token meters carry their tokens by kind (input, cached input, cache write, output); a kind not reported is null, not 0. The model tokens also come per UTC day and per model, feature and consumer kind, each with its share of the included usage. Settled usage only. Percentages are exact to two places, rounded down. accounting UNAVAILABLE carries no figures. Needs a member login: API keys and surface tokens are refused.
          */
         get: operations["getUsagePeriod"];
         put?: never;
@@ -6083,10 +6083,30 @@ export interface components {
             textContent?: string;
         };
         ExternalDay: {
+            /**
+             * Format: int64
+             * @description Input tokens written to the prompt cache
+             */
+            cacheWriteTokens?: number | null;
+            /**
+             * Format: int64
+             * @description Input tokens read from the prompt cache
+             */
+            cachedInputTokens?: number | null;
             /** Format: date */
             date?: string;
             /** @example 0.40 */
             estimatedCostEur?: string;
+            /**
+             * Format: int64
+             * @description Output tokens, reasoning included
+             */
+            outputTokens?: number | null;
+            /**
+             * Format: int64
+             * @description Input tokens read fresh
+             */
+            uncachedInputTokens?: number | null;
         };
         ExternalRow: {
             /** Format: int64 */
@@ -6876,12 +6896,22 @@ export interface components {
             status?: string;
         });
         MeterUsage: {
+            kindSharePercent?: components["schemas"]["ShareKinds"];
             /** @enum {string} */
             meter?: "MODEL_TOKENS" | "EMBEDDING_TOKENS" | "DOCUMENT_PAGES" | "AUDIO_SECONDS" | "WEB_SEARCH" | "WEB_FETCH";
             /** @example 41.30 */
             percent?: string | null;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description Tokens (the four kinds summed), searches, fetches, pages or audio seconds
+             */
             quantity?: number;
+            tokens?: components["schemas"]["TokenKinds"];
+            /**
+             * @description Share of the included usage no reported token kind accounts for
+             * @example 0.00
+             */
+            unallocatedSharePercent?: string | null;
             unit?: string;
         };
         ModeItem: {
@@ -6980,6 +7010,10 @@ export interface components {
             };
             /** Format: int64 */
             failedOperations?: number;
+            /** Format: int64 */
+            inputTokens?: number;
+            /** Format: int64 */
+            outputTokens?: number;
             /** Format: double */
             p95DurationMs?: number;
             /** Format: double */
@@ -8273,6 +8307,16 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        ShareKinds: {
+            /** @example 0.00 */
+            cacheWrite?: string | null;
+            /** @example 1.05 */
+            cachedInput?: string | null;
+            /** @example 27.81 */
+            output?: string | null;
+            /** @example 12.40 */
+            uncachedInput?: string | null;
+        };
         SkillBinding: {
             /**
              * @description The org skill name: a lowercase slug, or plugin:skill for a skill a plugin installed.
@@ -8615,6 +8659,28 @@ export interface components {
             schemaId: string;
             schemaVersionId?: string;
         };
+        TokenKinds: {
+            /**
+             * Format: int64
+             * @description Input tokens written to the prompt cache
+             */
+            cacheWrite?: number | null;
+            /**
+             * Format: int64
+             * @description Input tokens read from the prompt cache
+             */
+            cachedInput?: number | null;
+            /**
+             * Format: int64
+             * @description Output tokens, reasoning included
+             */
+            output?: number | null;
+            /**
+             * Format: int64
+             * @description Input tokens read fresh
+             */
+            uncachedInput?: number | null;
+        };
         Tool: {
             function?: components["schemas"]["Function"];
             type?: string;
@@ -8865,6 +8931,30 @@ export interface components {
             /** @enum {string} */
             status?: "ACTIVE" | "ARCHIVED";
         };
+        UsageDay: {
+            /** Format: date */
+            date?: string;
+            /** Format: int64 */
+            requests?: number;
+            sharePercent?: components["schemas"]["ShareKinds"];
+            tokens?: components["schemas"]["TokenKinds"];
+            /** @example 0.00 */
+            unallocatedSharePercent?: string | null;
+        };
+        UsageGroup: {
+            /** @example gpt-5.1-mini */
+            key?: string;
+            kindSharePercent?: components["schemas"]["ShareKinds"];
+            /** @example gpt-5.1-mini */
+            label?: string;
+            /** Format: int64 */
+            requests?: number;
+            /** @example 18.42 */
+            sharePercent?: string | null;
+            tokens?: components["schemas"]["TokenKinds"];
+            /** @example 0.00 */
+            unallocatedSharePercent?: string | null;
+        };
         UsageLimitsDTO: {
             byokEnabled?: boolean;
             /** Format: int64 */
@@ -8893,7 +8983,15 @@ export interface components {
         UsagePeriodDTO: {
             /** @enum {string} */
             accounting?: "ENFORCE" | "SHADOW" | "UNAVAILABLE";
+            /** @description Model tokens per consumer kind */
+            byConsumer?: components["schemas"]["UsageGroup"][];
+            /** @description Model tokens per product feature */
+            byFeature?: components["schemas"]["UsageGroup"][];
+            /** @description Model tokens per built-in model */
+            byModel?: components["schemas"]["UsageGroup"][];
             consumers?: components["schemas"]["ConsumerUsage"][];
+            /** @description Model tokens per UTC day of the period, settled usage only; days without usage have 0 requests and no tokens */
+            daily?: components["schemas"]["UsageDay"][];
             extraUsage?: components["schemas"]["ExtraUsage"];
             /** @enum {string|null} */
             kind?: "TRIAL" | "PAID" | null;
