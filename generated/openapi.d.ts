@@ -1013,6 +1013,50 @@ export interface paths {
         patch: operations["updateConnectorGrantOverrides"];
         trace?: never;
     };
+    "/v1/connectors/installed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the organization's connectors
+         * @description The servers an admin added for the organization's agents, in name order, with how many agents use each. A removed connector is listed as removing until what it granted is revoked. Never a secret or a member's name.
+         */
+        get: operations["listInstalledConnectors"];
+        put?: never;
+        /**
+         * Add a connector from the directory
+         * @description Adds a directory entry for the organization: the hosts agents reach for it are approved and the sign-in it names is recorded. Members then sign in with their own account.
+         */
+        post: operations["addConnector"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/connectors/installed/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove a connector
+         * @description Every agent's calls to the server end at once, on every spelling of its address. What members granted is then revoked, which takes a moment: the connector is listed as removing meanwhile, and adding it again waits. Its approved hosts stay until an admin withdraws them.
+         */
+        delete: operations["removeConnector"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/connectors/oauth-clients": {
         parameters: {
             query?: never;
@@ -5252,6 +5296,23 @@ export interface components {
             /** @enum {string} */
             status?: "ACTIVE" | "NEEDS_RECONSENT";
         };
+        ConnectorDTO: {
+            /** Format: int32 */
+            agentCount?: number;
+            header?: components["schemas"]["ConnectorHeaderDTO"];
+            hosts?: components["schemas"]["ConnectorHostDTO"][];
+            id?: string;
+            identity?: components["schemas"]["ConnectorIdentityDTO"];
+            issuerHost?: string;
+            name?: string;
+            network?: components["schemas"]["ConnectorNetworkDTO"];
+            removing?: boolean;
+            /** @enum {string} */
+            signIn?: "none" | "oauth" | "header" | "relay";
+            /** @enum {string} */
+            status?: "ready" | "needs sign-in approval" | "needs attention";
+            url?: string;
+        };
         ConnectorDirectoryEntryDTO: {
             blurb?: string;
             docs?: string;
@@ -5304,6 +5365,12 @@ export interface components {
             override?: string;
             toolClass?: string;
         };
+        ConnectorHeaderDTO: {
+            name?: string;
+            /** Format: date-time */
+            setAt?: string;
+            setBy?: string;
+        };
         ConnectorHostDTO: {
             host?: string;
             /** Format: int32 */
@@ -5320,6 +5387,12 @@ export interface components {
             movedFromCatalog?: boolean;
             name?: string;
             vendor?: string;
+        };
+        ConnectorNetworkDTO: {
+            /** @enum {string} */
+            kind?: "public" | "relay";
+            relayId?: string;
+            relayName?: string;
         };
         ConnectorOAuthClientDTO: {
             clientId?: string;
@@ -5607,6 +5680,11 @@ export interface components {
             host: string;
             /** Format: int32 */
             port?: number;
+        };
+        CreateConnectorRequest: {
+            catalogId?: string;
+            name?: string;
+            url: string;
         };
         CreateConversationRequest: {
             items?: components["schemas"]["JsonNode"];
@@ -10954,6 +11032,126 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ConnectorGrantDetailDTO"];
+                };
+            };
+        };
+    };
+    listInstalledConnectors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The connectors */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"][];
+                };
+            };
+            /** @description Not a member of the organization */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"][];
+                };
+            };
+        };
+    };
+    addConnector: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateConnectorRequest"];
+            };
+        };
+        responses: {
+            /** @description Added */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description Not a directory entry, or not at the address the directory lists */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description Not an admin, or not signed in as a member */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description The organization already has this connector, it is still being removed, or its approved hosts are full */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+        };
+    };
+    removeConnector: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed; the cleanup follows */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description Not an admin, or not signed in as a member */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description No such connector in the organization */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
                 };
             };
         };
