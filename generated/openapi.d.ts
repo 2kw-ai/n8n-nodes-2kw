@@ -665,6 +665,130 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/batch-downloads/{organizationId}/{ticket}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download a batch's ZIP with a ticket
+         * @description Opens the link a download ticket returned, without a sign-in header. The link works once and for 60 seconds. The ZIP is the one the archive endpoint returns.
+         */
+        get: operations["downloadBatchWithTicket"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/batches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List batches
+         * @description Your batches, newest first, with their counts and without their items. With all=true an admin or owner lists every batch of the organization with status and counts only.
+         */
+        get: operations["listBatches"];
+        put?: never;
+        /**
+         * Start a batch
+         * @description Starts a batch: the agent runs the instruction once per item, in the background, as you. Give either file_ids (files you uploaded) or zip_file_id (one ZIP whose files become the items). An item succeeds when its run completes with output files, including one of every required_outputs extension. A batch takes at most 500 items of at most 5 files each; a ZIP at most 500 files and 500 MB. Files that cannot be used are left out and listed in skipped. Sending the same idempotency_key with the same body again returns the same batch.
+         */
+        post: operations["createBatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/batches/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a batch
+         * @description Your batch with its counts and items (name, status, reason). For an admin or owner, another member's batch shows its status, counts and, per item, its position, status and reason only.
+         */
+        get: operations["getBatch"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/batches/{id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download a batch's ZIP
+         * @description With an API key: your batch's outputs as one ZIP, a folder per succeeded item and a report.csv that lists every item with its status, reason and outputs. Outputs that are no longer available are left out and listed in the report. While the batch runs the file is named …-partial.zip and holds the items finished so far. At most 2 GiB of outputs.
+         */
+        get: operations["downloadBatchArchive"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/batches/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stop a batch
+         * @description Stops a batch: items not started are canceled at once, items running end when their run stops. Your own batch, or as an admin or owner any batch of the organization. A batch that has ended is returned as it is.
+         */
+        post: operations["cancelBatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/batches/{id}/download-ticket": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Get a download link for a batch's ZIP
+         * @description For a signed-in browser: a single-use link to your batch's ZIP, valid for 60 seconds and opened without a sign-in header. With an API key, download the ZIP from the archive endpoint instead.
+         */
+        post: operations["createBatchDownloadTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/billing/can-add-team-member": {
         parameters: {
             query?: never;
@@ -1411,7 +1535,7 @@ export interface paths {
         };
         /**
          * List conversation items
-         * @description Fetch a conversation's items in replay order, oldest first. Each item also names the response it belongs to: `response_id`, `previous_response_id`, `logical_predecessor_id` (the response its turn continues from, null for the first turn), `turn_start` (true when the response carries a new user message rather than continuing a paused or tool round), `created_at` (Unix seconds: when a user message was sent, when an answer finished), `stopped` / `capped` for an answer that was stopped or cut short, and `acted` (true when the turn used a connected system, so running it again may repeat what it did).
+         * @description Fetch a conversation's items in replay order, oldest first. Each item also names the response it belongs to: `response_id`, `previous_response_id`, `logical_predecessor_id` (the response its turn continues from, null for the first turn), `turn_start` (true when the response carries a new user message rather than continuing a paused or tool round), `created_at` (Unix seconds: when a user message was sent, when an answer finished), `stopped` / `capped` for an answer that was stopped or cut short, and `acted` (true when the turn used a connected system, so running it again may repeat what it did). When a batch started from the conversation ends, the list also holds one `backbone:batch_summary` item with the batch's id, status and counts, at the time it ended.
          */
         get: operations["listConversationItems"];
         put?: never;
@@ -4956,6 +5080,91 @@ export interface components {
              */
             kind: "base64";
         };
+        /** @description A batch of another member: status and counts, and per item its position, status and reason. */
+        BatchAdminDTO: components["schemas"]["BatchView"] & {
+            counts?: components["schemas"]["BatchCounts"];
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            finished_at?: string;
+            id?: string;
+            items?: components["schemas"]["BatchAdminItem"][];
+            status?: string;
+        };
+        BatchAdminItem: {
+            /** Format: int32 */
+            ordinal?: number;
+            reason?: string;
+            status?: string;
+        };
+        /** @description How many items of the batch are in each status. */
+        BatchCounts: {
+            /** Format: int32 */
+            canceled?: number;
+            /** Format: int32 */
+            failed?: number;
+            /** Format: int32 */
+            queued?: number;
+            /** Format: int32 */
+            running?: number;
+            /** Format: int32 */
+            succeeded?: number;
+            /** Format: int32 */
+            total?: number;
+        };
+        /** @description A batch: one instruction run by an agent over many files, one item at a time. */
+        BatchDTO: components["schemas"]["BatchView"] & {
+            agent_id?: string;
+            /** @description The conversation the batch was started from, or null. */
+            conversation_id?: string;
+            counts?: components["schemas"]["BatchCounts"];
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            finished_at?: string;
+            /** @enum {string} */
+            group_by?: "file" | "stem";
+            id?: string;
+            /** @description What each item's run is asked to do. */
+            instruction?: string;
+            items?: components["schemas"]["BatchItemDTO"][];
+            /** @description File extensions every succeeded item produced. */
+            required_outputs?: string[];
+            skipped?: components["schemas"]["BatchSkippedFile"][];
+            /** @enum {string} */
+            status?: "queued" | "running" | "completed" | "completed_with_failures" | "canceling" | "canceled";
+        };
+        BatchDownloadTicket: {
+            /**
+             * Format: date-time
+             * @description When the link stops working.
+             */
+            expires_at?: string;
+            /** @description The ticket, part of the link. */
+            ticket?: string;
+            /** @description The link to open, relative to the API's address; no sign-in header. */
+            url?: string;
+        };
+        /** @description One item of a batch: one file, or the files that share a base name. */
+        BatchItemDTO: {
+            /** @description The file's name, or the base name the item's files share. */
+            name?: string;
+            /**
+             * Format: int32
+             * @description The item's position in the batch, from 1.
+             */
+            ordinal?: number;
+            /** @description Why the item failed, for example missing_outputs, needs_person:approval, input_expired or credit_exhausted. */
+            reason?: string;
+            /** @enum {string} */
+            status?: "queued" | "running" | "succeeded" | "failed" | "canceled";
+        };
+        BatchSkippedFile: {
+            name?: string;
+            /** @enum {string} */
+            reason?: "expired" | "too_large" | "empty" | "nested_archive" | "directory" | "unsafe_path";
+        };
+        BatchView: unknown;
         BooleanResultDTO: {
             result?: boolean;
         };
@@ -5671,6 +5880,28 @@ export interface components {
         CreateAnnotationQueueRequest: {
             description?: string;
             name: string;
+        };
+        CreateBatchRequest: {
+            /** @description The agent to run, by id or name; one you may chat with. */
+            agent: string;
+            /** @description A conversation of yours the batch belongs to, or none. */
+            conversation_id?: string;
+            /** @description Files you uploaded, each an item (or grouped, see group_by). */
+            file_ids?: string[];
+            /**
+             * @description file: one item per file. stem: the files that share a base name are one item, such as a.pdf and a.dxf.
+             * @default file
+             * @enum {string}
+             */
+            group_by: "file" | "stem";
+            /** @description Your key for this request: sending it again with the same body returns the same batch. */
+            idempotency_key: string;
+            /** @description What to do with each item, 1 to 4,000 characters. */
+            instruction: string;
+            /** @description File extensions, such as pdf, that every item must produce to succeed. */
+            required_outputs?: string[];
+            /** @description One uploaded ZIP whose files become the items, instead of file_ids. */
+            zip_file_id?: string;
         };
         CreateConnectorGrantRequest: {
             agentId: string;
@@ -10250,6 +10481,291 @@ export interface operations {
                 content: {
                     "application/json": Record<string, never>;
                     "text/plain": Record<string, never>;
+                };
+            };
+        };
+    };
+    downloadBatchWithTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organizationId: string;
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The ZIP */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/zip": string;
+                };
+            };
+            /** @description The link is unknown, used, expired or no longer yours */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description archive_too_large: the outputs are larger than 2 GiB together */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listBatches: {
+        parameters: {
+            query?: {
+                /** @description Only batches in this status */
+                status?: "queued" | "running" | "completed" | "completed_with_failures" | "canceling" | "canceled";
+                /** @description Every batch of the organization (admin or owner) */
+                all?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The batches */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": (string & (components["schemas"]["BatchDTO"] | components["schemas"]["BatchAdminDTO"]))[];
+                };
+            };
+            /** @description invalid_batch: unknown status */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": (components["schemas"]["BatchAdminDTO"] | components["schemas"]["BatchDTO"])[];
+                };
+            };
+            /** @description all=true without the admin or owner role */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": (components["schemas"]["BatchAdminDTO"] | components["schemas"]["BatchDTO"])[];
+                };
+            };
+        };
+    };
+    createBatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateBatchRequest"];
+            };
+        };
+        responses: {
+            /** @description The batch, with the files left out and why */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BatchDTO"];
+                };
+            };
+            /** @description invalid_batch: a field is missing or malformed, the ZIP cannot be read, or no file can be used */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BatchDTO"];
+                };
+            };
+            /** @description batches_disabled: batches are not available for your organization; or you may not run agents */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BatchDTO"];
+                };
+            };
+            /** @description No such agent, conversation or file of yours */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BatchDTO"];
+                };
+            };
+            /** @description batch_limit: a limit would be passed (items, files per item, unfinished batches, the day's files, the ZIP's size); idempotency_key_reused: the key was used for another body */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BatchDTO"];
+                };
+            };
+        };
+    };
+    getBatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The batch */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BatchDTO"] | components["schemas"]["BatchAdminDTO"];
+                };
+            };
+            /** @description No such batch you may see */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BatchAdminDTO"] | components["schemas"]["BatchDTO"];
+                };
+            };
+        };
+    };
+    downloadBatchArchive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The ZIP */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/zip": string;
+                };
+            };
+            /** @description Not an API key */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such batch of yours */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description archive_too_large: the outputs are larger than 2 GiB together */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    cancelBatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The batch */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BatchDTO"] | components["schemas"]["BatchAdminDTO"];
+                };
+            };
+            /** @description No such batch you may stop */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BatchAdminDTO"] | components["schemas"]["BatchDTO"];
+                };
+            };
+        };
+    };
+    createBatchDownloadTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The ticket and the link to open */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BatchDownloadTicket"];
+                };
+            };
+            /** @description Not a signed-in member */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BatchDownloadTicket"];
+                };
+            };
+            /** @description No such batch of yours */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BatchDownloadTicket"];
                 };
             };
         };
