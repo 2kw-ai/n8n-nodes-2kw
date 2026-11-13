@@ -4865,6 +4865,7 @@ export interface components {
             bashAvailable: boolean;
         };
         AgentCatalogEntryDTO: {
+            batch?: boolean;
             canvas?: boolean;
             conversationModes?: components["schemas"]["ConversationModes"];
             description?: string;
@@ -5049,6 +5050,7 @@ export interface components {
             policy_class?: string;
             preview?: components["schemas"]["SkillsApplyPreview"];
             reason?: string;
+            scheduled_task_apply?: components["schemas"]["ScheduledTaskApplyPreview"];
             status?: string;
             tool?: string;
         });
@@ -5097,6 +5099,15 @@ export interface components {
             reason?: string;
             status?: string;
         };
+        BatchCardItem: {
+            type: "BatchCardItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            batch_id: string;
+            call_id: string;
+            id: string;
+            /** Format: int32 */
+            item_count: number;
+        });
         /** @description How many items of the batch are in each status. */
         BatchCounts: {
             /** Format: int32 */
@@ -5957,7 +5968,7 @@ export interface components {
             background?: boolean;
             conversation?: string;
             /** @description The turn's input: a string, or an array of items */
-            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["CanvasItem"] | components["schemas"]["CanvasSelectionItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["InputRequestItem"] | components["schemas"]["InputResponseItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"] | components["schemas"]["ToolImageItem"] | components["schemas"]["UiItem"])[];
+            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["BatchCardItem"] | components["schemas"]["CanvasItem"] | components["schemas"]["CanvasSelectionItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["InputRequestItem"] | components["schemas"]["InputResponseItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"] | components["schemas"]["ToolImageItem"] | components["schemas"]["UiItem"])[];
             instructions?: string;
             /** Format: int32 */
             max_output_tokens?: number;
@@ -8343,6 +8354,33 @@ export interface components {
             runId?: string;
             scores?: components["schemas"]["EvaluationScoreDTO"][];
             version?: string;
+        };
+        ScheduledTaskApplyPreview: {
+            activation?: string;
+            changes?: components["schemas"]["ScheduledTaskApplyPreviewChange"][];
+            current?: components["schemas"]["ScheduledTaskApplyPreviewCurrent"];
+            effective?: components["schemas"]["ScheduledTaskApplyPreviewEffective"];
+            execution_output?: string;
+            op?: string;
+        };
+        ScheduledTaskApplyPreviewAgent: {
+            name?: string;
+        };
+        ScheduledTaskApplyPreviewChange: {
+            after?: components["schemas"]["JsonNode"];
+            before?: components["schemas"]["JsonNode"];
+            field?: string;
+        };
+        ScheduledTaskApplyPreviewCurrent: {
+            state?: string;
+        };
+        ScheduledTaskApplyPreviewEffective: {
+            agent?: components["schemas"]["ScheduledTaskApplyPreviewAgent"];
+            instructions?: string;
+            name?: string;
+            next_run_at?: string;
+            recurrence?: components["schemas"]["JsonNode"];
+            time_zone?: string;
         };
         /** @description A scheduled task: an agent that runs on a schedule as you, each run in a new conversation. */
         ScheduledTaskDTO: {
