@@ -3219,7 +3219,7 @@ export interface paths {
         post?: never;
         /**
          * Forget everything
-         * @description Deletes the caller's whole memory space. An agent run that started before this call can no longer write to it. Cannot be undone.
+         * @description Deletes the caller's whole memory space. An agent run that started before this call can no longer write to it. Cannot be undone. Any member role, USER included.
          */
         delete: operations["forgetMyMemory"];
         options?: never;
@@ -3236,18 +3236,18 @@ export interface paths {
         };
         /**
          * Read one of your memory files
-         * @description The raw content of the file at path, with its version as ETag. Marks the file as read for retention. A directory path is 404.
+         * @description The raw content of the file at path, with its version as ETag. Marks the file as read for retention. A directory path is 404. Any member role, USER included.
          */
         get: operations["getMyMemoryFile"];
         /**
          * Create or replace one of your memory files
-         * @description Stores content at path: 201 when the file is new, 200 when it replaced one. With If-Match (the ETag of a GET) the write succeeds only if the file still has that version, else 412; If-Match on a path without a file is 412. The same limits and credential guard as the agent's memory tool apply.
+         * @description Stores content at path: 201 when the file is new, 200 when it replaced one. With If-Match (the ETag of a GET) the write succeeds only if the file still has that version, else 412; If-Match on a path without a file is 412. The same limits and credential guard as the agent's memory tool apply. Any member role, USER included.
          */
         put: operations["putMyMemoryFile"];
         post?: never;
         /**
          * Delete one of your memory files or directories
-         * @description Deletes the file at path, or every file below path when it is a directory. /memories itself is 409; use forgetMyMemory instead.
+         * @description Deletes the file at path, or every file below path when it is a directory. /memories itself is 409; use forgetMyMemory instead. Any member role, USER included.
          */
         delete: operations["deleteMyMemoryFile"];
         options?: never;
@@ -3264,7 +3264,7 @@ export interface paths {
         };
         /**
          * List your memory files
-         * @description Every file in the caller's memory space, ordered by path, without content. Does not count as a read for retention.
+         * @description Every file in the caller's memory space, ordered by path, without content but with its first line. Does not count as a read for retention. Any member role, USER included.
          */
         get: operations["listMyMemoryFiles"];
         put?: never;
@@ -7192,6 +7192,7 @@ export interface components {
             version?: number;
         };
         MemoryFileSummary: {
+            firstLine?: string;
             /** Format: date-time */
             lastAccessedAt?: string;
             lastWrittenByAgentId?: string;
