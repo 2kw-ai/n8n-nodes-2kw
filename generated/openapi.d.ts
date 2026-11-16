@@ -9067,7 +9067,7 @@ export interface components {
             responseId?: string;
             scopeKey?: string;
             /** @enum {string} */
-            status?: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | "EXPIRED";
+            status?: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | "EXPIRED" | "PURGED";
             tool?: string;
         };
         ToolCall: {
