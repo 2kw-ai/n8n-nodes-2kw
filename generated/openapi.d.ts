@@ -3219,7 +3219,7 @@ export interface paths {
         post?: never;
         /**
          * Forget everything
-         * @description Deletes the caller's whole memory space. An agent run that started before this call can no longer write to it. Cannot be undone.
+         * @description Deletes the caller's whole memory space. An agent run that started before this call can no longer write to it. Cannot be undone. Any member role, USER included.
          */
         delete: operations["forgetMyMemory"];
         options?: never;
@@ -3236,18 +3236,18 @@ export interface paths {
         };
         /**
          * Read one of your memory files
-         * @description The raw content of the file at path, with its version as ETag. Marks the file as read for retention. A directory path is 404.
+         * @description The raw content of the file at path, with its version as ETag. Marks the file as read for retention. A directory path is 404. Any member role, USER included.
          */
         get: operations["getMyMemoryFile"];
         /**
          * Create or replace one of your memory files
-         * @description Stores content at path: 201 when the file is new, 200 when it replaced one. With If-Match (the ETag of a GET) the write succeeds only if the file still has that version, else 412; If-Match on a path without a file is 412. The same limits and credential guard as the agent's memory tool apply.
+         * @description Stores content at path: 201 when the file is new, 200 when it replaced one. With If-Match (the ETag of a GET) the write succeeds only if the file still has that version, else 412; If-Match on a path without a file is 412. The same limits and credential guard as the agent's memory tool apply. Any member role, USER included.
          */
         put: operations["putMyMemoryFile"];
         post?: never;
         /**
          * Delete one of your memory files or directories
-         * @description Deletes the file at path, or every file below path when it is a directory. /memories itself is 409; use forgetMyMemory instead.
+         * @description Deletes the file at path, or every file below path when it is a directory. /memories itself is 409; use forgetMyMemory instead. Any member role, USER included.
          */
         delete: operations["deleteMyMemoryFile"];
         options?: never;
@@ -3264,7 +3264,7 @@ export interface paths {
         };
         /**
          * List your memory files
-         * @description Every file in the caller's memory space, ordered by path, without content. Does not count as a read for retention.
+         * @description Every file in the caller's memory space, ordered by path, without content but with its first line. Does not count as a read for retention. Any member role, USER included.
          */
         get: operations["listMyMemoryFiles"];
         put?: never;
@@ -4663,7 +4663,7 @@ export interface paths {
         };
         /**
          * List recent traces
-         * @description Returns paginated trace summaries for the caller's organization. Each summary aggregates all spans sharing a trace_id into start/end times, span count, source services, and worst-case status. Optionally filter by source_service, status, free-text search, a start-time range (from/to, ISO-8601) and session id. Without from, the list covers the 7 days before to, or before now. A trace matches when any of its spans does; its summary still covers all of its spans. Sort by start time, duration or status.
+         * @description Returns paginated trace summaries for the caller's organization. Each summary aggregates all spans sharing a trace_id into start/end times, span count, source services, and worst-case status. Optionally filter by source_service, status, free-text search, a start-time range (from/to, ISO-8601) and session id. Without from, the list covers the 7 days before to, or before now. A trace matches when any of its spans does; its summary still covers all of its spans. Sort by start time, duration or status. totalElements is exact on the last page; before it, it only promises one more page, so page on while there is a next page.
          */
         get: operations["listTraces"];
         put?: never;
@@ -4687,7 +4687,7 @@ export interface paths {
         };
         /**
          * List sessions
-         * @description Paginated session summaries for the caller's organization: trace, span, turn and error counts, duration, tokens and cost. A turn is a span carrying a prompt, a completion or a tool call. Optional free-text search over session id and name, an exact match on the exporter's session.id, and a start-time range; without from, the 7 days before to, or before now. Sessions written by agent evaluation runs are hidden unless source=experiment, which lists only those. Each row's id is what GET /v1/traces/sessions/{id} takes.
+         * @description Paginated session summaries for the caller's organization: trace, span, turn and error counts, duration, tokens and cost. A turn is a span carrying a prompt, a completion or a tool call. Optional free-text search over session id and name, an exact match on the exporter's session.id, and a start-time range; without from, the 7 days before to, or before now. Sessions written by agent evaluation runs are hidden unless source=experiment, which lists only those. Each row's id is what GET /v1/traces/sessions/{id} takes. totalElements is exact on the last page; before it, it only promises one more page.
          */
         get: operations["listSessions"];
         put?: never;
@@ -7192,6 +7192,7 @@ export interface components {
             version?: number;
         };
         MemoryFileSummary: {
+            firstLine?: string;
             /** Format: date-time */
             lastAccessedAt?: string;
             lastWrittenByAgentId?: string;
