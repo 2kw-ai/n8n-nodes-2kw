@@ -7044,6 +7044,7 @@ export interface components {
             id: string;
             name: string;
             policy_class?: string;
+            requester?: components["schemas"]["InputRequester"];
             server_label: string;
         });
         McpApprovalResponseItem: {
