@@ -1535,7 +1535,7 @@ export interface paths {
         };
         /**
          * List conversation items
-         * @description Fetch a conversation's items in replay order, oldest first. Each item also names the response it belongs to: `response_id`, `previous_response_id`, `logical_predecessor_id` (the response its turn continues from, null for the first turn), `turn_start` (true when the response carries a new user message rather than continuing a paused or tool round), `created_at` (Unix seconds: when a user message was sent, when an answer finished), `stopped` / `capped` for an answer that was stopped or cut short, and `acted` (true when the turn used a connected system, so running it again may repeat what it did). When a batch started from the conversation ends, the list also holds one `backbone:batch_summary` item with the batch's id, status and counts, at the time it ended.
+         * @description Fetch a conversation's items in replay order, oldest first. Each item also names the response it belongs to: `response_id`, `previous_response_id`, `logical_predecessor_id` (the response its turn continues from, null for the first turn), `turn_start` (true when the response carries a new user message rather than continuing a paused or tool round), `created_at` (Unix seconds: when a user message was sent, when an answer finished), `stopped` / `capped` for an answer that was stopped or cut short, and `acted` (true when the turn used a connected system, so running it again may repeat what it did). When a batch started from the conversation ends, the list also holds one `backbone:batch_summary` item with the batch's id, status and counts, at the time it ended. Paged by response: a page holds every item of up to `limit` responses (default 20, at most 100); pass the `response_id` of the last item you have as `after` while `has_more` is true.
          */
         get: operations["listConversationItems"];
         put?: never;
@@ -12550,7 +12550,12 @@ export interface operations {
     };
     listConversationItems: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The response_id of the last item already listed; omit for the first page */
+                after?: string;
+                /** @description The most responses the page lists, 1 to 100 */
+                limit?: number;
+            };
             header?: never;
             path: {
                 conversationId: string;
@@ -12559,13 +12564,31 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description One page of the conversation's items */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "*/*": components["schemas"]["ConversationItemListResource"];
+                };
+            };
+            /** @description `after` names no response of this conversation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unknown conversation */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
