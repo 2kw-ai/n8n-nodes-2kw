@@ -5353,6 +5353,11 @@ export interface components {
              * @enum {string}
              */
             reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+            /**
+             * @description Ask a reasoning model for a summary of its thinking, returned as message.reasoning_content. Send it with a reasoning_effort other than none. A call that cannot send one drops it and says so in the X-Backbone-Adjustments response header.
+             * @enum {string}
+             */
+            reasoning_summary?: "auto" | "concise" | "detailed";
             response_format?: components["schemas"]["ResponseFormat"];
             stop?: string[];
             stream?: boolean;
@@ -11133,7 +11138,7 @@ export interface operations {
             /** @description The chat completion, or its event stream when stream=true */
             200: {
                 headers: {
-                    /** @description Present when the gateway changed the request to fit the model: ;-separated entries such as effort=minimal->low or temperature=dropped. */
+                    /** @description Present when the gateway changed the request to fit the model: ;-separated entries such as effort=minimal->low, temperature=dropped or summary=dropped. */
                     "X-Backbone-Adjustments"?: string;
                     [name: string]: unknown;
                 };
@@ -17050,7 +17055,7 @@ export interface operations {
             /** @description The completed response, or with stream: true the response as a stream of Server-Sent Events: each event's data is a JSON object whose type names it (response.created, response.output_text.delta, response.completed, ...), and the stream ends with data: [DONE] */
             200: {
                 headers: {
-                    /** @description Present when the gateway changed the request to fit the model: ;-separated entries such as effort=minimal->low or temperature=dropped. */
+                    /** @description Present when the gateway changed the request to fit the model: ;-separated entries such as effort=minimal->low, temperature=dropped or summary=dropped. */
                     "X-Backbone-Adjustments"?: string;
                     [name: string]: unknown;
                 };
