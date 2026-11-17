@@ -7044,6 +7044,8 @@ export interface components {
             id: string;
             name: string;
             policy_class?: string;
+            /** @description Which remember scopes this approval may be answered with. Absent: only the chat. */
+            remember_options?: string[];
             requester?: components["schemas"]["InputRequester"];
             server_label: string;
         });
@@ -7053,6 +7055,8 @@ export interface components {
             approval_request_id: string;
             approve: boolean;
             id?: string | null;
+            /** @description Top-level argument names whose values the saved approval keeps fixed. Required with remember: task. */
+            pin?: string[];
             reason?: string | null;
             remember?: string;
         });
