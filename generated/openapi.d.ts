@@ -1535,7 +1535,7 @@ export interface paths {
         };
         /**
          * List conversation items
-         * @description Fetch a conversation's items in replay order, oldest first. Each item also names the response it belongs to: `response_id`, `previous_response_id`, `logical_predecessor_id` (the response its turn continues from, null for the first turn), `turn_start` (true when the response carries a new user message rather than continuing a paused or tool round), `created_at` (Unix seconds: when a user message was sent, when an answer finished), `stopped` / `capped` for an answer that was stopped or cut short, and `acted` (true when the turn used a connected system, so running it again may repeat what it did). When a batch started from the conversation ends, the list also holds one `backbone:batch_summary` item with the batch's id, status and counts, at the time it ended. Paged by response: a page holds every item of up to `limit` responses (default 20, at most 100); pass the `response_id` of the last item you have as `after` while `has_more` is true.
+         * @description Fetch a conversation's items in replay order, oldest first. Each item also names the response it belongs to: `response_id`, `previous_response_id`, `logical_predecessor_id` (the response its turn continues from, null for the first turn), `turn_start` (true when the response carries a new user message rather than continuing a paused or tool round), `created_at` (Unix seconds: when a user message was sent, when an answer finished), `stopped` / `capped` for an answer that was stopped or cut short, and `acted` (true when the turn used a connected system, so running it again may repeat what it did). When a batch started from the conversation ends, the list also holds one `backbone:batch_summary` item with the batch's id, status and counts, at the time it ended.
          */
         get: operations["listConversationItems"];
         put?: never;
@@ -3219,7 +3219,7 @@ export interface paths {
         post?: never;
         /**
          * Forget everything
-         * @description Deletes the caller's whole memory space. An agent run that started before this call can no longer write to it. Cannot be undone. Any member role, USER included.
+         * @description Deletes the caller's whole memory space. An agent run that started before this call can no longer write to it. Cannot be undone.
          */
         delete: operations["forgetMyMemory"];
         options?: never;
@@ -3236,18 +3236,18 @@ export interface paths {
         };
         /**
          * Read one of your memory files
-         * @description The raw content of the file at path, with its version as ETag. Marks the file as read for retention. A directory path is 404. Any member role, USER included.
+         * @description The raw content of the file at path, with its version as ETag. Marks the file as read for retention. A directory path is 404.
          */
         get: operations["getMyMemoryFile"];
         /**
          * Create or replace one of your memory files
-         * @description Stores content at path: 201 when the file is new, 200 when it replaced one. With If-Match (the ETag of a GET) the write succeeds only if the file still has that version, else 412; If-Match on a path without a file is 412. The same limits and credential guard as the agent's memory tool apply. Any member role, USER included.
+         * @description Stores content at path: 201 when the file is new, 200 when it replaced one. With If-Match (the ETag of a GET) the write succeeds only if the file still has that version, else 412; If-Match on a path without a file is 412. The same limits and credential guard as the agent's memory tool apply.
          */
         put: operations["putMyMemoryFile"];
         post?: never;
         /**
          * Delete one of your memory files or directories
-         * @description Deletes the file at path, or every file below path when it is a directory. /memories itself is 409; use forgetMyMemory instead. Any member role, USER included.
+         * @description Deletes the file at path, or every file below path when it is a directory. /memories itself is 409; use forgetMyMemory instead.
          */
         delete: operations["deleteMyMemoryFile"];
         options?: never;
@@ -3264,7 +3264,7 @@ export interface paths {
         };
         /**
          * List your memory files
-         * @description Every file in the caller's memory space, ordered by path, without content but with its first line. Does not count as a read for retention. Any member role, USER included.
+         * @description Every file in the caller's memory space, ordered by path, without content. Does not count as a read for retention.
          */
         get: operations["listMyMemoryFiles"];
         put?: never;
@@ -4663,7 +4663,7 @@ export interface paths {
         };
         /**
          * List recent traces
-         * @description Returns paginated trace summaries for the caller's organization. Each summary aggregates all spans sharing a trace_id into start/end times, span count, source services, and worst-case status. Optionally filter by source_service, status, free-text search, a start-time range (from/to, ISO-8601) and session id. Without from, the list covers the 7 days before to, or before now. A trace matches when any of its spans does; its summary still covers all of its spans. Sort by start time, duration or status. totalElements is exact on the last page; before it, it only promises one more page, so page on while there is a next page.
+         * @description Returns paginated trace summaries for the caller's organization. Each summary aggregates all spans sharing a trace_id into start/end times, span count, source services, and worst-case status. Optionally filter by source_service, status, free-text search, a start-time range (from/to, ISO-8601) and session id. Without from, the list covers the 7 days before to, or before now. A trace matches when any of its spans does; its summary still covers all of its spans. Sort by start time, duration or status.
          */
         get: operations["listTraces"];
         put?: never;
@@ -4687,7 +4687,7 @@ export interface paths {
         };
         /**
          * List sessions
-         * @description Paginated session summaries for the caller's organization: trace, span, turn and error counts, duration, tokens and cost. A turn is a span carrying a prompt, a completion or a tool call. Optional free-text search over session id and name, an exact match on the exporter's session.id, and a start-time range; without from, the 7 days before to, or before now. Sessions written by agent evaluation runs are hidden unless source=experiment, which lists only those. Each row's id is what GET /v1/traces/sessions/{id} takes. totalElements is exact on the last page; before it, it only promises one more page.
+         * @description Paginated session summaries for the caller's organization: trace, span, turn and error counts, duration, tokens and cost. A turn is a span carrying a prompt, a completion or a tool call. Optional free-text search over session id and name, an exact match on the exporter's session.id, and a start-time range; without from, the 7 days before to, or before now. Sessions written by agent evaluation runs are hidden unless source=experiment, which lists only those. Each row's id is what GET /v1/traces/sessions/{id} takes.
          */
         get: operations["listSessions"];
         put?: never;
@@ -5353,11 +5353,6 @@ export interface components {
              * @enum {string}
              */
             reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
-            /**
-             * @description Ask a reasoning model for a summary of its thinking, returned as message.reasoning_content. Send it with a reasoning_effort other than none. A call that cannot send one drops it and says so in the X-Backbone-Adjustments response header.
-             * @enum {string}
-             */
-            reasoning_summary?: "auto" | "concise" | "detailed";
             response_format?: components["schemas"]["ResponseFormat"];
             stop?: string[];
             stream?: boolean;
@@ -7049,9 +7044,6 @@ export interface components {
             id: string;
             name: string;
             policy_class?: string;
-            /** @description Which remember scopes this approval may be answered with. Absent: only the chat. */
-            remember_options?: string[];
-            requester?: components["schemas"]["InputRequester"];
             server_label: string;
         });
         McpApprovalResponseItem: {
@@ -7060,8 +7052,6 @@ export interface components {
             approval_request_id: string;
             approve: boolean;
             id?: string | null;
-            /** @description Top-level argument names whose values the saved approval keeps fixed. Required with remember: task. */
-            pin?: string[];
             reason?: string | null;
             remember?: string;
         });
@@ -7202,7 +7192,6 @@ export interface components {
             version?: number;
         };
         MemoryFileSummary: {
-            firstLine?: string;
             /** Format: date-time */
             lastAccessedAt?: string;
             lastWrittenByAgentId?: string;
@@ -9077,7 +9066,7 @@ export interface components {
             responseId?: string;
             scopeKey?: string;
             /** @enum {string} */
-            status?: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | "EXPIRED" | "PURGED";
+            status?: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | "EXPIRED";
             tool?: string;
         };
         ToolCall: {
@@ -11138,7 +11127,7 @@ export interface operations {
             /** @description The chat completion, or its event stream when stream=true */
             200: {
                 headers: {
-                    /** @description Present when the gateway changed the request to fit the model: ;-separated entries such as effort=minimal->low, temperature=dropped or summary=dropped. */
+                    /** @description Present when the gateway changed the request to fit the model: ;-separated entries such as effort=minimal->low or temperature=dropped. */
                     "X-Backbone-Adjustments"?: string;
                     [name: string]: unknown;
                 };
@@ -12559,12 +12548,7 @@ export interface operations {
     };
     listConversationItems: {
         parameters: {
-            query?: {
-                /** @description The response_id of the last item already listed; omit for the first page */
-                after?: string;
-                /** @description The most responses the page lists, 1 to 100 */
-                limit?: number;
-            };
+            query?: never;
             header?: never;
             path: {
                 conversationId: string;
@@ -12573,31 +12557,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description One page of the conversation's items */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "*/*": components["schemas"]["ConversationItemListResource"];
-                };
-            };
-            /** @description `after` names no response of this conversation */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Unknown conversation */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -17055,7 +17021,7 @@ export interface operations {
             /** @description The completed response, or with stream: true the response as a stream of Server-Sent Events: each event's data is a JSON object whose type names it (response.created, response.output_text.delta, response.completed, ...), and the stream ends with data: [DONE] */
             200: {
                 headers: {
-                    /** @description Present when the gateway changed the request to fit the model: ;-separated entries such as effort=minimal->low, temperature=dropped or summary=dropped. */
+                    /** @description Present when the gateway changed the request to fit the model: ;-separated entries such as effort=minimal->low or temperature=dropped. */
                     "X-Backbone-Adjustments"?: string;
                     [name: string]: unknown;
                 };
