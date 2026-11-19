@@ -108,7 +108,7 @@ export interface paths {
         };
         /**
          * List the agent catalog
-         * @description Published agents of the current organization as {id, name, description, conversationModes, models, canvas}, name-ascending. Readable by every organization member including the chat-only USER role, and the only agent read that role has: the response never carries instructions, tools, options, skills or credentials, and of the HITL policy only the conversation modes the operator offers end users. `models` names the models the latest version lists, in order and the first being the default, each with its display name, reasoning control, the reasoning effort levels it accepts and the default level already adjusted to them. `canvas` is true when the latest version has Canvas switched on. An agent with no published version is omitted. The sort parameter is ignored.
+         * @description Published agents of the current organization as {id, name, description, conversationModes, models, canvas}, name-ascending. Readable by every organization member including the chat-only USER role, and the only agent read that role has: the response never carries instructions, tools, options, skills or credentials, and of the HITL policy only the conversation modes the operator offers end users. Each row describes the version users get, the agent's Live version. `models` names the models that version lists, in order and the first being the default, each with its display name, reasoning control, the reasoning effort levels it accepts and the default level already adjusted to them. `canvas` is true when that version has Canvas switched on. For MEMBER and above each row also carries `editor`: the Live version's number and, when an admin has pinned Live behind the latest version, that latest version described the same way (otherwise null). For every other caller `editor` is absent. An agent with no published version is omitted. The sort parameter is ignored.
          */
         get: operations["listAgentCatalog"];
         put?: never;
@@ -148,7 +148,7 @@ export interface paths {
         };
         /**
          * List an agent's knowledge bases
-         * @description The knowledge bases the latest published version of an agent can search, as {id, name, description}. Readable by every organization member including the chat-only USER role, which cannot read the version itself. An agent with no published version, or one that searches no knowledge base, returns an empty list rather than a 404. A knowledge base that has been deleted is omitted. 404 for an agent of another organization.
+         * @description The knowledge bases the version of an agent that users get (its Live version) can search, as {id, name, description}. Readable by every organization member including the chat-only USER role, which cannot read the version itself. An agent with no published version, or one that searches no knowledge base, returns an empty list rather than a 404. A knowledge base that has been deleted is omitted. 404 for an agent of another organization.
          */
         get: operations["listAgentKnowledge"];
         put?: never;
@@ -183,6 +183,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/agents/{agentId}/labels/live/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Live history
+         * @description Who put which version live, rolled it back or let it follow latest again, newest first, with the version numbers before and after, the Live mode it left and the note.
+         */
+        get: operations["listAgentLiveHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/agents/{agentId}/labels/{labelName}": {
         parameters: {
             query?: never;
@@ -193,7 +213,7 @@ export interface paths {
         get?: never;
         /**
          * Update label
-         * @description Repoint an existing label to a different version. The 'latest' label is system-managed.
+         * @description Repoint an existing label to a different version. The 'latest' label is system-managed. On the 'live' label this is Go live: ADMIN or OWNER only (403 GO_LIVE_REQUIRES_ADMIN otherwise). Send agentVersionId to put that version live and pin it there (an older version is a roll back), or liveMode follows_latest without a version to let Live move with every save again. Send expectedVersionId and expectedLiveMode as you read them: if Live changed since, the request answers 409 LIVE_CHANGED. 409 VERSION_INACTIVE for a deactivated version, 409 LIVE_NOT_ACTIVE while Live is not active yet. A request that changes neither the version nor the mode changes nothing.
          */
         put: operations["updateLabel_2"];
         post?: never;
@@ -216,7 +236,7 @@ export interface paths {
         };
         /**
          * List an agent's skills
-         * @description The skills bound by the latest published version of an agent, in authored order, as {name, description, versionNumber, ref, sourcePluginId, pluginName}. Readable by every organization member including the chat-only USER role, which cannot read the version itself. An agent with no published version, or one binding nothing, returns an empty list rather than a 404. A binding whose skill is archived or no longer resolves is omitted. A binding whose skill has a minimum role above the caller's is omitted. 404 for an agent of another organization.
+         * @description The skills bound by the version of an agent that users get (its Live version), in authored order, as {name, description, versionNumber, ref, sourcePluginId, pluginName}. Readable by every organization member including the chat-only USER role, which cannot read the version itself. An agent with no published version, or one binding nothing, returns an empty list rather than a 404. A binding whose skill is archived or no longer resolves is omitted. A binding whose skill has a minimum role above the caller's is omitted. 404 for an agent of another organization.
          */
         get: operations["listAgentSkills"];
         put?: never;
@@ -291,6 +311,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/agents/{agentId}/versions/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Live version
+         * @description Retrieve the version users get: the agent's Live version, which is the latest version until an admin pins another.
+         */
+        get: operations["getAgentLiveVersion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/agents/{agentId}/versions/{versionId}": {
         parameters: {
             query?: never;
@@ -307,7 +347,7 @@ export interface paths {
         post?: never;
         /**
          * Deactivate version
-         * @description Soft-delete an agent version.
+         * @description Soft-delete an agent version. 409 VERSION_IS_LIVE for the Live version of an agent an admin has pinned.
          */
         delete: operations["deactivateVersion_2"];
         options?: never;
@@ -1100,7 +1140,7 @@ export interface paths {
         put?: never;
         /**
          * Allow an agent to use the signed-in member's connection
-         * @description Binds the grant to the agent's current egress; allowing again re-binds it.
+         * @description Binds the grant to the agent's current egress (of the live version, or of latest for channel latest, MEMBER and up); allowing again re-binds it.
          */
         post: operations["allowConnectorForAgent"];
         delete?: never;
@@ -1535,7 +1575,7 @@ export interface paths {
         };
         /**
          * List conversation items
-         * @description Fetch a conversation's items in replay order, oldest first. Each item also names the response it belongs to: `response_id`, `previous_response_id`, `logical_predecessor_id` (the response its turn continues from, null for the first turn), `turn_start` (true when the response carries a new user message rather than continuing a paused or tool round), `created_at` (Unix seconds: when a user message was sent, when an answer finished), `stopped` / `capped` for an answer that was stopped or cut short, and `acted` (true when the turn used a connected system, so running it again may repeat what it did). When a batch started from the conversation ends, the list also holds one `backbone:batch_summary` item with the batch's id, status and counts, at the time it ended.
+         * @description Fetch a conversation's items in replay order, oldest first. Each item also names the response it belongs to: `response_id`, `previous_response_id`, `logical_predecessor_id` (the response its turn continues from, null for the first turn), `turn_start` (true when the response carries a new user message rather than continuing a paused or tool round), `created_at` (Unix seconds: when a user message was sent, when an answer finished), `stopped` / `capped` for an answer that was stopped or cut short, and `acted` (true when the turn used a connected system, so running it again may repeat what it did). When a batch started from the conversation ends, the list also holds one `backbone:batch_summary` item with the batch's id, status and counts, at the time it ended. Paged by response: a page holds every item of up to `limit` responses (default 20, at most 100); pass the `response_id` of the last item you have as `after` while `has_more` is true.
          */
         get: operations["listConversationItems"];
         put?: never;
@@ -3219,7 +3259,7 @@ export interface paths {
         post?: never;
         /**
          * Forget everything
-         * @description Deletes the caller's whole memory space. An agent run that started before this call can no longer write to it. Cannot be undone.
+         * @description Deletes the caller's whole memory space. An agent run that started before this call can no longer write to it. Cannot be undone. Any member role, USER included.
          */
         delete: operations["forgetMyMemory"];
         options?: never;
@@ -3236,18 +3276,18 @@ export interface paths {
         };
         /**
          * Read one of your memory files
-         * @description The raw content of the file at path, with its version as ETag. Marks the file as read for retention. A directory path is 404.
+         * @description The raw content of the file at path, with its version as ETag. Marks the file as read for retention. A directory path is 404. Any member role, USER included.
          */
         get: operations["getMyMemoryFile"];
         /**
          * Create or replace one of your memory files
-         * @description Stores content at path: 201 when the file is new, 200 when it replaced one. With If-Match (the ETag of a GET) the write succeeds only if the file still has that version, else 412; If-Match on a path without a file is 412. The same limits and credential guard as the agent's memory tool apply.
+         * @description Stores content at path: 201 when the file is new, 200 when it replaced one. With If-Match (the ETag of a GET) the write succeeds only if the file still has that version, else 412; If-Match on a path without a file is 412. The same limits and credential guard as the agent's memory tool apply. Any member role, USER included.
          */
         put: operations["putMyMemoryFile"];
         post?: never;
         /**
          * Delete one of your memory files or directories
-         * @description Deletes the file at path, or every file below path when it is a directory. /memories itself is 409; use forgetMyMemory instead.
+         * @description Deletes the file at path, or every file below path when it is a directory. /memories itself is 409; use forgetMyMemory instead. Any member role, USER included.
          */
         delete: operations["deleteMyMemoryFile"];
         options?: never;
@@ -3264,7 +3304,7 @@ export interface paths {
         };
         /**
          * List your memory files
-         * @description Every file in the caller's memory space, ordered by path, without content. Does not count as a read for retention.
+         * @description Every file in the caller's memory space, ordered by path, without content but with its first line. Does not count as a read for retention. Any member role, USER included.
          */
         get: operations["listMyMemoryFiles"];
         put?: never;
@@ -4663,7 +4703,7 @@ export interface paths {
         };
         /**
          * List recent traces
-         * @description Returns paginated trace summaries for the caller's organization. Each summary aggregates all spans sharing a trace_id into start/end times, span count, source services, and worst-case status. Optionally filter by source_service, status, free-text search, a start-time range (from/to, ISO-8601) and session id. Without from, the list covers the 7 days before to, or before now. A trace matches when any of its spans does; its summary still covers all of its spans. Sort by start time, duration or status.
+         * @description Returns paginated trace summaries for the caller's organization. Each summary aggregates all spans sharing a trace_id into start/end times, span count, source services, and worst-case status. Optionally filter by source_service, status, free-text search, a start-time range (from/to, ISO-8601) and session id. Without from, the list covers the 7 days before to, or before now. A trace matches when any of its spans does; its summary still covers all of its spans. Sort by start time, duration or status. totalElements is exact on the last page; before it, it only promises one more page, so page on while there is a next page.
          */
         get: operations["listTraces"];
         put?: never;
@@ -4687,7 +4727,7 @@ export interface paths {
         };
         /**
          * List sessions
-         * @description Paginated session summaries for the caller's organization: trace, span, turn and error counts, duration, tokens and cost. A turn is a span carrying a prompt, a completion or a tool call. Optional free-text search over session id and name, an exact match on the exporter's session.id, and a start-time range; without from, the 7 days before to, or before now. Sessions written by agent evaluation runs are hidden unless source=experiment, which lists only those. Each row's id is what GET /v1/traces/sessions/{id} takes.
+         * @description Paginated session summaries for the caller's organization: trace, span, turn and error counts, duration, tokens and cost. A turn is a span carrying a prompt, a completion or a tool call. Optional free-text search over session id and name, an exact match on the exporter's session.id, and a start-time range; without from, the 7 days before to, or before now. Sessions written by agent evaluation runs are hidden unless source=experiment, which lists only those. Each row's id is what GET /v1/traces/sessions/{id} takes. totalElements is exact on the last page; before it, it only promises one more page.
          */
         get: operations["listSessions"];
         put?: never;
@@ -4864,11 +4904,26 @@ export interface components {
             /** @description Whether this deployment runs the Bash tool. Where it is false, a backbone.bash entry is stored but never offered to the model. */
             bashAvailable: boolean;
         };
+        AgentCatalogEditorDTO: {
+            latest?: components["schemas"]["AgentCatalogEditorLatest"];
+            /** Format: int32 */
+            liveVersionNumber?: number;
+        };
+        AgentCatalogEditorLatest: {
+            canvas?: boolean;
+            conversationModes?: components["schemas"]["ConversationModes"];
+            models?: components["schemas"]["AgentCatalogModelDTO"][];
+            /** Format: date-time */
+            savedAt?: string;
+            /** Format: int32 */
+            versionNumber?: number;
+        };
         AgentCatalogEntryDTO: {
             batch?: boolean;
             canvas?: boolean;
             conversationModes?: components["schemas"]["ConversationModes"];
             description?: string;
+            editor?: components["schemas"]["AgentCatalogEditorDTO"];
             id?: string;
             models?: components["schemas"]["AgentCatalogModelDTO"][];
             name?: string;
@@ -4894,6 +4949,18 @@ export interface components {
             latestVersionId?: string;
             /** Format: int32 */
             readonly latestVersionNumber?: number;
+            /**
+             * @description follows_latest: every saved version reaches users at once. pinned: users stay on the version an admin put live until an admin changes it. Null while Live versions are not enabled. Read-only here; set it through the live label.
+             * @enum {string}
+             */
+            readonly liveMode?: "follows_latest" | "pinned";
+            /** @description The version users run: the live label's version, which equals latestVersionId while the agent follows latest. Null while unpublished. */
+            readonly liveVersionId?: string;
+            /**
+             * Format: int32
+             * @description The number of the version users run.
+             */
+            readonly liveVersionNumber?: number;
             model?: string;
             models?: string[];
             name: string;
@@ -4924,9 +4991,30 @@ export interface components {
             /** Format: date-time */
             readonly lastModifiedAt?: string;
             name?: string;
+            /** @description True for a label the platform manages. */
+            readonly systemManaged?: boolean;
             version?: string;
             /** Format: int32 */
             versionNumber?: number;
+        };
+        AgentLabelEventDTO: {
+            actorId?: string;
+            actorKind?: string;
+            agentId?: string;
+            /** Format: date-time */
+            at?: string;
+            fromVersionId?: string;
+            /** Format: int32 */
+            fromVersionNumber?: number;
+            id?: string;
+            kind?: string;
+            label?: string;
+            /** @enum {string} */
+            liveMode?: "follows_latest" | "pinned";
+            note?: string;
+            toVersionId?: string;
+            /** Format: int32 */
+            toVersionNumber?: number;
         };
         AgentPolicyAutoApprovalDTO: {
             enabled?: boolean;
@@ -5353,6 +5441,11 @@ export interface components {
              * @enum {string}
              */
             reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+            /**
+             * @description Ask a reasoning model for a summary of its thinking, returned as message.reasoning_content. Send it with a reasoning_effort other than none. A call that cannot send one drops it and says so in the X-Backbone-Adjustments response header.
+             * @enum {string}
+             */
+            reasoning_summary?: "auto" | "concise" | "detailed";
             response_format?: components["schemas"]["ResponseFormat"];
             stop?: string[];
             stream?: boolean;
@@ -5856,6 +5949,18 @@ export interface components {
             latestVersionId?: string;
             /** Format: int32 */
             readonly latestVersionNumber?: number;
+            /**
+             * @description follows_latest: every saved version reaches users at once. pinned: users stay on the version an admin put live until an admin changes it. Null while Live versions are not enabled. Read-only here; set it through the live label.
+             * @enum {string}
+             */
+            readonly liveMode?: "follows_latest" | "pinned";
+            /** @description The version users run: the live label's version, which equals latestVersionId while the agent follows latest. Null while unpublished. */
+            readonly liveVersionId?: string;
+            /**
+             * Format: int32
+             * @description The number of the version users run.
+             */
+            readonly liveVersionNumber?: number;
             model?: string;
             models?: string[];
             name: string;
@@ -5916,6 +6021,12 @@ export interface components {
         };
         CreateConnectorGrantRequest: {
             agentId: string;
+            /**
+             * @description Which version of the agent names the connector: live (default), what users run, or latest, the newest saved version, for members testing it
+             * @default live
+             * @enum {string}
+             */
+            channel: "live" | "latest";
             serverLabel: string;
         };
         CreateConnectorPublicHostRequest: {
@@ -7044,6 +7155,9 @@ export interface components {
             id: string;
             name: string;
             policy_class?: string;
+            /** @description Which remember scopes this approval may be answered with. Absent: only the chat. */
+            remember_options?: string[];
+            requester?: components["schemas"]["InputRequester"];
             server_label: string;
         });
         McpApprovalResponseItem: {
@@ -7052,6 +7166,8 @@ export interface components {
             approval_request_id: string;
             approve: boolean;
             id?: string | null;
+            /** @description Top-level argument names whose values the saved approval keeps fixed. Required with remember: task. */
+            pin?: string[];
             reason?: string | null;
             remember?: string;
         });
@@ -7192,6 +7308,7 @@ export interface components {
             version?: number;
         };
         MemoryFileSummary: {
+            firstLine?: string;
             /** Format: date-time */
             lastAccessedAt?: string;
             lastWrittenByAgentId?: string;
@@ -7417,6 +7534,24 @@ export interface components {
         };
         PageAgentDTO: {
             content?: components["schemas"]["AgentDTO"][];
+            empty?: boolean;
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            number?: number;
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            /** Format: int32 */
+            size?: number;
+            sort?: components["schemas"]["SortObject"];
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
+        PageAgentLabelEventDTO: {
+            content?: components["schemas"]["AgentLabelEventDTO"][];
             empty?: boolean;
             first?: boolean;
             last?: boolean;
@@ -8829,6 +8964,12 @@ export interface components {
         };
         StartConnectorAuthorizationRequest: {
             agentId?: string;
+            /**
+             * @description Which version of the agent names the connector: live (default), what users run, or latest, the newest saved version, for members testing it
+             * @default live
+             * @enum {string}
+             */
+            channel: "live" | "latest";
             relayId?: string;
             returnTo?: string;
             serverLabel?: string;
@@ -9066,7 +9207,7 @@ export interface components {
             responseId?: string;
             scopeKey?: string;
             /** @enum {string} */
-            status?: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | "EXPIRED";
+            status?: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | "EXPIRED" | "PURGED";
             tool?: string;
         };
         ToolCall: {
@@ -9213,7 +9354,22 @@ export interface components {
             reason?: string;
         };
         UpdateAgentLabelRequest: {
-            agentVersionId: string;
+            /** @description The version the label points at. Required, except for Follow latest on the live label. */
+            agentVersionId?: string;
+            /**
+             * @description Live label only: the Live mode you saw. If it has changed since, the request answers 409.
+             * @enum {string}
+             */
+            expectedLiveMode?: "follows_latest" | "pinned";
+            /** @description Live label only: the Live version you saw. If Live has moved since, the request answers 409. */
+            expectedVersionId?: string;
+            /**
+             * @description Live label only: pinned keeps users on agentVersionId (the default when a version is sent); follows_latest moves Live with every save and takes no version.
+             * @enum {string}
+             */
+            liveMode?: "follows_latest" | "pinned";
+            /** @description Live label only: why, shown in the Live history. */
+            note?: string;
         };
         UpdateAnnotationQueueRequest: {
             description?: string;
@@ -9616,7 +9772,10 @@ export interface operations {
     };
     listAgentKnowledge: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Which version to read: live (the default) is the version users get; MEMBER and above may name latest or another label. For any other caller a label other than live answers 404, as an unknown agent does. A label the agent does not have returns an empty list. */
+                label?: string;
+            };
             header?: never;
             path: {
                 agentId: string;
@@ -9684,6 +9843,30 @@ export interface operations {
             };
         };
     };
+    listAgentLiveHistory: {
+        parameters: {
+            query: {
+                pageable: components["schemas"]["Pageable"];
+            };
+            header?: never;
+            path: {
+                agentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageAgentLabelEventDTO"];
+                };
+            };
+        };
+    };
     updateLabel_2: {
         parameters: {
             query?: never;
@@ -9734,7 +9917,10 @@ export interface operations {
     };
     listAgentSkills: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Which version to read: live (the default) is the version users get; MEMBER and above may name latest or another label. For any other caller a label other than live answers 404, as an unknown agent does. A label the agent does not have returns an empty list. */
+                label?: string;
+            };
             header?: never;
             path: {
                 agentId: string;
@@ -9830,6 +10016,28 @@ export interface operations {
         };
     };
     getLatestVersion_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AgentVersionDTO"];
+                };
+            };
+        };
+    };
+    getAgentLiveVersion: {
         parameters: {
             query?: never;
             header?: never;
@@ -11054,7 +11262,10 @@ export interface operations {
     startTopUp: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Optional key for one purchase attempt: a retry with the same key and packs returns the same Checkout page instead of opening a second one */
+                "Idempotency-Key"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -11127,7 +11338,7 @@ export interface operations {
             /** @description The chat completion, or its event stream when stream=true */
             200: {
                 headers: {
-                    /** @description Present when the gateway changed the request to fit the model: ;-separated entries such as effort=minimal->low or temperature=dropped. */
+                    /** @description Present when the gateway changed the request to fit the model: ;-separated entries such as effort=minimal->low, temperature=dropped or summary=dropped. */
                     "X-Backbone-Adjustments"?: string;
                     [name: string]: unknown;
                 };
@@ -11187,7 +11398,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorAuthorizationStarted"];
                 };
             };
-            /** @description No such agent, or no such connector in its current version */
+            /** @description No such agent, or no such connector in the version the channel names; channel latest below MEMBER */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -11443,7 +11654,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorGrantDTO"];
                 };
             };
-            /** @description No such agent, or no such connector in its current version */
+            /** @description No such agent, or no such connector in the version the channel names; channel latest below MEMBER */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -12548,7 +12759,12 @@ export interface operations {
     };
     listConversationItems: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The response_id of the last item already listed; omit for the first page */
+                after?: string;
+                /** @description The most responses the page lists, 1 to 100 */
+                limit?: number;
+            };
             header?: never;
             path: {
                 conversationId: string;
@@ -12557,13 +12773,31 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description One page of the conversation's items */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "*/*": components["schemas"]["ConversationItemListResource"];
+                };
+            };
+            /** @description `after` names no response of this conversation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unknown conversation */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -17021,7 +17255,7 @@ export interface operations {
             /** @description The completed response, or with stream: true the response as a stream of Server-Sent Events: each event's data is a JSON object whose type names it (response.created, response.output_text.delta, response.completed, ...), and the stream ends with data: [DONE] */
             200: {
                 headers: {
-                    /** @description Present when the gateway changed the request to fit the model: ;-separated entries such as effort=minimal->low or temperature=dropped. */
+                    /** @description Present when the gateway changed the request to fit the model: ;-separated entries such as effort=minimal->low, temperature=dropped or summary=dropped. */
                     "X-Backbone-Adjustments"?: string;
                     [name: string]: unknown;
                 };
