@@ -128,7 +128,7 @@ export interface paths {
         };
         /**
          * List approvals
-         * @description Approvals raised by this agent, newest first. Filter with status=pending|approved|rejected|cancelled. A surface principal sees only their own.
+         * @description Approvals raised by this agent, newest first. Filter with status=pending|approved|rejected|cancelled. A surface principal sees only their own. A MEMBER sees only their own.
          */
         get: operations["listAgentApprovals"];
         put?: never;
@@ -1399,7 +1399,7 @@ export interface paths {
         };
         /**
          * List conversations
-         * @description Backbone extension (OpenAI has no conversation list): conversations bound to an agent, newest activity first. scope=mine (default) lists the caller's own; scope=org lists the organisation's and needs the MEMBER role or above. A surface principal always lists its own scope. Conversations written by agent evaluation runs are hidden unless source=experiment, which lists only those. status (a comma-separated subset of idle, working, paused, failed) and active_after (ISO-8601 date-time) narrow the list further; they are applied together with the ownership rule before paging, so they never widen what the caller may see. q (at most 200 characters) keeps the conversations whose title, or the text of a user or assistant message in any turn, contains it, ignoring case; tool calls, tool output and instructions are not searched.
+         * @description Backbone extension (OpenAI has no conversation list): conversations bound to an agent, newest activity first. scope=mine (default) lists the caller's own; scope=org lists the organisation's and needs the MEMBER role or above. A surface principal always lists its own scope. Conversations written by agent evaluation runs are hidden unless source=experiment, which lists only those. status (a comma-separated subset of idle, working, paused, failed) and active_after (ISO-8601 date-time) narrow the list further; they are applied together with the ownership rule before paging, so they never widen what the caller may see. q (at most 200 characters) keeps the conversations whose title, or the text of a user or assistant message in any turn, contains it, ignoring case; tool calls, tool output and instructions are not searched. A MEMBER sees only their own.
          */
         get: operations["listConversations"];
         put?: never;
@@ -2392,7 +2392,7 @@ export interface paths {
         };
         /**
          * List files
-         * @description List the organization's files, newest first by default, optionally narrowed by purpose. Page with limit and after: while has_more is true, pass last_id as after.
+         * @description List the organization's files, newest first by default, optionally narrowed by purpose. Page with limit and after: while has_more is true, pass last_id as after. A MEMBER sees only their own.
          */
         get: operations["list_3"];
         put?: never;
@@ -4703,7 +4703,7 @@ export interface paths {
         };
         /**
          * List recent traces
-         * @description Returns paginated trace summaries for the caller's organization. Each summary aggregates all spans sharing a trace_id into start/end times, span count, source services, and worst-case status. Optionally filter by source_service, status, free-text search, a start-time range (from/to, ISO-8601) and session id. Without from, the list covers the 7 days before to, or before now. A trace matches when any of its spans does; its summary still covers all of its spans. Sort by start time, duration or status. totalElements is exact on the last page; before it, it only promises one more page, so page on while there is a next page.
+         * @description Returns paginated trace summaries for the caller's organization. Each summary aggregates all spans sharing a trace_id into start/end times, span count, source services, and worst-case status. Optionally filter by source_service, status, free-text search, a start-time range (from/to, ISO-8601) and session id. Without from, the list covers the 7 days before to, or before now. A trace matches when any of its spans does; its summary still covers all of its spans. Sort by start time, duration or status. totalElements is exact on the last page; before it, it only promises one more page, so page on while there is a next page. A MEMBER sees only their own.
          */
         get: operations["listTraces"];
         put?: never;
@@ -4727,7 +4727,7 @@ export interface paths {
         };
         /**
          * List sessions
-         * @description Paginated session summaries for the caller's organization: trace, span, turn and error counts, duration, tokens and cost. A turn is a span carrying a prompt, a completion or a tool call. Optional free-text search over session id and name, an exact match on the exporter's session.id, and a start-time range; without from, the 7 days before to, or before now. Sessions written by agent evaluation runs are hidden unless source=experiment, which lists only those. Each row's id is what GET /v1/traces/sessions/{id} takes. totalElements is exact on the last page; before it, it only promises one more page.
+         * @description Paginated session summaries for the caller's organization: trace, span, turn and error counts, duration, tokens and cost. A turn is a span carrying a prompt, a completion or a tool call. Optional free-text search over session id and name, an exact match on the exporter's session.id, and a start-time range; without from, the 7 days before to, or before now. Sessions written by agent evaluation runs are hidden unless source=experiment, which lists only those. Each row's id is what GET /v1/traces/sessions/{id} takes. totalElements is exact on the last page; before it, it only promises one more page. A MEMBER sees only their own.
          */
         get: operations["listSessions"];
         put?: never;
@@ -4747,7 +4747,7 @@ export interface paths {
         };
         /**
          * Get a session by id
-         * @description Returns all spans recorded under a session, flat and sorted by start_time ASC, so a client can replay the session chronologically instead of as a set of disconnected traces. The id is the session's id from GET /v1/traces/sessions; to find a session by the session.id the exporter stamped, use that list's sessionId filter. Unknown and cross-tenant sessions both return 404.
+         * @description Returns all spans recorded under a session, flat and sorted by start_time ASC, so a client can replay the session chronologically instead of as a set of disconnected traces. The id is the session's id from GET /v1/traces/sessions; to find a session by the session.id the exporter stamped, use that list's sessionId filter. Unknown and cross-tenant sessions both return 404. A MEMBER sees only their own.
          */
         get: operations["getSession"];
         put?: never;
@@ -4767,7 +4767,7 @@ export interface paths {
         };
         /**
          * Get a trace by id
-         * @description Returns all spans belonging to a trace, scoped to the caller's organization via an explicit organizationId filter (primary) with RLS as defense-in-depth. Spans are returned as a flat list sorted by start_time ASC; clients build the parent/child tree from parentId references. A trace that doesn't exist or belongs to another organization both return 404 — the response is identical by design, so trace ids cannot be probed across tenants.
+         * @description Returns all spans belonging to a trace, scoped to the caller's organization via an explicit organizationId filter (primary) with RLS as defense-in-depth. Spans are returned as a flat list sorted by start_time ASC; clients build the parent/child tree from parentId references. A trace that doesn't exist or belongs to another organization both return 404 — the response is identical by design, so trace ids cannot be probed across tenants. A MEMBER sees only their own.
          */
         get: operations["getTrace"];
         put?: never;
