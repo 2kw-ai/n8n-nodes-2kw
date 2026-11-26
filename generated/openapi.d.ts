@@ -9593,6 +9593,12 @@ export interface components {
         UsagePeriodDTO: {
             /** @enum {string} */
             accounting?: "ENFORCE" | "SHADOW" | "UNAVAILABLE";
+            /**
+             * Format: int64
+             * @description This period's monthly allowance in credits when your contract sets one; null for the plan's default
+             * @example 20000
+             */
+            allowanceCredits?: number | null;
             /** @description Model tokens per consumer kind */
             byConsumer?: components["schemas"]["UsageGroup"][];
             /** @description Model tokens per product feature */
