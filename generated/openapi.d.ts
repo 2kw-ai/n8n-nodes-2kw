@@ -1191,8 +1191,8 @@ export interface paths {
         get: operations["listInstalledConnectors"];
         put?: never;
         /**
-         * Add a connector from the directory
-         * @description Adds a directory entry for the organization: the hosts agents reach for it are approved and the sign-in it names is recorded. Members then sign in with their own account.
+         * Add a connector
+         * @description Adds a directory entry for the organization: the hosts agents reach for it are approved and the sign-in it names is recorded. Members then sign in with their own account. Without a catalogId it adds a custom connector by its URL, on the public internet or through the organization's relay: the URL's host is approved, and the connector needs setup until its sign-in is approved.
          */
         post: operations["addConnector"];
         delete?: never;
@@ -1216,6 +1216,70 @@ export interface paths {
          * @description Every agent's calls to the server end at once, on every spelling of its address. What members granted is then revoked, which takes a moment: the connector is listed as removing meanwhile, and adding it again waits. Its approved hosts stay until an admin withdraws them.
          */
         delete: operations["removeConnector"];
+        options?: never;
+        head?: never;
+        /**
+         * Rename a connector
+         * @description Changes the name the console and chat show. Agents keep using it unchanged.
+         */
+        patch: operations["updateConnector"];
+        trace?: never;
+    };
+    "/v1/connectors/installed/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read a connector's history
+         * @description What admins approved, renamed and removed, and when, newest first. Also for a removed connector. Never a secret.
+         */
+        get: operations["listConnectorEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/connectors/installed/{id}/hosts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve the hosts a custom connector's sign-in needs
+         * @description Approves exactly the hosts the connection test named in hostsNeeded, so the test can find where members sign in. Run the test again afterwards; it may name one more host.
+         */
+        post: operations["approveConnectorHosts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/connectors/installed/{id}/sign-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve where members sign in to a custom connector
+         * @description The last step of adding a custom connector: approves the sign-in server the connection test named, once. When it is on another host than the connector, crossHostTrusted must be true. Give oauthClient when the sign-in server does not register clients automatically. Omit issuer for a server nobody signs in to. Members can sign in from then on, and only there.
+         */
+        post: operations["approveConnectorSignIn"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -5151,6 +5215,14 @@ export interface components {
             reason?: string;
             remember?: string;
         });
+        ApproveConnectorHostsRequest: {
+            hosts: components["schemas"]["CreateConnectorPublicHostRequest"][];
+        };
+        ApproveConnectorSignInRequest: {
+            crossHostTrusted?: boolean;
+            issuer?: string;
+            oauthClient?: components["schemas"]["ConnectorSignInOAuthClient"];
+        };
         ApproveMemberLinkRequest: {
             /** @description The secret that proves possession of the request. */
             secret: string;
@@ -5639,6 +5711,16 @@ export interface components {
             url?: string;
             vendor?: string;
         };
+        ConnectorEventDTO: {
+            /** @enum {string} */
+            action?: "ADDED" | "HOSTS_APPROVED" | "SIGN_IN_APPROVED" | "RENAMED" | "HEADER_REPLACED" | "REMOVED";
+            actorUserId?: string;
+            /** Format: date-time */
+            at?: string;
+            detail?: {
+                [key: string]: unknown;
+            };
+        };
         ConnectorGrantDTO: {
             agentId?: string;
             /** Format: date-time */
@@ -5780,6 +5862,11 @@ export interface components {
             /** @enum {string} */
             status?: "connected" | "needs_reconnect" | "not_connected";
         };
+        ConnectorSignInOAuthClient: {
+            clientId: string;
+            clientSecret?: string;
+            tokenEndpointAuthMethod: string;
+        };
         ConnectorTestErrorDTO: {
             code?: string;
             message?: string;
@@ -5792,6 +5879,7 @@ export interface components {
         ConnectorTestResultDTO: {
             auth?: string;
             error?: components["schemas"]["ConnectorTestErrorDTO"];
+            hostsNeeded?: components["schemas"]["ConnectorHostDTO"][];
             protocol?: string;
             reachable?: boolean;
             signIn?: components["schemas"]["ConnectorSignInDTO"];
@@ -5812,6 +5900,18 @@ export interface components {
         ContentPart: {
             type: string;
         };
+        ContinueRequestItem: {
+            type: "ContinueRequestItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            id: string;
+        });
+        ContinueResponseItem: {
+            type: "ContinueResponseItem";
+        } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            /** @enum {string} */
+            action: "continue" | "stop";
+            continue_request_id: string;
+        });
         ConversationActiveRun: {
             head_response_id?: string;
             status?: string;
@@ -6037,6 +6137,7 @@ export interface components {
         CreateConnectorRequest: {
             catalogId?: string;
             name?: string;
+            relayId?: string;
             url: string;
         };
         CreateConversationRequest: {
@@ -6079,7 +6180,7 @@ export interface components {
             background?: boolean;
             conversation?: string;
             /** @description The turn's input: a string, or an array of items */
-            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["BatchCardItem"] | components["schemas"]["CanvasItem"] | components["schemas"]["CanvasSelectionItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["InputRequestItem"] | components["schemas"]["InputResponseItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"] | components["schemas"]["ToolImageItem"] | components["schemas"]["UiItem"])[];
+            input?: string | (components["schemas"]["ApprovalRequestItem"] | components["schemas"]["ApprovalResponseItem"] | components["schemas"]["BatchCardItem"] | components["schemas"]["CanvasItem"] | components["schemas"]["CanvasSelectionItem"] | components["schemas"]["CitationItem"] | components["schemas"]["ConnectorAuthRequestItem"] | components["schemas"]["ContinueRequestItem"] | components["schemas"]["ContinueResponseItem"] | components["schemas"]["CtxItem"] | components["schemas"]["FunctionCallItem"] | components["schemas"]["FunctionCallOutputItem"] | components["schemas"]["InputRequestItem"] | components["schemas"]["InputResponseItem"] | components["schemas"]["McpApprovalRequestItem"] | components["schemas"]["McpApprovalResponseItem"] | components["schemas"]["McpCallItem"] | components["schemas"]["McpListToolsItem"] | components["schemas"]["MessageItem"] | components["schemas"]["ModeItem"] | components["schemas"]["ReasoningItem"] | components["schemas"]["SkillItem"] | components["schemas"]["ToolImageItem"] | components["schemas"]["UiItem"])[];
             instructions?: string;
             /** Format: int32 */
             max_output_tokens?: number;
@@ -6087,6 +6188,8 @@ export interface components {
                 [key: string]: unknown;
             };
             model?: string;
+            /** @description Pause with a continue request instead of ending incomplete when the run reaches its limit. Read on the turn's first request; every continuation of the turn keeps it. Defaults to false: omitted, a run at its limit ends incomplete. */
+            pause_at_limit?: boolean;
             previous_response_id?: string;
             prompt_cache_key?: string;
             reasoning?: components["schemas"]["Reasoning"];
@@ -7495,6 +7598,7 @@ export interface components {
             /** Format: int32 */
             capEuros?: number;
             enabled?: boolean;
+            managedByContract?: boolean;
             /** Format: int32 */
             maxCapEuros?: number;
             /** Format: date-time */
@@ -9380,6 +9484,9 @@ export interface components {
                 [key: string]: string;
             };
         };
+        UpdateConnectorRequest: {
+            name: string;
+        };
         UpdateConversationRequest: {
             metadata?: components["schemas"]["JsonNode"];
         };
@@ -11179,7 +11286,7 @@ export interface operations {
                     "*/*": components["schemas"]["OverageSettingDTO"];
                 };
             };
-            /** @description The organisation's plan has no overage */
+            /** @description The organisation's plan has no overage, or its extra usage is set by its contract with 2kw (errorCode OVERAGE_MANAGED_BY_CONTRACT); contact 2kw to change it */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -11852,7 +11959,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorDTO"];
                 };
             };
-            /** @description Not a directory entry, or not at the address the directory lists */
+            /** @description Not a directory entry, not at the address the directory lists, not a usable URL, or a server the relay does not list */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -11912,6 +12019,232 @@ export interface operations {
             };
             /** @description No such connector in the organization */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+        };
+    };
+    updateConnector: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateConnectorRequest"];
+            };
+        };
+        responses: {
+            /** @description Renamed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description The name is empty or longer than 60 characters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description Not an admin, or not signed in as a member */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description No such connector in the organization */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description It was removed */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+        };
+    };
+    listConnectorEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The history */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorEventDTO"][];
+                };
+            };
+            /** @description Not an admin, or not signed in as a member */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorEventDTO"][];
+                };
+            };
+            /** @description No such connector in the organization */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorEventDTO"][];
+                };
+            };
+        };
+    };
+    approveConnectorHosts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApproveConnectorHostsRequest"];
+            };
+        };
+        responses: {
+            /** @description Approved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description Not a host name, or the connector is reached through a relay */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description Not an admin, or not signed in as a member */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description No such connector in the organization */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description Its sign-in is already approved, it was removed, or the approved hosts are full */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+        };
+    };
+    approveConnectorSignIn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApproveConnectorSignInRequest"];
+            };
+        };
+        responses: {
+            /** @description Approved; the connector is ready */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description The sign-in server is not a URL or not on an approved host, the cross-host trust is missing, or the OAuth client is not usable */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description Not an admin, or not signed in as a member */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description No such connector in the organization */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectorDTO"];
+                };
+            };
+            /** @description Its sign-in is already approved, it was removed, or the sign-in server already has the organization's own OAuth client */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
