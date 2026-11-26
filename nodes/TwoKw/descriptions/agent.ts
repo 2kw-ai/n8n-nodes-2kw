@@ -97,7 +97,7 @@ export const agentFields: INodeProperties[] = [
     default: { mode: 'list', value: '' },
     displayOptions: { show: showAgentRun },
     description:
-      'Optional. Run the agent version this label points at (e.g. "prod"). Empty runs the latest version. To decide approvals, use the label the paused run used. The list needs the agent picked from the list or by ID.',
+      'Optional. Run the agent version this label points at: live (what users get), latest (every save), or one of your labels (e.g. "prod"). Empty runs the latest version. To decide approvals, use the label the paused run used. The list needs the agent picked from the list or by ID.',
     modes: [
       {
         displayName: 'From List',
