@@ -1230,13 +1230,13 @@ export interface paths {
         };
         /**
          * List the organization's connector OAuth client registrations
-         * @description Automatic (CIMD) and manual registrations, by issuer; a relayed one names its relay. Shows when a client secret expires, if known, and whether the authorization server stopped accepting a registration. Never a client secret.
+         * @description Automatic (CIMD), manual and 2kw.ai app registrations, by issuer; a relayed one names its relay. Shows when a client secret expires, if known, and whether the authorization server stopped accepting a registration. Never a client secret.
          */
         get: operations["listConnectorOAuthClients"];
         put?: never;
         /**
          * Register backbone manually at an authorization server
-         * @description For an authorization server that does not accept backbone automatically. An automatic registration of the same issuer is converted; members connected through it sign in again. Give relayId for an authorization server reached through a relay.
+         * @description For an authorization server that does not accept backbone automatically. An automatic or 2kw.ai app registration of the same issuer is converted; members connected through it sign in again. Give relayId for an authorization server reached through a relay.
          */
         post: operations["registerConnectorOAuthClient"];
         delete?: never;
@@ -1255,13 +1255,13 @@ export interface paths {
         get?: never;
         /**
          * Replace a manual connector OAuth client registration
-         * @description Replaces the client id, secret, authentication method and secret expiry; the issuer stays. A registration the authorization server stopped accepting is usable again. Members connected through the registration sign in again. A Microsoft Entra tenant registration whose request changes only scopes (no clientSecret, the same client id and method) revises the permissions and keeps the credentials.
+         * @description Replaces the client id, secret, authentication method and secret expiry; the issuer stays. A registration the authorization server stopped accepting is usable again. Members connected through the registration sign in again. A Microsoft Entra tenant registration whose request changes only scopes (no clientSecret, the same client id and method) revises the permissions and keeps the credentials. A 2kw.ai app registration takes only such a scope-only request, and only one that narrows its permissions.
          */
         put: operations["updateConnectorOAuthClient"];
         post?: never;
         /**
          * Remove a connector OAuth client registration
-         * @description Manual registrations only. Members connected through it sign in again.
+         * @description Manual and 2kw.ai app registrations only. Members connected through it sign in again.
          */
         delete: operations["removeConnectorOAuthClient"];
         options?: never;
@@ -12025,7 +12025,7 @@ export interface operations {
                     "*/*": components["schemas"]["ConnectorOAuthClientDTO"];
                 };
             };
-            /** @description Not a usable registration, another issuer or relay, an automatic registration, or the wrong permissions: a Microsoft Entra tenant registration needs scopes, any other refuses it; or clientSecretExpiresAt is not in the future */
+            /** @description Not a usable registration, another issuer or relay, an automatic registration, or the wrong permissions: a Microsoft Entra tenant registration needs scopes, any other refuses it; or clientSecretExpiresAt is not in the future; for a 2kw.ai app registration, anything but a scope-only request that narrows its permissions */
             400: {
                 headers: {
                     [name: string]: unknown;
