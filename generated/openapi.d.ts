@@ -88,7 +88,7 @@ export interface paths {
         };
         /**
          * Get agent tool availability
-         * @description Whether this deployment runs the Bash tool, for an editor that has no agent yet. Every agent read carries the same answer as bashAvailable.
+         * @description Whether this deployment runs the Bash tool and accepts Always allow for write tools and single tools, for an editor that has no agent yet. Every agent read carries the same Bash answer as bashAvailable.
          */
         get: operations["getAgentAvailability"];
         put?: never;
@@ -4967,6 +4967,8 @@ export interface components {
         AgentAvailabilityDTO: {
             /** @description Whether this deployment runs the Bash tool. Where it is false, a backbone.bash entry is stored but never offered to the model. */
             bashAvailable: boolean;
+            /** @description Whether this deployment accepts Always allow for write tools and single tools. */
+            policyLoosenAvailable: boolean;
         };
         AgentCatalogEditorDTO: {
             latest?: components["schemas"]["AgentCatalogEditorLatest"];
@@ -5127,6 +5129,8 @@ export interface components {
             changeDescription?: string;
             /** Format: date-time */
             readonly createdAt?: string;
+            /** @description The member who saved this version; absent for versions saved before this was recorded. */
+            readonly createdBy?: string;
             hitlPolicy?: components["schemas"]["JsonNode"];
             id?: string;
             instructions?: string;
