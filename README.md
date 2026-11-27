@@ -93,7 +93,7 @@ Agent, Label, Schema, Prompt, Schema Version, and Prompt Label fields are **sear
 
 This is node version 2, the default for a node you add now. A version 1 node, one added to a workflow before version 2 existed, returns every assistant message of the turn in `text`, joined by a blank line, commentary included; it returns `commentary` as well. In 7.3.0 a version 1 node returned the answer alone; from the release with version 2 on, it joins again. To get the answer alone, replace the workflow's 2kw node with a new one.
 
-**n8n runs agents unattended by default.** When an agent's policy wants a human to approve a tool call, the run pauses and this operation fails with the tools that are waiting, for example `Agent paused for approval: create_invoice (apreq_…)`. To ask a person instead, see [Human approval from a workflow](#human-approval-from-a-workflow). For agents you call from n8n, use tools their policy lets run without a human decision — once auto-approval is available, set `classes.write` to `auto` in the agent's policy. A run that asks for a client-side tool fails the same way (`Agent requested client-side tool …`), because n8n cannot execute it. A run that stops early (`status: incomplete`, e.g. too many tool iterations) is returned, not failed; check `incompleteReason`. Leave *Retry On Fail* off for agents with write tools: a timed-out turn may still be running, and a retry repeats its tool calls.
+**n8n runs agents unattended by default.** When an agent's policy wants a human to approve a tool call, the run pauses and this operation fails with the tools that are waiting, for example `Agent paused for approval: create_invoice (apreq_…)`. To ask a person instead, see [Human approval from a workflow](#human-approval-from-a-workflow). For agents you call from n8n, use tools their policy lets run without a human decision — where the deployment offers it, set `classes.write` to `allow` (Always allow) in the agent's policy, or allow single tools by exact name. A run that asks for a client-side tool fails the same way (`Agent requested client-side tool …`), because n8n cannot execute it. A run that stops early (`status: incomplete`, e.g. too many tool iterations) is returned, not failed; check `incompleteReason`. Leave *Retry On Fail* off for agents with write tools: a timed-out turn may still be running, and a retry repeats its tool calls.
 
 ### Conversation mode
 
@@ -124,7 +124,7 @@ It fails the item when:
 - the conversation is in Plan and an approval is not read-only (`conversation_in_plan_mode`). The approval stays pending. Setting Mode to `Ask` on the same Decide Approval leaves Plan and approves in one request; leaving Plan is the person's decision, so ask them first;
 - the continued run asks for a client-side tool, which n8n still cannot execute. A turn can wait for approvals and a client-side tool at once; deciding the approvals does not run the client-side tool.
 
-Approvals remain a human decision. Do not give Decide Approval to an AI Agent as a tool, and do not wire it to approve without asking someone. For tools that should run without a person, set `classes.write` to `auto` in the agent's policy once auto-approval is available.
+Approvals remain a human decision. Do not give Decide Approval to an AI Agent as a tool, and do not wire it to approve without asking someone. For tools that should run without a person, set them to Always allow in the agent's policy, where the deployment offers it ([Approvals](https://docs.2kw.ai/agents/approvals)).
 
 ### Connectors that need a person's sign-in
 
