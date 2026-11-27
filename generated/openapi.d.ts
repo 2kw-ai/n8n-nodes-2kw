@@ -6912,6 +6912,8 @@ export interface components {
         FunctionCallItem: {
             type: "FunctionCallItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            /** @description Backbone extension: "policy" when the agent's approval policy let this call run without asking anyone (a write or destructive tool set to Always allow). Absent otherwise. Written by the server; ignored on input. */
+            allowed_by?: string;
             arguments?: string;
             call_id?: string;
             id?: string;
@@ -7359,6 +7361,8 @@ export interface components {
         McpCallItem: {
             type: "McpCallItem";
         } & (Omit<components["schemas"]["ResponseItem"], "type"> & {
+            /** @description Backbone extension: "policy" when the agent's approval policy let this call run without asking anyone (a write or destructive tool set to Always allow). Absent otherwise. Written by the server; ignored on input. */
+            allowed_by?: string;
             approval_request_id: string | null;
             arguments: string;
             error: components["schemas"]["McpToolExecutionError"] | null;
