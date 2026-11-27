@@ -4833,7 +4833,7 @@ export interface paths {
         };
         /**
          * List sessions
-         * @description Paginated session summaries for the caller's organization: trace, span, turn and error counts, duration, tokens and cost. A turn is a span carrying a prompt, a completion or a tool call. Optional free-text search over session id and name, an exact match on the exporter's session.id, and a start-time range; without from, the 7 days before to, or before now. Sessions written by agent evaluation runs are hidden unless source=experiment, which lists only those. Each row's id is what GET /v1/traces/sessions/{id} takes. totalElements is exact on the last page; before it, it only promises one more page. A MEMBER sees only their own.
+         * @description Paginated session summaries for the caller's organization: trace, span, turn and error counts, duration, tokens, usage and cost. A turn is a span carrying a prompt, a completion or a tool call. Optional free-text search over session id and name, an exact match on the exporter's session.id, and a start-time range; without from, the 7 days before to, or before now. Sessions written by agent evaluation runs are hidden unless source=experiment, which lists only those. Each row's id is what GET /v1/traces/sessions/{id} takes. totalElements is exact on the last page; before it, it only promises one more page. A MEMBER sees only their own. usage covers the model calls the platform made: tokens by kind, the share of the included usage on built-in models, the estimated cost in euros on your own key. costUsd covers only the spans you send.
          */
         get: operations["listSessions"];
         put?: never;
@@ -4853,7 +4853,7 @@ export interface paths {
         };
         /**
          * Get a session by id
-         * @description Returns all spans recorded under a session, flat and sorted by start_time ASC, so a client can replay the session chronologically instead of as a set of disconnected traces. The id is the session's id from GET /v1/traces/sessions; to find a session by the session.id the exporter stamped, use that list's sessionId filter. Unknown and cross-tenant sessions both return 404. A MEMBER sees only their own.
+         * @description Returns all spans recorded under a session, flat and sorted by start_time ASC, so a client can replay the session chronologically instead of as a set of disconnected traces. The id is the session's id from GET /v1/traces/sessions; to find a session by the session.id the exporter stamped, use that list's sessionId filter. Unknown and cross-tenant sessions both return 404. A MEMBER sees only their own. Spans show usage and cost as GET /v1/traces/{traceId} does.
          */
         get: operations["getSession"];
         put?: never;
@@ -4873,7 +4873,7 @@ export interface paths {
         };
         /**
          * Get a trace by id
-         * @description Returns all spans belonging to a trace, scoped to the caller's organization via an explicit organizationId filter (primary) with RLS as defense-in-depth. Spans are returned as a flat list sorted by start_time ASC; clients build the parent/child tree from parentId references. A trace that doesn't exist or belongs to another organization both return 404 — the response is identical by design, so trace ids cannot be probed across tenants. A MEMBER sees only their own.
+         * @description Returns all spans belonging to a trace, scoped to the caller's organization via an explicit organizationId filter (primary) with RLS as defense-in-depth. Spans are returned as a flat list sorted by start_time ASC; clients build the parent/child tree from parentId references. A trace that doesn't exist or belongs to another organization both return 404 — the response is identical by design, so trace ids cannot be probed across tenants. A MEMBER sees only their own. A model call on a built-in model shows its tokens by kind and its share of the included usage, a call on your own key its estimated cost in euros; spans you send keep the cost your SDK recorded.
          */
         get: operations["getTrace"];
         put?: never;
@@ -5428,6 +5428,24 @@ export interface components {
             outcome?: "QUEUED" | "SKIPPED" | "NOT_FOUND";
             reason?: string | null;
             rerunId?: string | null;
+        };
+        ByokCallUsage: {
+            estimatedCostEur?: string;
+            tokens?: components["schemas"]["CallTokenKinds"];
+        };
+        CallTokenKinds: {
+            /** Format: int64 */
+            cacheWrite?: number;
+            /** Format: int64 */
+            cachedInput?: number;
+            /** Format: int64 */
+            output?: number;
+            /** Format: int64 */
+            uncachedInput?: number;
+        };
+        CallUsage: {
+            byok?: components["schemas"]["ByokCallUsage"];
+            platform?: components["schemas"]["PlatformCallUsage"];
         };
         CancelTurnRequest: {
             /** @description The turn to stop: the value the client sent as the Backbone-Turn-Id header on POST /v1/responses. 1-64 characters of A-Z, a-z, 0-9, '_' or '-'. */
@@ -8256,6 +8274,11 @@ export interface components {
             /** @description Enable table structure detection */
             tableStructure?: boolean;
         };
+        PlatformCallUsage: {
+            poolSharePercent?: string;
+            poolShares?: components["schemas"]["PoolShare"][];
+            tokens?: components["schemas"]["CallTokenKinds"];
+        };
         PluginDTO: {
             /** Format: date-time */
             createdAt?: string;
@@ -8279,6 +8302,11 @@ export interface components {
             /** Format: date-time */
             syncedAt?: string;
             unsupported?: components["schemas"]["UnsupportedComponent"][];
+        };
+        PoolShare: {
+            percent?: string;
+            /** Format: date-time */
+            periodStart?: string;
         };
         PostValidationMetadata: {
             applied?: boolean;
@@ -8895,6 +8923,7 @@ export interface components {
             traceCount?: number;
             /** Format: int32 */
             turnCount?: number;
+            usage?: components["schemas"]["CallUsage"];
             /** Format: int32 */
             userCount?: number;
             userId?: string;
@@ -8911,6 +8940,7 @@ export interface components {
             /** Format: date-time */
             startTime?: string;
             traceIds?: string[];
+            usage?: components["schemas"]["CallUsage"];
         };
         SetInstallationBudgetRequest: {
             /** Format: int32 */
@@ -9111,6 +9141,7 @@ export interface components {
             events?: {
                 [key: string]: unknown;
             }[];
+            funding?: string;
             id?: string;
             kind?: string;
             name?: string;
@@ -9129,6 +9160,7 @@ export interface components {
             statusCode?: string;
             statusMessage?: string;
             traceId?: string;
+            usage?: components["schemas"]["CallUsage"];
         };
         StartConnectorAuthorizationRequest: {
             agentId?: string;
@@ -9482,6 +9514,7 @@ export interface components {
             /** Format: date-time */
             startTime?: string;
             traceId?: string;
+            usage?: components["schemas"]["CallUsage"];
         };
         TracingSettingsUpdate: {
             includeCompletions?: boolean;
