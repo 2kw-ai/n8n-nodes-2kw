@@ -685,6 +685,46 @@ export interface paths {
         patch: operations["updateItem"];
         trace?: never;
     };
+    "/v1/approval-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List saved approvals
+         * @description Saved approvals ("Always allow"), newest first. Without agent_id you see your own. With agent_id, people who can edit that agent see every member's saved approvals on it, everyone else their own. task_id narrows to one scheduled task; include_revoked=true adds revoked ones.
+         */
+        get: operations["listApprovalRules"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/approval-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Revoke a saved approval
+         * @description Stops a saved approval from answering future calls: the next such call asks again. Allowed to the member who saved it and to people who can edit its agent. Revoking a revoked one changes nothing.
+         */
+        delete: operations["revokeApprovalRule"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/audio/transcriptions": {
         parameters: {
             query?: never;
@@ -5219,6 +5259,23 @@ export interface components {
             reason?: string;
             remember?: string;
         });
+        ApprovalRuleDTO: {
+            agent_id?: string;
+            /** Format: date-time */
+            created_at?: string;
+            created_from_approval_id?: string;
+            id?: string;
+            /** Format: date-time */
+            last_used_at?: string;
+            match?: components["schemas"]["JsonNode"];
+            /** Format: date-time */
+            revoked_at?: string;
+            revoked_by?: string;
+            scope?: string;
+            task_id?: string;
+            tool?: string;
+            user_id?: string;
+        };
         ApproveConnectorHostsRequest: {
             hosts: components["schemas"]["CreateConnectorPublicHostRequest"][];
         };
@@ -10815,6 +10872,68 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AnnotationQueueItemDTO"];
+                };
+            };
+        };
+    };
+    listApprovalRules: {
+        parameters: {
+            query?: {
+                agent_id?: string;
+                task_id?: string;
+                include_revoked?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The saved approvals */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApprovalRuleDTO"][];
+                };
+            };
+            /** @description No such agent */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    revokeApprovalRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Revoked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such saved approval of yours or of an agent you edit */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
