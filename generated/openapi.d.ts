@@ -9388,6 +9388,11 @@ export interface components {
             purchasedCents?: number;
             /** Format: int64 */
             remainingCents?: number;
+            /**
+             * @description contract for credits 2kw added under your contract, purchase for every other lot
+             * @enum {string}
+             */
+            source?: "purchase" | "contract";
         };
         TraceListDto: {
             /** Format: int64 */
