@@ -3999,8 +3999,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get a background response
+         * Get a background response, or resume a running response's stream
          * @description Returns a response created with background: true: queued, in_progress, requires_action, completed, incomplete, failed or cancelled. Poll it until it leaves queued and in_progress. Only background responses can be read by id.
+         *
+         *     With stream=true, resumes a running response's stream after the last event you saw: every event with a sequence_number above starting_after (all of them without it), then new events as they happen, until the response ends and data: [DONE]. Each event carries an SSE id of <response_id>:<sequence_number>. This works for a response streamed in a chat, from any device that can read it, while it runs and for 10 minutes after it ended. A follow lasts at most 10 minutes and then ends with an error event stream_reconnect: reconnect with your last sequence_number. At most 8 clients follow one response at a time. An error event stream_truncated or stream_interrupted, or a 409 stream_unavailable, means the events cannot be replayed: read the conversation instead.
          */
         get: operations["getResponse"];
         put?: never;
@@ -6568,6 +6570,7 @@ export interface components {
             head_response_id?: string;
             message?: string;
             param?: string;
+            reason?: string;
             type?: string;
         };
         ErrorItem: {
@@ -17798,7 +17801,12 @@ export interface operations {
     };
     getResponse: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description true to receive the response's events as server-sent events */
+                stream?: boolean;
+                /** @description With stream=true: the sequence_number of the last event you saw; events after it are sent. Omit it to receive every event. */
+                starting_after?: number;
+            };
             header?: never;
             path: {
                 /** @description The response id */
@@ -17808,16 +17816,17 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description The background response */
+            /** @description The background response, or with stream=true its events */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": Record<string, never>;
+                    "text/event-stream": string;
                 };
             };
-            /** @description not_a_background_response: the response did not run in the background */
+            /** @description not_a_background_response: the response did not run in the background (without stream=true); invalid_cursor: starting_after is below -1 or past the last event sent */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -17828,6 +17837,24 @@ export interface operations {
             };
             /** @description No response with that id is visible to the caller */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description stream_unavailable: the response's events cannot be replayed; reason is off, no_event_log, truncated or expired. Read the conversation instead. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description follower_limit: too many clients follow this response at once */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
